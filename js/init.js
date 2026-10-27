@@ -4,7 +4,7 @@ rWatched();rWatching();rPlanned();rDash();updateStats();
 if(!API)
   setTimeout(()=>toast('Додай OMDb API-ключ у Налаштуваннях, щоб застосунок запрацював.','',10000),800);
 else if(!watched.length&&!watching.length&&!planned.length)
-  setTimeout(()=>toast('Даних поки немає. Відновити бекап: Налаштування → Дані → Імпорт.','',8000),600);
+  setTimeout(()=>toast('Даних поки немає. Відновити бекап: Налаштування → Відновити.','',8000),600);
 _backupStateRender();
 function _backupStateRender(){
   const el=document.getElementById('backupState');if(!el)return;

@@ -1,96 +1,56 @@
-/* ── SETTINGS ── */
-function openIO(){
+/* ── SETTINGS ──
+   One scrolling page, no tabs. openIO(target): optional id of an element to scroll to and flash
+   (the backup pill and the empty «Переглянуте» state open it straight at their block). */
+function openIO(target){
+  const key=_stKeys(),acc=`<div class="st-row" id="gdBox">${_gdHtml()}</div>`;
   modal(`
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.1rem">
-      <h2 class="modal-title" style="margin:0">Налаштування</h2>
-      <button onclick="closeModal()" style="background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;padding:.1rem .3rem;border-radius:6px;line-height:1" title="Закрити">✕</button>
+    <div class="st-head">
+      <h2 class="modal-title">Налаштування</h2>
+      <button class="st-x" onclick="closeModal()" title="Закрити" aria-label="Закрити">✕</button>
     </div>
-    <div class="st-tabs" id="stTabs">
-      <button class="st-tab active" onclick="stTab(0)">Ключі API</button>
-      <button class="st-tab" onclick="stTab(1)">Дані</button>
-      <button class="st-tab" onclick="stTab(2)">Інструменти</button>
-    </div>
-    <div class="st-panel" id="stP0">
+    <div class="st-body">
+      ${API?acc+key:key+acc}
       <div class="st-row">
-        <div class="st-row-head">
-          <span class="st-lbl">OMDb</span>
-          <a href="https://www.omdbapi.com/apikey.aspx" target="_blank" class="st-link">отримати →</a>
-        </div>
-        <div class="st-badge-required">обов'язковий</div>
-        <p class="st-hint">Потрібен для пошуку фільмів, постерів та метаданих. Без нього застосунок не працює.</p>
-        <div style="display:flex;gap:.45rem;margin-top:.45rem">
-          <input class="api-inp" id="apiK" type="text" placeholder="Вставте ключ…" style="flex:1" onkeydown="if(event.key==='Enter')saveKey()">
-          <button class="st-save-btn" onclick="saveKey()">Зберегти</button>
-        </div>
-        <div class="st-key-status" style="color:${API?'var(--jade-2)':'var(--rose)'}">${API?'Встановлено: '+API.slice(0,4)+'••••••••':'Не встановлено, без нього застосунок не працює'}</div>
-        <div id="apiMsg" style="font-size:.68rem;min-height:.8rem;margin-top:.1rem"></div>
-      </div>
-      <div class="st-row">
-        <div class="st-row-head">
-          <span class="st-lbl">TMDB</span>
-          <a href="https://www.themoviedb.org/settings/api" target="_blank" class="st-link">отримати →</a>
-        </div>
-        <div class="st-badge-optional">необов'язковий</div>
-        <p class="st-hint">Покращує рекомендації: трендові фільми, точніший підбір за жанром. Без ключа рекомендації працюють через OMDb.</p>
-        <div style="display:flex;gap:.45rem;margin-top:.45rem">
-          <input class="api-inp" id="tmdbK" type="text" placeholder="Вставте ключ…" style="flex:1" onkeydown="if(event.key==='Enter')saveTMDBKey()">
-          <button class="st-save-btn" onclick="saveTMDBKey()">Зберегти</button>
-        </div>
-        <div class="st-key-status" style="color:${_tmdbBlocked?'var(--rose)':TMDB_KEY?'var(--jade-2)':'var(--muted)'}">${_tmdbBlocked?'TMDB недоступний з цієї мережі, спробуй VPN':TMDB_KEY?'Встановлено: '+TMDB_KEY.slice(0,4)+'••••••••':'Не встановлено'}</div>
-        <div id="tmdbMsg" style="font-size:.68rem;min-height:.8rem;margin-top:.1rem"></div>
-      </div>
-    </div>
-    <div class="st-panel" id="stP1" style="display:none">
-      <div class="st-row" id="gdBox">${_gdHtml()}</div>
-      <div class="st-row">
-        <div class="st-row-head"><span class="st-lbl">Експорт</span></div>
-        <label style="display:flex;align-items:center;gap:.5rem;font-size:.73rem;color:var(--text-2);margin:.4rem 0 .6rem;cursor:pointer">
-          <input type="checkbox" id="incKey" style="accent-color:var(--gold)"> Включити API ключ у файл
-        </label>
-        <button class="m-btn g" onclick="doExport()" style="padding:.5rem">${ic('save')}Завантажити бекап</button>
-      </div>
-      <div class="st-row" style="margin-bottom:0">
-        <div class="st-row-head"><span class="st-lbl">Імпорт</span></div>
-        <p style="font-size:.71rem;color:var(--text-2);margin:.35rem 0 .55rem;line-height:1.5">Обери <strong style="color:var(--text)">backup.json</strong> — дані об'єднуються.</p>
-        <label class="drop-zone" for="impFile">${ic('upload')}Обрати файл бекапу<input type="file" id="impFile" accept=".json" onchange="doImport(event)"></label>
-        <div id="impMsg" style="font-size:.72rem;text-align:center;min-height:.9rem;margin-top:.3rem"></div>
-      </div>
-      <div class="st-row" style="margin:1rem 0 0">
-        <div class="st-row-head"><span class="st-lbl">Імпорт з IMDb або Letterboxd</span></div>
-        <p style="font-size:.71rem;color:var(--text-2);margin:.35rem 0 .55rem;line-height:1.5">CSV з IMDb (Your Ratings або Watchlist) чи з Letterboxd (watched, ratings, diary, watchlist). Спершу покажу, що знайшов.</p>
-        <label class="drop-zone" for="csvFile">${ic('upload')}Обрати CSV<input type="file" id="csvFile" accept=".csv,text/csv" onchange="doCsvImport(event)"></label>
+        <div class="st-row-head"><span class="st-lbl">Файли й обслуговування</span></div>
+        <button class="st-act" onclick="doExport()">${ic('save')}<span><b>Зберегти бекап у файл</b><small>JSON з усіма списками й ключами</small></span></button>
+        <label class="st-act" for="impFile">${ic('upload')}<span><b>Відновити з файлу</b><small>backup.json, дані об'єднуються</small></span></label>
+        <input type="file" id="impFile" accept=".json" onchange="doImport(event)" hidden>
+        <div id="impMsg" class="st-msg"></div>
+        <label class="st-act" for="csvFile" id="stCsv">${ic('film')}<span><b>Імпорт з IMDb / Letterboxd</b><small>CSV з оцінками або watchlist</small></span></label>
+        <input type="file" id="csvFile" accept=".csv,text/csv" onchange="doCsvImport(event)" hidden>
         <div id="csvBox"></div>
-      </div>
-      <div class="st-row" style="margin:1rem 0 0">
-        <div class="st-row-head"><span class="st-lbl">Сховище браузера</span></div>
-        <p class="st-hint" id="stoInfo">${_storageInfo()}</p>
-        <button class="w-btn" onclick="clearCaches()" style="font-size:.73rem;margin-top:.4rem">Очистити кеші</button>
-        <div id="stoMsg" style="font-size:.69rem;margin-top:.35rem;min-height:.8rem;color:var(--muted)"></div>
-      </div>
-    </div>
-    <div class="st-panel" id="stP2" style="display:none">
-      <div class="st-row">
-        <div class="st-row-head"><span class="st-lbl">Перевірка даних</span></div>
-        <p style="font-size:.71rem;color:var(--text-2);margin:.3rem 0 .55rem;line-height:1.5">Дублі, тайтли у двох списках одразу, приховані, які є у списках, порожні й сумнівні категорії. Спершу показує, що знайшла, і нічого не міняє без підтвердження.</p>
-        <button class="w-btn" onclick="runCleanScan()" style="font-size:.73rem">Перевірити</button>
+        <button class="st-act" onclick="runCleanScan()">${ic('check')}<span><b>Перевірка даних</b><small>Дублі й сумнівні категорії</small></span></button>
         <div id="cleanMsg" class="cl-msg"></div>
         <div id="cleanList"></div>
+        ${_storageChars()/STORAGE_QUOTA_CHARS>=.7?`<div class="st-sto"><span class="st-lbl">Сховище браузера</span>
+          <p class="st-hint" id="stoInfo">${_storageInfo()}</p>
+          <button class="w-btn" onclick="clearCaches()">Очистити кеші</button>
+          <div id="stoMsg" class="st-msg"></div></div>`:''}
       </div>
-      <div class="st-row">
-        <div class="st-row-head"><span class="st-lbl">Виправити аніме</span></div>
-        <p style="font-size:.71rem;color:var(--text-2);margin:.3rem 0 .55rem;line-height:1.5">Сканує мультфільми без країни та переводить японську анімацію в Аніме.</p>
-        <button class="w-btn" onclick="fixAnime()" id="fxBtn" style="font-size:.73rem">Сканувати</button>
-        <div id="fxMsg" style="font-size:.69rem;margin-top:.35rem;min-height:.8rem;color:var(--muted)"></div>
-      </div>
-      <div class="st-row" style="margin-bottom:0">
-        <div class="st-row-head"><span class="st-lbl">Підтягнути дані IMDb</span></div>
-        <p style="font-size:.71rem;color:var(--text-2);margin:.3rem 0 .55rem;line-height:1.5">Завантажує відсутні рейтинги, жанри та країни для всіх записів.</p>
-        <button class="w-btn" onclick="fixRatings()" id="rBtn2" style="font-size:.73rem">Завантажити відсутні дані</button>
-        <div id="rMsg" style="font-size:.69rem;margin-top:.35rem;min-height:.8rem;color:var(--muted)"></div>
-      </div>
-    </div>
-  `);
+    </div>`);
+  document.querySelector('.modal-bg')?.classList.add('st-bg');document.querySelector('.modal')?.classList.add('st-modal');
+  const el=target&&document.getElementById(target);
+  if(el){el.scrollIntoView({block:'center'});el.classList.add('st-flash');setTimeout(()=>el.classList.remove('st-flash'),1800);}
 }
+/* a key row is one compact line while the key exists; the input only shows after «Змінити» or when there is none */
+function _stKeyRow(id,name,key,save,url,opt,bad,hint){
+  const has=!!key;
+  return `<div class="st-key">
+    <div class="st-key-line"><span class="st-key-n">${name}${opt?'<em>необов\'язковий</em>':''}</span>
+      ${has?`<span class="st-key-v${bad?' bad':''}">${bad?'✕ недоступний':'✓ '+esc(key.slice(0,4))+'••••'}</span><button class="st-chg" onclick="stKeyEdit('${id}')">Змінити</button>`:'<span class="st-key-v off">не встановлено</span>'}
+      <a href="${url}" target="_blank" rel="noopener" class="st-link">отримати ключ →</a></div>
+    ${bad?'<p class="st-hint" style="color:var(--rose)">TMDB недоступний з цієї мережі, спробуй VPN</p>':!has&&hint?`<p class="st-hint">${hint}</p>`:''}
+    <div class="st-ed" id="${id}Ed"${has?' style="display:none"':''}>
+      <input class="api-inp" id="${id}K" type="text" placeholder="Вставте ключ…" onkeydown="if(event.key==='Enter')${save}()">
+      <button class="st-save-btn" onclick="${save}()">Зберегти</button></div>
+    <div id="${id}Msg" class="st-msg"></div></div>`;
+}
+function _stKeys(){
+  return `<div class="st-row" id="stKeys"><div class="st-row-head"><span class="st-lbl">Ключі API</span></div>
+    ${_stKeyRow('api','OMDb',API,'saveKey','https://www.omdbapi.com/apikey.aspx',false,false,'Для пошуку, постерів і метаданих. Без нього застосунок не працює.')}
+    ${_stKeyRow('tmdb','TMDB',TMDB_KEY,'saveTMDBKey','https://www.themoviedb.org/settings/api',true,_tmdbBlocked&&!!TMDB_KEY,'Покращує рекомендації. Без ключа вони працюють через OMDb.')}</div>`;
+}
+function stKeyEdit(id){const e=document.getElementById(id+'Ed');if(!e)return;e.style.display='flex';document.getElementById(id+'K')?.focus();}
 const STORAGE_QUOTA_CHARS=5e6; /* Chrome/Edge/Firefox: ~5M chars per origin */
 function _storageInfo(){
   const n=_storageChars(),pct=Math.round(n/STORAGE_QUOTA_CHARS*100);
@@ -108,27 +68,26 @@ function clearCaches(){
   const info=document.getElementById('stoInfo');if(info)info.innerHTML=_storageInfo();
   const m=document.getElementById('stoMsg');if(m){m.style.color='var(--jade-2)';m.textContent=`Звільнено ${(freed/1e6).toFixed(2)} млн символів`;}
 }
-function stTab(i){
-  document.querySelectorAll('.st-tab').forEach((t,idx)=>t.classList.toggle('active',idx===i));
-  document.querySelectorAll('.st-panel').forEach((p,idx)=>p.style.display=idx===i?'block':'none');
-}
-function saveKey(){const v=(document.getElementById('apiK').value||'').trim(),m=document.getElementById('apiMsg');if(!v){m.style.color='var(--rose)';m.textContent='Введіть ключ';return;}API=v;_lsSet('ct_apikey',v);m.style.color='var(--jade-2)';m.textContent='Ключ збережено';document.getElementById('apiK').value='';}
+function saveKey(){const v=(document.getElementById('apiK').value||'').trim(),m=document.getElementById('apiMsg');if(!v){m.style.color='var(--rose)';m.textContent='Введіть ключ';return;}API=v;_lsSet('ct_apikey',v);m.style.color='var(--jade-2)';m.textContent='Ключ збережено';openIO('stKeys');/* redraw: the row turns compact and OMDb leaves the top */}
 function saveTMDBKey(){const v=(document.getElementById('tmdbK').value||'').trim(),m=document.getElementById('tmdbMsg');if(!v){m.style.color='var(--rose)';m.textContent='Введіть ключ';return;}TMDB_KEY=v;_lsSet('ct_tmdbkey',v);/* Clear TMDB cache so next fetch uses the new key */Object.keys(_tmdbCache).forEach(k=>delete _tmdbCache[k]);m.style.color='var(--jade-2)';m.textContent='Ключ збережено. Оновлюємо рекомендації…';document.getElementById('tmdbK').value='';setTimeout(()=>{closeModal();refreshRecs();},400);}
+/* Quiet maintenance: both fixers touch no DOM and return how many titles they changed.
+   They run by themselves (after an import, and weekly), see runMaintenance. */
 async function fixAnime(){
-  const btn=document.getElementById('fxBtn'),msg=document.getElementById('fxMsg');if(!btn||!msg)return;
   const cands=[...watched,...planned].filter(i=>i.customCategory==='cartoon'&&!i.country);
   const seen=new Set(),unique=cands.filter(i=>seen.has(i.imdbID)?false:(seen.add(i.imdbID),true));
-  if(!unique.length){msg.style.color='var(--jade-2)';msg.textContent='Всі записи вже мають дані';return;}
-  btn.disabled=true;btn.textContent='…';let fixed=0;
+  let fixed=0;
   for(let i=0;i<unique.length;i++){
     await new Promise(r=>setTimeout(r,350));
-    try{const info=await aFetch(`i=${unique[i].imdbID}`);const co=info.Country||'',gn=(info.Genre||'').toLowerCase(),isJA=gn.includes('animation')&&isAnimeCountry(co);[watched,planned].forEach(l=>{const it=l.find(x=>x.imdbID===unique[i].imdbID);if(!it)return;it.country=co;if(isJA){it.customCategory='anime';fixed++;}});}catch(e){}
-    const me=document.getElementById('fxMsg');if(me)me.textContent=`${i+1}/${unique.length}…`;
+    try{
+      const info=await aFetch(`i=${unique[i].imdbID}`);
+      if(info.Response==='False'){if(/limit|key/i.test(info.Error||''))break;continue;} /* limit: stop, don't write empty countries */
+      const co=info.Country||'',gn=(info.Genre||'').toLowerCase(),isJA=gn.includes('animation')&&isAnimeCountry(co);
+      [watched,planned].forEach(l=>{const it=l.find(x=>x.imdbID===unique[i].imdbID);if(!it)return;it.country=co;if(isJA)it.customCategory='anime';});
+      if(isJA)fixed++;
+    }catch(e){if(e.status>=400&&e.status<500)break;}
   }
-  save();rWatched();rPlanned();
-  const b2=document.getElementById('fxBtn'),m2=document.getElementById('fxMsg');
-  if(b2){b2.disabled=false;b2.textContent='Сканувати';}
-  if(m2){m2.style.color=fixed?'var(--jade-2)':'var(--muted)';m2.textContent=fixed?`${fixed} аніме перекласифіковано`:'Японської анімації не знайдено';}
+  if(unique.length){save();if(fixed){rWatched();rPlanned();}}
+  return fixed;
 }
 /* Some titles (unreleased movies, very fresh episodes) genuinely have no
    IMDb rating YET — OMDb will keep returning nothing for them, which used
@@ -152,6 +111,7 @@ async function _enrichMissingRatings(onProgress){
     const targets=[];[watched,watching,planned].forEach(l=>{const it=l.find(x=>x.imdbID===tasks[i]);if(it)targets.push(it);});
     try{
       const info=await aFetch(`i=${tasks[i]}`);
+      if(info.Response==='False'&&/limit|key/i.test(info.Error||''))break; /* daily limit: nothing below would succeed, and marking titles checked would hide them for 14 days */
       if(info.Response==='False'){targets.forEach(it=>it._ratingCheckedAt=now);continue;}
       let ch=false;
       targets.forEach(it=>{
@@ -161,24 +121,34 @@ async function _enrichMissingRatings(onProgress){
         it._ratingCheckedAt=now;
       });
       if(ch)upd++;
-    }catch(e){ /* network hiccup — don't mark checked, worth retrying next time */ }
+    }catch(e){ if(e.status>=400&&e.status<500)break; /* OMDb answers the daily limit and a bad key with 401 */ /* network hiccup: don't mark checked, worth retrying next time */ }
   }
   if(tasks.length)save();
   return{checked:tasks.length,updated:upd};
 }
 async function fixRatings(){
-  const btn=document.getElementById('rBtn2'),msg=document.getElementById('rMsg');if(!btn||!msg)return;
-  btn.disabled=true;btn.textContent='…';
-  const res=await _enrichMissingRatings((i,total)=>{const me=document.getElementById('rMsg');if(me)me.textContent=`${i+1}/${total}…`;});
-  rWatched();rWatching();rPlanned();
-  const b2=document.getElementById('rBtn2'),m2=document.getElementById('rMsg');
-  if(b2){b2.disabled=false;b2.textContent='Завантажити відсутні дані';}
-  if(m2){
-    if(!res.checked){m2.style.color='var(--jade-2)';m2.textContent='Всі дані вже є або нещодавно перевірені';}
-    else if(res.updated){m2.style.color='var(--jade-2)';m2.textContent=`Оновлено ${res.updated} записів`;}
-    else{m2.style.color='var(--muted)';m2.textContent=`Перевірено ${res.checked} — даних поки немає (ймовірно, ще не вийшло)`;}
-  }
+  const res=await _enrichMissingRatings();
+  if(res.updated){rWatched();rWatching();rPlanned();}
+  return res.updated;
 }
+/* Both fixers in the background, one toast only if something changed. Not before the OMDb key exists. */
+const MAINT_EVERY=7*864e5;let _maintBusy=false;
+async function runMaintenance(){
+  if(_maintBusy||!API)return 0;
+  _maintBusy=true;let n=0;
+  try{n=await fixAnime()+await fixRatings();}catch(e){console.warn('Maintenance:',e);}
+  _maintBusy=false;
+  if(n){const t=n%10,h=n%100;toast(`Оновлено дані ${n} ${t===1&&h!==11?'фільму':'фільмів'}`,'ok',3200);}
+  return n;
+}
+/* weekly, ~20 s after start, and only while the tab is visible (a hidden tab waits until it is shown) */
+function _maintAuto(){
+  if(!API)return;
+  if(document.hidden){document.addEventListener('visibilitychange',_maintAuto,{once:true});return;}
+  if(Date.now()-(+localStorage.getItem('ct_maint_last')||0)<MAINT_EVERY)return;
+  _lsSet('ct_maint_last',String(Date.now()));runMaintenance();
+}
+setTimeout(_maintAuto,2e4);
 /* Backup object, shared by the file export and the Drive upload */
 function _buildBackup(incK){
   return{version:1,exportedAt:new Date().toISOString(),...(incK?{apiKey:API,tmdbKey:TMDB_KEY}:{}),
@@ -189,9 +159,9 @@ function _buildBackup(incK){
     personCache:_personCache,resolveCache:_resolveCache,tmdbFind:_findCache}; /* no apiCache: it expires in 24h anyway */
 }
 async function doExport(){
-  const btn=document.querySelector('[onclick="doExport()"]'),orig=btn?.textContent;
+  const btn=document.querySelector('[onclick="doExport()"] small'),orig=btn?.textContent; /* the row's grey line doubles as progress */
   if(btn)btn.textContent='Готую…';
-  const data=_buildBackup(document.getElementById('incKey')?.checked??true);
+  const data=_buildBackup(true); /* keys always in: a restored file then works at once */
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`cinetrack-backup-${new Date().toISOString().slice(0,10)}.json`;a.click();URL.revokeObjectURL(url);
   _lsSet('ct_last_export',String(Date.now()));
@@ -312,6 +282,7 @@ async function runCsvImport(){
   if(box)box.innerHTML=`<p class="cl-msg ok">Додано ${added.length} у «${LIST_L[list]}»${missed.length?`, не знайдено ${missed.length}`:''}</p>
     ${missed.length?`<details class="csv-miss"><summary>Що не знайшлося</summary><p>${missed.map(esc).join(', ')}</p></details>`:''}`;
   toast(`Імпорт: додано ${added.length}`,'ok',2600);
+  if(added.length)runMaintenance();
 }
 /* Merges a parsed backup into the live state; shared by file import and Drive restore.
    Throws on a wrong shape before anything live is touched. */
@@ -367,6 +338,7 @@ function doImport(e){
     try{
       const {aw,awn,apl,skip,apeople}=_applyBackup(JSON.parse(ev.target.result));
       show('var(--jade-2)',`Імпортовано: ${aw} переглянуто, ${awn} дивлюсь, ${apl} заплановано${apeople?`, ${apeople} людей у стеженні`:''}${skip?` · ${skip} пропущено (вже є у твоїх списках)`:''}`);
+      runMaintenance(); /* fresh titles arrive without country/rating */
     }catch(err){show('var(--rose)','✕ '+(err.message||'невірний файл'));}
   };
   rd.readAsText(file);e.target.value='';

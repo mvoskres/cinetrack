@@ -82,7 +82,7 @@ function _gdFail(e,quiet){
   const m=String(e&&e.message||e);let t;
   if(m==='401'){_gdTokClr();_gdNotice(true);t='Сесію Google завершено, увійди знову';}
   else if(m==='net')t='Немає зв\'язку з Google Drive';
-  else if(m==='noid')t='Вкажи Google Client ID у Налаштуваннях → Дані';
+  else if(m==='noid')t='Вхід через Google не налаштовано (немає Client ID)';
   else if(m==='access_denied')t='Доступ до Drive не надано';
   else if(/popup|timeout/.test(m))t='Вхід у Google скасовано';
   else if(m==='scope')t='Потрібен доступ до Drive: дозволь його при вході';
@@ -103,38 +103,28 @@ function _gdNotice(on){
 }
 function _gdPre(){
   if(location.protocol==='file:'){toast('Вхід через Google працює лише на https-сайті','err',5000);return false;}
-  if(!_gdCid()){toast('Спершу встав Client ID у Налаштуваннях → Дані','err',5000);return false;}
+  if(!_gdCid()){toast('Вхід через Google не налаштовано (немає Client ID)','err',5000);return false;}
   return true;
 }
+/* Account block of Settings. The Client ID has no field any more: GDRIVE_CLIENT_ID, or a ct_gclientid override set from the console. */
 function _gdHtml(){
-  const cid=localStorage.getItem('ct_gclientid')||'',on=_gdOn(),last=+localStorage.getItem('ct_gd_last')||0,em=localStorage.getItem('ct_gd_email')||'';
+  const on=_gdOn(),last=+localStorage.getItem('ct_gd_last')||0,em=localStorage.getItem('ct_gd_email')||'';
   if(_gdCid()&&location.protocol!=='file:')_gdLoadLib().catch(()=>{}); /* configured = intent: warm the library so the sign-in popup isn't blocked by the load delay */
-  return `<div class="st-row-head"><span class="st-lbl">Google Drive</span></div>
-    <p class="st-hint">Бекап у твій Google Drive, папка «${GD_FOLDER}», лишаються 3 останні копії. Автоматично раз на 3 дні, якщо щось змінилось.</p>
-    ${location.protocol==='file:'?'<p class="st-hint" style="color:var(--gold)">Сторінку відкрито як файл (file://). Вхід через Google працює лише на https-сайті.</p>':''}
-    <details${_gdCid()?'':' open'} style="margin-top:.45rem"><summary class="st-hint" style="cursor:pointer">Client ID</summary>
-      <div style="display:flex;gap:.45rem;margin-top:.35rem">
-        <input class="api-inp" id="gdCid" type="text" placeholder="…apps.googleusercontent.com" value="${esc(cid)}" style="flex:1" onkeydown="if(event.key==='Enter')gdSaveCid()">
-        <button class="st-save-btn" onclick="gdSaveCid()">Зберегти</button>
+  return `<div class="st-row-head"><span class="st-lbl">Акаунт і бекап</span></div>
+    ${on?`<p class="st-acc">${ic('check')}<strong>${esc(em||'…')}</strong></p>
+      <p class="st-hint">${last?'Останній бекап: '+_gdFmt(last)+' <span style="color:var(--ok)">✓</span>':'Останній бекап: ще не було'}</p>
+      <div class="st-pair">
+        <button class="m-btn g" onclick="gdBackup()">${ic('save')}Зробити бекап</button>
+        <button class="m-btn can" onclick="gdRestoreList()">${ic('upload')}Відновити</button>
       </div>
-      <p class="st-hint">Створюється в Google Cloud Console (тип «Web application»), кроки в cinetrack-google-drive-setup.md.</p>
-    </details>
-    ${on?`<p class="st-hint" style="margin:.6rem 0 .1rem">Акаунт: <strong style="color:var(--text)">${esc(em||'…')}</strong></p>
-      <p class="st-hint" style="margin:0 0 .5rem">${last?'Останній бекап: '+_gdFmt(last):'Бекапу на Drive ще не було'}</p>
-      <button class="m-btn g" onclick="gdBackup()" style="padding:.5rem">${ic('save')}Зробити бекап зараз</button>
-      <button class="m-btn can" onclick="gdRestoreList()" style="padding:.5rem;margin-top:.4rem">${ic('upload')}Відновити з Drive</button>
-      <button class="w-btn rose" onclick="gdSignOut()" style="margin-top:.5rem;font-size:.73rem">Вийти</button>`
-    :`<button class="m-btn g" onclick="gdSignIn()" style="padding:.5rem;margin-top:.6rem">Увійти через Google</button>`}
-    <div id="gdMsg" style="font-size:.69rem;margin-top:.35rem;min-height:.8rem;color:${_gdMsg.c||'var(--muted)'}">${esc(_gdMsg.t)}</div>
+      <button class="st-out" onclick="gdSignOut()">Вийти</button>`
+    :`<p class="st-hint">Копія списків у твоєму Google Drive: автоматично раз на 3 дні, лишаються 3 останні.</p>
+      ${location.protocol==='file:'?'<p class="st-hint" style="color:var(--gold)">Сторінку відкрито як файл (file://): вхід працює лише на https-сайті.</p>':''}
+      <button class="m-btn g st-big" onclick="gdSignIn()">Увійти через Google</button>`}
+    <div id="gdMsg" class="st-msg" style="color:${_gdMsg.c||'var(--muted)'}">${esc(_gdMsg.t)}</div>
     <div id="gdList"></div>`;
 }
 function _gdRender(){const b=document.getElementById('gdBox');if(b)b.innerHTML=_gdHtml();}
-function gdSaveCid(){
-  const v=(document.getElementById('gdCid')?.value||'').trim(),old=localStorage.getItem('ct_gclientid')||'';
-  if(v)_lsSet('ct_gclientid',v);else localStorage.removeItem('ct_gclientid');
-  if(v!==old){_gdTokClr();} /* a token belongs to the old client */
-  _gdMsgSet(v?'Client ID збережено':'Client ID очищено','var(--jade-2)');_gdRender();
-}
 async function gdSignIn(){
   if(!_gdPre())return;
   const was=_gdOn();
@@ -191,7 +181,7 @@ function gdApplyPending(){
   const d=_gdPend;_gdPend=null;closeModal();if(!d)return;
   try{const r=_applyBackup(d);_lsSet('ct_gd_seen',String(Date.now()));
     /* what was just pulled is already on Drive: don't count it as an unsaved change */
-    const at=Date.parse(d.exportedAt)||Date.now();if(at>(+localStorage.getItem('ct_gd_last')||0))_lsSet('ct_gd_last',String(at));_lsSet('ct_gd_fp',_gdFp());_gdNotice(false);toast(`Підтягнуто: ${r.aw} переглянуто, ${r.awn} дивлюсь, ${r.apl} заплановано`,'ok',4200);}
+    const at=Date.parse(d.exportedAt)||Date.now();if(at>(+localStorage.getItem('ct_gd_last')||0))_lsSet('ct_gd_last',String(at));_lsSet('ct_gd_fp',_gdFp());_gdNotice(false);toast(`Підтягнуто: ${r.aw} переглянуто, ${r.awn} дивлюсь, ${r.apl} заплановано`,'ok',4200);runMaintenance();}
   catch(e){toast('Не вдалося підтягнути: '+(e.message||'помилка'),'err',5000);}
 }
 async function gdRestoreList(){
@@ -201,7 +191,7 @@ async function gdRestoreList(){
   try{
     await _gdToken('');
     const l=await _gdList(await _gdFolder(),GD_KEEP);
-    if(el())el().innerHTML=l.length?l.map(f=>`<button class="w-btn" style="display:flex;width:100%;justify-content:space-between;margin-top:.35rem;font-size:.73rem" onclick="gdRestorePick('${f.id}')"><span>${_gdFmt(Date.parse(f.createdTime))}</span><span style="color:var(--muted)">${Math.round((+f.size||0)/1024)} КБ</span></button>`).join(''):'<p class="st-hint">У папці ще немає бекапів.</p>';
+    if(el())el().innerHTML=l.length?l.map(f=>`<button class="w-btn st-copy" onclick="gdRestorePick('${f.id}')"><span>${_gdFmt(Date.parse(f.createdTime))}</span><span style="color:var(--muted)">${Math.round((+f.size||0)/1024)} КБ</span></button>`).join(''):'<p class="st-hint">У папці ще немає бекапів.</p>';
   }catch(e){if(el())el().innerHTML='';_gdFail(e);}
 }
 async function gdRestorePick(id){

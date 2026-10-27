@@ -16,7 +16,7 @@ function _lsSet(k,v){
   try{localStorage.setItem(k,v);return true;}catch(e){
     /* a failed list write = data not on disk: tell the user every time, not once per session */
     const isList=_LIST_KEYS.includes(k);
-    if(isList||!_quotaWarned){_quotaWarned=true;try{toast(isList?'Не вдалося зберегти списки: сховище браузера переповнене. Зроби бекап і очисти кеші: Налаштування → Дані':'Сховище браузера переповнене. Зроби бекап і очисти кеші: Налаштування → Дані','err',9000);}catch(_){}}
+    if(isList||!_quotaWarned){_quotaWarned=true;try{toast(isList?'Не вдалося зберегти списки: сховище браузера переповнене. Зроби бекап і очисти кеші: Налаштування':'Сховище браузера переповнене. Зроби бекап і очисти кеші: Налаштування','err',9000);}catch(_){}}
     return false;
   }
 }
@@ -44,7 +44,7 @@ let planned =JSON.parse(localStorage.getItem('ct_planned') ||'[]');
 const _pendingMap={};
 function _pmSet(k,v){const ks=Object.keys(_pendingMap);if(ks.length>=100)delete _pendingMap[ks[0]];_pendingMap[k]=v;}let recsFetched=0;
 let TMDB_KEY=localStorage.getItem('ct_tmdbkey')||'';
-const GDRIVE_CLIENT_ID='736522220888-jt1nuelrnm81684kgs0krup3sv6p4d2d.apps.googleusercontent.com'; /* OAuth Client ID (Web application); can be pasted in Settings → Дані instead (ct_gclientid) */
+const GDRIVE_CLIENT_ID='736522220888-jt1nuelrnm81684kgs0krup3sv6p4d2d.apps.googleusercontent.com'; /* OAuth Client ID (Web application); ct_gclientid in localStorage overrides it (no field in the UI) */
 let _tmdbBlocked=false;
 
 /* ── PERSISTENT API CACHE (24h TTL) ── */

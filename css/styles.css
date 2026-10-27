@@ -529,11 +529,6 @@ body::after{content:none;}
 .modal-already.go{background:var(--sky-d);color:var(--sky);}
 .modal-already.pl{background:var(--mauve-d);color:var(--mauve);}
 .modal-already.skip{background:var(--rose-d);color:var(--rose);}
-.st-tabs{display:flex;gap:.3rem;margin-bottom:1rem;background:var(--ink-3);border-radius:10px;padding:.25rem;}
-.st-tab{flex:1;padding:.38rem .4rem;border:none;border-radius:8px;background:transparent;color:var(--text-2);font-family:var(--sans);font-size:.72rem;font-weight:500;cursor:pointer;transition:background var(--transition),color var(--transition);white-space:nowrap;}
-.st-tab.active{background:var(--gold-d);color:var(--gold);border:1px solid var(--gold-b);}
-.st-tab:not(.active):hover{background:rgba(255,255,255,.04);color:var(--text);}
-.st-panel{}
 .st-row{background:var(--ink-3);border:1px solid var(--border-2);border-radius:10px;padding:.75rem .85rem;margin-bottom:.55rem;}
 .st-row-head{display:flex;align-items:center;justify-content:space-between;}
 .st-lbl{font-size:.73rem;font-weight:600;color:var(--text);letter-spacing:.01em;}
@@ -831,7 +826,6 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 .modal-already.ok{background:var(--ok-d);color:var(--ok);}
 .modal-already.go{background:var(--live-d);color:var(--live);}
 .modal-already.pl{background:var(--gold-d);color:var(--gold);}
-.st-tab.active{background:var(--ink-2);color:var(--text);border:1px solid var(--line);}
 .st-row{border-color:var(--line);}
 .st-save-btn{background:var(--gold);color:var(--gold-ink);border-color:var(--gold);}
 .toast{background:var(--ink-2);border-color:var(--line);border-radius:12px;}
@@ -1181,7 +1175,6 @@ kbd{display:inline-block;font:500 .7rem var(--mono);border:1px solid var(--borde
   .game-modal{max-height:92dvh;}
   @media(max-width:640px){.game-modal{max-height:100dvh;}}
 }
-.st-tab{border:1px solid transparent;} /* the active tab adds a 1px border: no jump when switching */
 .pc-act{display:inline-flex;align-items:center;gap:.35rem;}
 .ts.scrolled .ts-top{background:var(--ink-2);border-bottom:1px solid var(--line);}
 .ts-ep:focus-visible{outline-color:var(--gold);}
@@ -1203,3 +1196,57 @@ kbd{display:inline-block;font:500 .7rem var(--mono);border:1px solid var(--borde
   .tr .step .btn.primary{flex:1;max-width:220px;font-size:.92rem;}
   .tr .air{font-size:.76rem;gap:.15rem .7rem;}
 }
+/* ── SETTINGS: one page. Header is sticky, the rest scrolls; on a phone the modal is the whole screen ── */
+.st-modal{max-width:520px;padding:0;}
+.st-head{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.1rem .8rem 1.25rem;background:var(--ink-2);border-bottom:1px solid var(--line);}
+.st-head .modal-title{margin:0;}
+.st-x{width:40px;height:40px;display:grid;place-items:center;background:none;border:none;border-radius:10px;color:var(--muted);font-size:1.15rem;line-height:1;cursor:pointer;}
+.st-x:hover{background:var(--ink-3);color:var(--text);}
+.st-body{padding:1rem 1.25rem 1.25rem;}
+.st-body .st-row:last-child{margin-bottom:0;}
+.st-flash{animation:stflash 1.6s ease-out;}
+@keyframes stflash{0%,40%{background:var(--gold-d);outline:1px solid var(--gold-b);outline-offset:3px;border-radius:10px;}100%{background:transparent;outline-color:transparent;}}
+.st-msg{font-size:.69rem;min-height:.8rem;margin-top:.3rem;color:var(--muted);}
+.st-msg:empty{min-height:0;margin:0;}
+.st-acc{display:flex;align-items:center;gap:.4rem;margin:.55rem 0 0;font-size:.82rem;color:var(--text);min-width:0;}
+.st-acc strong{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.st-acc svg.i{width:15px;height:15px;color:var(--ok);flex:none;}
+.st-pair{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-top:.7rem;}
+.st-pair .m-btn,.st-big,.st-modal .m-btn{min-height:44px;padding:.5rem .6rem;}
+.st-big{margin-top:.7rem;}
+.st-out{display:block;margin:.55rem 0 0;padding:.45rem 0;min-height:36px;background:none;border:none;color:var(--muted);font:inherit;font-size:.72rem;text-decoration:underline;cursor:pointer;}
+.st-out:hover{color:var(--rose);}
+.st-copy{display:flex;width:100%;justify-content:space-between;align-items:center;min-height:42px;margin-top:.4rem;font-size:.76rem;}
+.st-copy span+span{color:var(--muted);}
+.st-key{padding:.5rem 0;border-top:1px solid var(--line);}
+.st-row-head+.st-key{border-top:none;}
+.st-key-line{display:flex;align-items:center;gap:.55rem;min-height:36px;flex-wrap:wrap;}
+.st-key-n{font-size:.82rem;font-weight:600;color:var(--text);}
+.st-key-n{min-width:5.2rem;display:flex;flex-direction:column;line-height:1.2;}
+.st-key-n em{font-style:normal;font-weight:400;font-size:.62rem;color:var(--muted);margin-top:.1rem;}
+.st-key-v{font-family:var(--mono);font-size:.72rem;color:var(--ok);}
+.st-key-v.bad{color:var(--rose);}
+.st-key-v.off{color:var(--rose);font-family:var(--sans);}
+.st-chg{min-height:36px;padding:0 .8rem;background:var(--ink-2);border:1px solid var(--line);border-radius:8px;color:var(--text-2);font:inherit;font-size:.72rem;cursor:pointer;}
+.st-chg:hover{color:var(--text);}
+.st-key .st-link{margin-left:auto;}
+.st-ed{display:flex;gap:.45rem;margin-top:.45rem;}
+.st-ed .api-inp{flex:1;min-height:40px;}
+.st-ed .st-save-btn{min-height:40px;padding:0 .9rem;}
+.st-act{display:flex;align-items:center;gap:.75rem;width:100%;min-height:52px;margin-top:.5rem;padding:.55rem .75rem;background:var(--ink-2);border:1px solid var(--line);border-radius:10px;color:var(--text);font:inherit;text-align:left;cursor:pointer;transition:border-color .15s;}
+.st-act:hover{border-color:var(--gold-b);}
+.st-act>svg.i{width:19px;height:19px;flex:none;color:var(--gold);}
+.st-act>span{min-width:0;flex:1;}
+.st-act b{display:block;font-size:.8rem;font-weight:600;}
+.st-act small{display:block;font-size:.68rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.st-sto{margin-top:.9rem;padding-top:.7rem;border-top:1px solid var(--line);}
+.st-sto .w-btn{margin-top:.5rem;min-height:40px;}
+.empty-act{display:inline-flex;align-items:center;gap:.45rem;margin-top:1rem;min-height:40px;padding:0 1rem;font-size:.78rem;}
+.empty-act svg.i{width:16px;height:16px;}
+@media(max-width:560px){
+  .st-bg{padding:0;align-items:stretch;}
+  .st-modal{max-width:none;max-height:none;height:100%;border-radius:0;border:none;}
+  .st-head{padding-top:max(.8rem,env(safe-area-inset-top));}
+  .st-body{padding-bottom:max(1.25rem,env(safe-area-inset-bottom));}
+}
+@supports(height:100dvh){@media(max-width:560px){.st-modal{height:100dvh;}}}

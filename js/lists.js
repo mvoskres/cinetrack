@@ -286,7 +286,7 @@ function rWatched(){
   const list=applyF(watched,'watched');
   const cnt=document.getElementById('wCount');
   if(cnt)cnt.textContent=list.length!==watched.length?`${list.length} з ${watched.length} записів`:'';
-  if(!list.length){g.innerHTML=watched.length?`<div class="empty"><span class="empty-icon">${ic('search')}</span><div class="empty-txt">Нічого не знайдено за фільтром</div></div>`:`<div class="empty"><span class="empty-icon">${ic('film')}</span><div class="empty-txt">Тут з'являтимуться переглянуті фільми та серіали</div></div>`;return;}
+  if(!list.length){g.innerHTML=watched.length?`<div class="empty"><span class="empty-icon">${ic('search')}</span><div class="empty-txt">Нічого не знайдено за фільтром</div></div>`:`<div class="empty"><span class="empty-icon">${ic('film')}</span><div class="empty-txt">Тут з'являтимуться переглянуті фільми та серіали</div><button class="w-btn gold empty-act" onclick="openIO('stCsv')">${ic('upload')}Імпортувати з IMDb / Letterboxd</button></div>`;return;}
   _gridRender('watched',g,list,i=>myCard('watched',i));
 }
 
