@@ -1423,7 +1423,7 @@ let planned =JSON.parse(localStorage.getItem('ct_planned') ||'[]');
 const _pendingMap={};
 function _pmSet(k,v){const ks=Object.keys(_pendingMap);if(ks.length>=100)delete _pendingMap[ks[0]];_pendingMap[k]=v;}let recsFetched=0;
 let TMDB_KEY=localStorage.getItem('ct_tmdbkey')||'';
-const GDRIVE_CLIENT_ID=''; /* OAuth Client ID (Web application); can be pasted in Settings → Дані instead (ct_gclientid) */
+const GDRIVE_CLIENT_ID='736522220888-jt1nuelrnm81684kgs0krup3sv6p4d2d.apps.googleusercontent.com'; /* OAuth Client ID (Web application); can be pasted in Settings → Дані instead (ct_gclientid) */
 let _tmdbBlocked=false;
 
 /* ── PERSISTENT API CACHE (24h TTL) ── */
