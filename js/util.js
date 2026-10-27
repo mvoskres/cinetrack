@@ -98,21 +98,36 @@ function aFetch(p,retries=2){
 
 /* ── HELPERS ── */
 function ps(p){return p&&p!=='N/A'?p:'';}
-async function fixBrokenPoster(img,imdbID){
+/* A card poster that 404s (OMDb's Amazon links rot) or was never stored ('data:,' fails on purpose):
+   TMDB /find first — the title sheet already shows TMDB posters — then OMDb; the found URL is saved on
+   the item so it is fixed once. Queued 3 at a time: a grid can hold dozens of broken posters */
+const _pfDone=new Set(),_pfQ=[];let _pfRun=0,_pfSaveT=null;
+function posterSrc(p){return p||'data:,';}
+function fixBrokenPoster(img,imdbID){
   img.onerror=null;
-  img.src=blank();
-  if(!imdbID||!API)return;
-  try{
-    const info=await aFetch('i='+imdbID);
-    if(!info||info.Response==='False'||!info.Poster||info.Poster==='N/A')return;
-    const newUrl=info.Poster;
-    let changed=false;
-    [watched,watching,planned].forEach(lst=>{
-      lst.forEach(it=>{if(it.imdbID===imdbID&&it.poster!==newUrl){it.poster=newUrl;changed=true;}});
-    });
-    if(changed)save();
-    img.src=newUrl;
-  }catch(e){}
+  const bad=img.getAttribute('src');
+  img.src=BLANK;
+  if(!imdbID||_pfDone.has(imdbID))return;
+  _pfDone.add(imdbID);_pfQ.push({img,imdbID,bad});_pfNext();
+}
+function _pfNext(){
+  while(_pfRun<3&&_pfQ.length){
+    const j=_pfQ.shift();_pfRun++;
+    _pfFind(j.imdbID,j.bad).then(u=>{
+      if(!u)return;
+      [watched,watching,planned].forEach(l=>l.forEach(it=>{if(it.imdbID===j.imdbID)it.poster=u;}));
+      document.querySelectorAll(`img[data-pf="${j.imdbID}"]`).forEach(im=>{im.onerror=null;im.src=u;}); /* the same title on other cards */
+      clearTimeout(_pfSaveT);_pfSaveT=setTimeout(save,1500);
+    }).catch(()=>{}).finally(()=>{_pfRun--;_pfNext();});
+  }
+}
+async function _pfFind(imdbID,bad){
+  if(TMDB_KEY&&!_tmdbBlocked){
+    try{const d=await tmdbFetch(`/find/${imdbID}?external_source=imdb_id`);
+      const p=(d?.movie_results?.[0]||d?.tv_results?.[0])?.poster_path;if(p)return `https://image.tmdb.org/t/p/w342${p}`;}catch(e){}
+  }
+  if(API){try{const u=ps((await aFetch('i='+imdbID))?.Poster);if(u&&u!==bad)return u;}catch(e){}}
+  return '';
 }
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 /* encodeURIComponent does NOT escape apostrophes ('), which breaks any value

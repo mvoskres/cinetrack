@@ -269,7 +269,7 @@ function _myMeta(i){const c=i.customCategory||i.type;return `<div class="pc-m">$
 function _tagsHtml(i){return (i.tags||[]).length?`<div class="card-utags">${i.tags.map(t=>`<span class="utag">${esc(t)}<button class="utag-x" data-act="rmTag" data-args="${A((i.id),`${uriSafe(t)}`)}" aria-label="Видалити тег ${esc(t)}">✕</button></span>`).join('')}</div>`:'';}
 function myCard(list,i){
   return `<article class="pc">
-    <div class="pc-art"><a href="${i.imdbUrl}" target="_blank" rel="noopener" tabindex="-1" data-act="_tsClick" data-args="${A('$ev',`${i.imdbID}`)}"><img src="${i.poster||BLANK}" alt="" loading="lazy" onerror="this.src=BLANK"></a>
+    <div class="pc-art"><a href="${i.imdbUrl}" target="_blank" rel="noopener" tabindex="-1" data-act="_tsClick" data-args="${A('$ev',`${i.imdbID}`)}"><img src="${posterSrc(i.poster)}" data-pf="${i.imdbID}" alt="" loading="lazy" onerror="fixBrokenPoster(this,'${i.imdbID}')"></a>
       ${i.rating?`<span class="pc-my">${ic('star')}${i.rating}</span>`:''}
       ${i.streamUrl?`<a class="pc-fab play" href="${esc(i.streamUrl)}" target="_blank" rel="noopener" aria-label="Дивитись ${esc(i.title)}">${ic('play')}</a>`:''}
       <button class="pc-fab more" data-act="cardMenu" data-args="${A('$ev',`${list}`,(i.id))}" aria-label="Дії: ${esc(i.title)}">${ic('dots')}</button></div>
@@ -344,7 +344,7 @@ function rWatching(skipLive){
     const lh=i.liveStatus?buildLiveHTML(i.liveStatus):'<div class="live-loading">Завантажую дані ефіру…</div>';
     const play=i.streamUrl?`<a class="btn sq" href="${esc(i.streamUrl)}" target="_blank" rel="noopener" aria-label="Дивитись" title="Дивитись">${ic('play')}</a>`:'';
     return `<article class="tr" id="wc-${i.id}">
-      <img class="tr-art" src="${i.poster||BLANK}" alt="" loading="lazy" onerror="fixBrokenPoster(this,'${i.imdbID}')" data-act="openTitle" data-args="${A(`${i.imdbID}`)}" style="cursor:pointer">
+      <img class="tr-art" src="${posterSrc(i.poster)}" data-pf="${i.imdbID}" alt="" loading="lazy" onerror="fixBrokenPoster(this,'${i.imdbID}')" data-act="openTitle" data-args="${A(`${i.imdbID}`)}" style="cursor:pointer">
       <div class="tr-body">
         <div class="tr-top"><div class="tr-head">
           <h3 class="tr-t"><a href="${i.imdbUrl}" target="_blank" rel="noopener" data-act="_tsClick" data-args="${A('$ev',`${i.imdbID}`)}">${esc(i.title)}</a>${_dupSet.has(i.imdbID)?'<span class="dup-badge" title="Цей тайтл є ще в іншому списку">дубль</span>':''}</h3>
