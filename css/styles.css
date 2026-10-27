@@ -1250,3 +1250,49 @@ kbd{display:inline-block;font:500 .7rem var(--mono);border:1px solid var(--borde
   .st-body{padding-bottom:max(1.25rem,env(safe-area-inset-bottom));}
 }
 @supports(height:100dvh){@media(max-width:560px){.st-modal{height:100dvh;}}}
+
+/* ── ACCENTS (2026-10-27) ──
+   Amber marks "where you are / what is selected / the main figure"; the filled buttons
+   (+ Серія, backup) stay the loudest thing on screen. Only existing --gold* tokens. */
+
+/* 1. active navigation */
+.nav-item.active{background:var(--gold-d);color:var(--gold);}
+.nav-item.active::before{display:block;top:.4rem;bottom:.4rem;width:3px;background:var(--gold);transform:none;border-radius:0 3px 3px 0;}
+.nav-item.active .nav-badge{color:var(--gold);opacity:.8;}
+@media(max-width:899px){
+  .tabbar button{position:relative;}
+  .tabbar button.active{color:var(--gold);}
+  .tabbar button.active::before{content:'';position:absolute;top:-.3rem;left:24%;right:24%;height:2px;border-radius:0 0 2px 2px;background:var(--gold);}
+}
+
+/* 2. section titles: short bar underneath, counter in amber */
+.section-title::after{content:'';display:block;width:24px;height:3px;border-radius:3px;background:var(--gold);margin-top:.5rem;}
+.section-title em{color:var(--gold);}
+
+/* 3. episode number on the "watching" card; "сезон N з M" stays grey */
+.tr .ep .ep-v{color:var(--gold);}
+
+/* 4. selected filters and chips (beats the grey PROJECTION overrides by coming later) */
+.flt-pill.active,.flt-pill.has-n,.people-chips .flt-pill.active,
+.cat-chip.on,.person-chip.active,.flt-chip.on,.flt-chip--t.on{background:var(--gold-d);color:var(--gold);border-color:var(--gold-b);}
+.cat-chip.on .num{opacity:.75;}
+.cat-chip,.flt-pill,.person-chip{transition:color .15s,background-color .15s,border-color .15s;}
+
+/* 5. cards: amber hairline on hover / press / keyboard focus, no size change (borders already exist) */
+.pc-art,.tr,.fc{transition:border-color .18s ease;}
+@media(hover:hover){
+  .pc:hover .pc-art,.tr:hover,.fc:hover{border-color:var(--gold-b);}
+}
+.pc:active .pc-art,.tr:active,.fc:active,
+.pc:has(:focus-visible) .pc-art,.tr:has(:focus-visible),.fc:has(:focus-visible){border-color:var(--gold-b);}
+
+/* 6. statistics: headline figures in amber, captions stay grey */
+.sx-hero-num,.sx-tile-num,.sx-mini b{color:var(--gold);}
+
+/* 7. amber hairline on top of dialogs, same gradient as .sidebar::before */
+.modal::before,.st-modal::before{content:'';display:block;height:2px;background:linear-gradient(90deg,var(--gold) 0%,var(--gold-2) 60%,transparent 100%);margin:-1.75rem -1.75rem 1.5rem;opacity:1;}
+/* settings: the header is sticky, so the line sticks too and sits over it */
+.st-modal::before{position:sticky;top:0;z-index:3;margin:0 0 -2px;}
+.ts::before{content:'';display:block;position:sticky;top:0;z-index:4;height:2px;margin-bottom:-2px;background:linear-gradient(90deg,var(--gold) 0%,var(--gold-2) 60%,transparent 100%);}
+.game-modal{position:relative;}
+.game-modal::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;z-index:2;pointer-events:none;background:linear-gradient(90deg,var(--gold) 0%,var(--gold-2) 60%,transparent 100%);}
