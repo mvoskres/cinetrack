@@ -1193,6 +1193,24 @@ kbd{display:inline-block;font:500 .7rem var(--mono);border:1px solid var(--borde
 .pc-act{display:inline-flex;align-items:center;gap:.35rem;}
 .ts.scrolled .ts-top{background:var(--ink-2);border-bottom:1px solid var(--line);}
 .ts-ep:focus-visible{outline-color:var(--gold);}
+/* «Дивлюсь» on a phone: the poster sat in a narrow column above empty space and the buttons
+   hugged the right edge of the text column. The body is flattened into the card grid so the
+   poster spans the info rows and the episode counter + buttons get the full card width */
+@media(max-width:560px){
+  .tr{grid-template-columns:104px minmax(0,1fr);grid-template-rows:auto auto 1fr auto;gap:.5rem .85rem;padding:.75rem;}
+  .tr-body{display:contents;}
+  .tr-art{grid-column:1;grid-row:1/4;align-self:start;}
+  .tr-body>*{grid-column:2;min-width:0;}
+  .tr-body>.tr-bar{align-self:end;}
+  .tr-body>.counter,.tr-body>.card-utags{grid-column:1/-1;}
+  .tr .counter{flex-wrap:nowrap;gap:.75rem;margin-top:.25rem;}
+  .tr .ep{flex:none;}
+  .tr .counter .step{flex:1;justify-content:flex-end;}
+  .tr .step .btn{height:42px;}
+  .tr .step .btn.sq{width:42px;}
+  .tr .step .btn.primary{flex:1;max-width:220px;font-size:.92rem;}
+  .tr .air{font-size:.76rem;gap:.15rem .7rem;}
+}
 </style>
 </head>
 <body>
