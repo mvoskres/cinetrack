@@ -1,0 +1,12 @@
+# CineTrack backups and local data must never reach the public repo (they contain API keys)
+*.json
+*.csv
+*.bak
+*.backup
+cinetrack-backup*
+# local test leftovers
+orig.html
+test*.html
+*.log
+__pycache__/
+.env*
