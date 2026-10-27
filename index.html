@@ -4703,7 +4703,9 @@ function doImport(e){
    Nothing here touches the network until a Client ID is set and the user uses a Drive feature or was connected before. */
 const GD_SCOPE='https://www.googleapis.com/auth/drive.file',GD_FOLDER='CineTrack Backups',GD_FMIME='application/vnd.google-apps.folder';
 const GD_KEEP=3,GD_EVERY=3*864e5; /* copies kept; auto-backup interval */
-let _gdTok=null,_gdTokExp=0,_gdTokP=null,_gdLibP=null,_gdBusy=false,_gdTry=0,_gdPend=null,_gdMsg={t:'',c:''};
+/* the ~1h access token survives reloads: without it every reopen needs a popup, and browsers
+   block popups that no tap started, so the "silent" refresh can't stand in for it */
+let _gdTok=localStorage.getItem('ct_gd_tok'),_gdTokExp=+localStorage.getItem('ct_gd_tokexp')||0,_gdTokP=null,_gdLibP=null,_gdBusy=false,_gdTry=0,_gdPend=null,_gdMsg={t:'',c:''};
 function _gdCid(){return(localStorage.getItem('ct_gclientid')||GDRIVE_CLIENT_ID||'').trim();}
 function _gdOn(){return localStorage.getItem('ct_gd_on')==='1';}
 function _gdHasData(){return !!(watched.length||watching.length||planned.length);}
@@ -4728,8 +4730,11 @@ async function _gdTokFetch(prompt){
   });
   if(!google.accounts.oauth2.hasGrantedAllScopes(r,GD_SCOPE))throw new Error('scope');
   _gdTok=r.access_token;_gdTokExp=Date.now()+(+r.expires_in||3600)*1e3;
+  _lsSet('ct_gd_tok',_gdTok);_lsSet('ct_gd_tokexp',String(_gdTokExp));
   return _gdTok;
 }
+function _gdTokClr(){_gdTok=null;_gdTokExp=0;localStorage.removeItem('ct_gd_tok');localStorage.removeItem('ct_gd_tokexp');}
+function _gdTokOk(){return !!_gdTok&&Date.now()<_gdTokExp-6e4;}
 /* cached token while valid; prompt:'' = no UI unless Google needs consent */
 function _gdToken(prompt=''){
   if(_gdTok&&Date.now()<_gdTokExp-6e4)return Promise.resolve(_gdTok);
@@ -4739,7 +4744,7 @@ function _gdToken(prompt=''){
 async function _gdApi(path,opt={},base='https://www.googleapis.com/drive/v3/'){
   const t=await _gdToken('');let r;
   try{r=await fetch(base+path,{...opt,headers:{...opt.headers,Authorization:'Bearer '+t}});}catch(e){throw new Error('net');}
-  if(r.status===401){_gdTok=null;_gdTokExp=0;throw new Error('401');}
+  if(r.status===401){_gdTokClr();throw new Error('401');}
   if(!r.ok)throw new Error(String(r.status));
   return r;
 }
@@ -4775,7 +4780,7 @@ async function _gdDownload(id){return(await _gdApi(`files/${id}?alt=media`)).jso
 function _gdMsgSet(t,c){_gdMsg={t,c};const el=document.getElementById('gdMsg');if(el){el.textContent=t;el.style.color=c||'var(--muted)';}}
 function _gdFail(e,quiet){
   const m=String(e&&e.message||e);let t;
-  if(m==='401'){_gdTok=null;_gdTokExp=0;_gdNotice(true);t='Сесію Google завершено, увійди знову';}
+  if(m==='401'){_gdTokClr();_gdNotice(true);t='Сесію Google завершено, увійди знову';}
   else if(m==='net')t='Немає зв\'язку з Google Drive';
   else if(m==='noid')t='Вкажи Google Client ID у Налаштуваннях → Дані';
   else if(m==='access_denied')t='Доступ до Drive не надано';
@@ -4793,7 +4798,7 @@ function _gdNotice(on){
   let b=document.getElementById('gdNotice');
   if(!on){b?.remove();return;}
   if(b)return;
-  b=document.createElement('button');b.id='gdNotice';b.className='gd-notice';b.innerHTML=ic('info')+'<span>Бекап на Drive прострочено — увійти</span>';
+  b=document.createElement('button');b.id='gdNotice';b.className='gd-notice';b.innerHTML=ic('info')+'<span>Час оновити бекап на Drive</span>';
   b.onclick=()=>gdSignIn();document.body.appendChild(b);
 }
 function _gdPre(){
@@ -4827,7 +4832,7 @@ function _gdRender(){const b=document.getElementById('gdBox');if(b)b.innerHTML=_
 function gdSaveCid(){
   const v=(document.getElementById('gdCid')?.value||'').trim(),old=localStorage.getItem('ct_gclientid')||'';
   if(v)_lsSet('ct_gclientid',v);else localStorage.removeItem('ct_gclientid');
-  if(v!==old){_gdTok=null;_gdTokExp=0;} /* a token belongs to the old client */
+  if(v!==old){_gdTokClr();} /* a token belongs to the old client */
   _gdMsgSet(v?'Client ID збережено':'Client ID очищено','var(--jade-2)');_gdRender();
 }
 async function gdSignIn(){
@@ -4845,7 +4850,7 @@ async function gdSignIn(){
 }
 function gdSignOut(){
   try{if(_gdTok&&window.google?.accounts?.oauth2)google.accounts.oauth2.revoke(_gdTok);}catch(e){}
-  _gdTok=null;_gdTokExp=0;
+  _gdTokClr();
   ['ct_gd_on','ct_gd_email','ct_gd_folder','ct_gd_last','ct_gd_fp','ct_gd_seen'].forEach(k=>localStorage.removeItem(k));
   _gdNotice(false);_gdMsgSet('','');_gdRender();toast('Вийшов з Google Drive','ok');
 }
@@ -4884,7 +4889,9 @@ function _gdOffer(d,found){
 }
 function gdApplyPending(){
   const d=_gdPend;_gdPend=null;closeModal();if(!d)return;
-  try{const r=_applyBackup(d);_lsSet('ct_gd_seen',String(Date.now()));toast(`Підтягнуто: ${r.aw} переглянуто, ${r.awn} дивлюсь, ${r.apl} заплановано`,'ok',4200);}
+  try{const r=_applyBackup(d);_lsSet('ct_gd_seen',String(Date.now()));
+    /* what was just pulled is already on Drive: don't count it as an unsaved change */
+    const at=Date.parse(d.exportedAt)||Date.now();if(at>(+localStorage.getItem('ct_gd_last')||0))_lsSet('ct_gd_last',String(at));_lsSet('ct_gd_fp',_gdFp());_gdNotice(false);toast(`Підтягнуто: ${r.aw} переглянуто, ${r.awn} дивлюсь, ${r.apl} заплановано`,'ok',4200);}
   catch(e){toast('Не вдалося підтягнути: '+(e.message||'помилка'),'err',5000);}
 }
 async function gdRestoreList(){
@@ -4910,7 +4917,9 @@ async function gdAuto(force){
     const need=()=>(!last||Date.now()-last>=GD_EVERY)&&_gdHasData()&&_gdFp()!==localStorage.getItem('ct_gd_fp');
     if(!first&&!need())return;
     _gdTry=Date.now();
-    try{await _gdToken('');}catch(e){if(e.message!=='net')_gdNotice(true);return;} /* silent only: no surprise popups */
+    /* no live token: a popup without a tap is blocked anyway, so only offer a one-tap backup when one is due */
+    if(!_gdTokOk()){if(need())_gdNotice(true);return;}
+    try{await _gdToken('');}catch(e){if(e.message!=='net'&&need())_gdNotice(true);return;}
     _gdNotice(false);
     if(first&&await _gdCheckRemote())return;
     if(need())await gdBackup(true);
