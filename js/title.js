@@ -248,8 +248,7 @@ function _tsRender(){
           <b>${esc(c.name)}</b><span>${esc(c.character)}</span></button>`).join('')}</div></section>`:''}
       ${crewRows.length?`<section class="ts-sec"><dl class="ts-crew">${crewRows.map(([k,v])=>`<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl></section>`:''}
       ${_tsColl(d)}
-      ${d.recs.length?`<section class="ts-sec"><h3>Схожі</h3><div class="ts-recs">${d.recs.map(r=>`
-        <button class="ts-rec" data-act="_tsOpen" data-args="${A({mt:r.mt,id:r.id},true)}"><img src="${_tsImg(r.poster,'w185')}" alt="" loading="lazy" onerror="this.src=BLANK"><b>${esc(r.title)}</b><span>${r.year}${r.vote?` · TMDB ${r.vote.toFixed(1)}`:''}</span></button>`).join('')}</div></section>`:''}
+      ${_tsRecs(d)}
       ${d.omdbOnly?`<p class="ts-note">Показано дані OMDb: на TMDB цього тайтлу немає або не задано ключ TMDB</p>`:''}
     </div>`;
 }
@@ -300,6 +299,30 @@ function _tsSetEp(sn,ep){
     const bar=c.querySelector('.tr-bar i');if(bar)bar.style.width=_seasonPct(it)+'%';}
   _tsRefreshActions();
   toast(`Прогрес: ${_epLabel(it)}`,'ok',1800);
+}
+/* ── SIMILAR ── each with its list status. The TMDB ids of your titles are known only for those
+   already looked up somewhere, so the rest are filled in once per session and the row redrawn */
+function _tsRecs(d){
+  if(!d.recs.length)return '';
+  _fillOwnedTmdb().then(ch=>{const el=document.getElementById('tsRecs');if(ch&&el&&_tsCur?.data===d)el.outerHTML=_tsRecsHtml(d);});
+  return _tsRecsHtml(d);
+}
+function _tsRecsHtml(d){
+  _ownIdx=null;
+  return `<section class="ts-sec" id="tsRecs"><h3>Схожі</h3><div class="ts-recs">${d.recs.map(r=>{const imdb=_tmdbOwnedId(r.mt,r.id);return `
+        <button class="ts-rec" data-act="_tsOpen" data-args="${A({mt:r.mt,id:r.id},true)}"><img src="${_tsImg(r.poster,'w185')}" alt="" loading="lazy" onerror="this.src=BLANK"><b>${esc(r.title)}</b><span>${r.year}${r.vote?` · TMDB ${r.vote.toFixed(1)}`:''}</span>${_ownBadge(imdb)}</button>`;}).join('')}</div></section>`;
+}
+let _ownFillP=null;
+function _fillOwnedTmdb(){
+  if(_ownFillP)return _ownFillP;
+  const todo=[...new Set([...watched,...watching,...planned].map(i=>i.imdbID).filter(id=>id&&!_findCache[id]))];
+  if(!todo.length||!TMDB_KEY)return _ownFillP=Promise.resolve(false);
+  return _ownFillP=(async()=>{
+    let k=0;const worker=async()=>{while(k<todo.length){const id=todo[k++];try{await tmdbFindIds(id);}catch(e){}}};
+    await Promise.all(Array.from({length:6},worker));
+    _ownFillP=null; /* titles added later get looked up on the next opening */
+    return true;
+  })();
 }
 /* ── FRANCHISE ROW ── every part of the movie's TMDB collection, above "Схожі";
    uses the Franchises tab cache, fetches the collection once when it isn't there */

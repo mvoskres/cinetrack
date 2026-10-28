@@ -943,6 +943,8 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 .ts-rec.cur{cursor:default;}
 .ts-rec.cur img{border:2px solid var(--gold);}
 .ts-rec.ok span{color:var(--jade-2);}
+.ts-rec{position:relative;}
+.ts-rec .sug-badge{position:absolute;top:.4rem;left:.4rem;margin:0;box-shadow:0 2px 8px rgba(0,0,0,.45);backdrop-filter:blur(6px);}
 @media(max-width:640px){.ts-hero{grid-template-columns:96px 1fr;gap:.9rem;padding:4.6rem 1rem 1rem;}
 .ts-poster{width:96px;}
 .ts-actions{padding:.2rem 1rem 1rem;}
