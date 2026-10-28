@@ -309,8 +309,10 @@ function _tsRecs(d){
 }
 function _tsRecsHtml(d){
   _ownIdx=null;
-  return `<section class="ts-sec" id="tsRecs"><h3>Схожі</h3><div class="ts-recs">${d.recs.map(r=>{const imdb=_tmdbOwnedId(r.mt,r.id);return `
-        <button class="ts-rec" data-act="_tsOpen" data-args="${A({mt:r.mt,id:r.id},true)}"><img src="${_tsImg(r.poster,'w185')}" alt="" loading="lazy" onerror="this.src=BLANK"><b>${esc(r.title)}</b><span>${r.year}${r.vote?` · TMDB ${r.vote.toFixed(1)}`:''}</span>${_ownBadge(imdb)}</button>`;}).join('')}</div></section>`;
+  const own=_ownedMovieMap(),ST={ok:'переглянуто',wn:'дивлюсь',pl:'заплановано'}; /* same wording as the franchise row */
+  return `<section class="ts-sec" id="tsRecs"><h3>Схожі</h3><div class="ts-recs">${d.recs.map(r=>{const st=own[_tmdbOwnedId(r.mt,r.id)]?.status;
+      const info=[r.year,st?ST[st]:r.vote?`TMDB ${r.vote.toFixed(1)}`:''].filter(Boolean).join(' · ');return `
+        <button class="ts-rec${st?' '+st:''}" data-act="_tsOpen" data-args="${A({mt:r.mt,id:r.id},true)}"><img src="${_tsImg(r.poster,'w185')}" alt="" loading="lazy" onerror="this.src=BLANK"><b>${esc(r.title)}</b><span>${esc(info)}</span></button>`;}).join('')}</div></section>`;
 }
 let _ownFillP=null;
 function _fillOwnedTmdb(){
