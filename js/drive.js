@@ -2,7 +2,10 @@
    Token model (GIS) + plain fetch to Drive REST v3, scope drive.file only (the app sees just the files it made).
    Nothing here touches the network until a Client ID is set and the user uses a Drive feature or was connected before. */
 const GD_SCOPE='https://www.googleapis.com/auth/drive.file',GD_FOLDER='CineTrack Backups',GD_FMIME='application/vnd.google-apps.folder';
-const GD_KEEP=3,GD_EVERY=3*864e5; /* copies kept; auto-backup interval */
+const GD_KEEP=10,GD_EVERY=3*864e5; /* copies kept; auto-backup interval */
+/* a backup with sharply fewer records than the last one is held back: it would push good copies out of the rotation */
+const GD_DROP_ABS=10,GD_DROP_PCT=.2;
+function _gdCount(){return watched.length+watching.length+planned.length;}
 /* the ~1h access token survives reloads: without it every reopen needs a popup, and browsers
    block popups that no tap started, so the "silent" refresh can't stand in for it */
 let _gdTok=localStorage.getItem('ct_gd_tok'),_gdTokExp=+localStorage.getItem('ct_gd_tokexp')||0,_gdTokP=null,_gdLibP=null,_gdBusy=false,_gdTry=0,_gdPend=null,_gdMsg={t:'',c:''};
@@ -113,17 +116,19 @@ function _gdHtml(){
   return `<div class="st-row-head"><span class="st-lbl">Акаунт і бекап</span></div>
     ${on?`<p class="st-acc">${ic('check')}<strong>${esc(em||'…')}</strong></p>
       <p class="st-hint">${last?'Останній бекап: '+_gdFmt(last)+' <span style="color:var(--ok)">✓</span>':'Останній бекап: ще не було'}</p>
+      ${localStorage.getItem('ct_gd_warn')?`<p class="st-hint" style="color:var(--rose)">${esc(localStorage.getItem('ct_gd_warn'))}</p><button class="m-btn can" data-act="gdBackupForce">Все одно зберегти</button>`:''}
       <div class="st-pair">
         <button class="m-btn g" onclick="gdBackup()">${ic('save')}Зробити бекап</button>
         <button class="m-btn can" onclick="gdRestoreList()">${ic('upload')}Відновити</button>
       </div>
       <button class="st-out" onclick="gdSignOut()">Вийти</button>`
-    :`<p class="st-hint">Копія списків у твоєму Google Drive: автоматично раз на 3 дні, лишаються 3 останні.</p>
+    :`<p class="st-hint">Копія списків у твоєму Google Drive: автоматично раз на 3 дні, лишаються 10 останніх.</p>
       ${location.protocol==='file:'?'<p class="st-hint" style="color:var(--gold)">Сторінку відкрито як файл (file://): вхід працює лише на https-сайті.</p>':''}
       <button class="m-btn g st-big" onclick="gdSignIn()">Увійти через Google</button>`}
     <div id="gdMsg" class="st-msg" style="color:${_gdMsg.c||'var(--muted)'}">${esc(_gdMsg.t)}</div>
     <div id="gdList"></div>`;
 }
+function gdBackupForce(){gdBackup(false,true);}
 function _gdRender(){const b=document.getElementById('gdBox');if(b)b.innerHTML=_gdHtml();}
 async function gdSignIn(){
   if(!_gdPre())return;
@@ -144,14 +149,22 @@ function gdSignOut(){
   ['ct_gd_on','ct_gd_email','ct_gd_folder','ct_gd_last','ct_gd_fp','ct_gd_seen'].forEach(k=>localStorage.removeItem(k));
   _gdNotice(false);_gdMsgSet('','');_gdRender();toast('Вийшов з Google Drive','ok');
 }
-async function gdBackup(auto){
+async function gdBackup(auto,force){
   if(_gdBusy)return;
   if(!auto&&!_gdPre())return;
   _gdBusy=true;_gdMsgSet('Зберігаю на Drive…','var(--muted)');
   try{
     await _gdToken('');
+    const prev=+localStorage.getItem('ct_gd_count')||0,cur=_gdCount(),drop=prev-cur;
+    if(!force&&prev&&drop>0&&(drop>GD_DROP_ABS||drop>prev*GD_DROP_PCT)){
+      const w=`Записів стало ${cur} замість ${prev} у попередньому бекапі. Бекап не зроблено, щоб ним не витіснити хороші копії`;
+      _lsSet('ct_gd_warn',w);_gdMsgSet(w,'var(--rose)');_gdRender();
+      toast(w+'. Перевір дані, а якщо так і треба: Налаштування, «Все одно зберегти»','err',10000);
+      return;
+    }
     const json=JSON.stringify(_buildBackup(true)),fp=_gdFp(),fid=await _gdFolder(); /* keys included: a new device then works right after restore */
     await _gdUpload(fid,json);
+    localStorage.removeItem('ct_gd_warn');_lsSet('ct_gd_count',String(cur));
     const now=Date.now();_lsSet('ct_gd_last',String(now));_lsSet('ct_gd_fp',fp);_lsSet('ct_last_export',String(now));
     _backupStateRender();_gdNotice(false);
     _gdPrune(fid).catch(()=>{});
@@ -175,13 +188,15 @@ function _gdOffer(d,found){
   const n=k=>Array.isArray(d[k])?d[k].length:0,t=d.exportedAt?_gdFmt(Date.parse(d.exportedAt)):'невідомої дати';
   modal(`<h2 class="modal-title">Бекап на Google Drive</h2>
     <p style="font-size:.8rem;color:var(--text-2);line-height:1.55;margin:.4rem 0 1rem">${found?'Знайдено бекап':'Бекап'} від <strong style="color:var(--text)">${t}</strong> (${n('watched')} переглянуто, ${n('watching')} дивлюсь, ${n('planned')} заплановано). ${_gdHasData()?'Дані об\'єднаються з тими, що вже є тут: твої записи лишаються, а чого не взято (дублі, суперечності) буде в звіті.':'Тут даних ще немає.'} Підтягнути?</p>
-    <div style="display:flex;gap:.5rem"><button class="m-btn g" onclick="gdApplyPending()">Підтягнути</button><button class="m-btn can" onclick="_gdPend=null;closeModal()">Ні</button></div>`);
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap"><button class="m-btn g" data-act="gdApplyPending">Підтягнути (злити)</button>
+      ${_gdHasData()?`<button class="m-btn can" data-act="gdApplyPending" data-args="${A('replace')}" title="Спершу зберігається знімок твоїх поточних даних, його можна повернути">Замінити моє цим бекапом</button>`:''}
+      <button class="m-btn can" onclick="_gdPend=null;closeModal()">Ні</button></div>`);
 }
-function gdApplyPending(){
+function gdApplyPending(mode){
   const d=_gdPend;_gdPend=null;closeModal();if(!d)return;
-  try{const r=_applyBackup(d);_lsSet('ct_gd_seen',String(Date.now()));
+  try{const r=_restoreBackup(d,mode);_lsSet('ct_gd_seen',String(Date.now()));
     /* what was just pulled is already on Drive: don't count it as an unsaved change */
-    const at=Date.parse(d.exportedAt)||Date.now();if(at>(+localStorage.getItem('ct_gd_last')||0))_lsSet('ct_gd_last',String(at));_lsSet('ct_gd_fp',_gdFp());_gdNotice(false);const L=_backupReport(r);toast(r.skip||r.rejected.length?L.join('. '):`Підтягнуто: ${r.aw} переглянуто, ${r.awn} дивлюсь, ${r.apl} заплановано`,r.rejected.length?'':'ok',r.skip||r.rejected.length?12000:4200);runMaintenance();}
+    const at=Date.parse(d.exportedAt)||Date.now();if(at>(+localStorage.getItem('ct_gd_last')||0))_lsSet('ct_gd_last',String(at));_lsSet('ct_gd_fp',_gdFp());_lsSet('ct_gd_count',String(_gdCount()));localStorage.removeItem('ct_gd_warn');_gdNotice(false);const L=_backupReport(r);if(r.replaced){_snapshotToast();runMaintenance();return;}toast(r.skip||r.rejected.length?L.join('. '):`Підтягнуто: ${r.aw} переглянуто, ${r.awn} дивлюсь, ${r.apl} заплановано`,r.rejected.length?'':'ok',r.skip||r.rejected.length?12000:4200);runMaintenance();}
   catch(e){toast('Не вдалося підтягнути: '+(e.message||'помилка'),'err',5000);}
 }
 async function gdRestoreList(){

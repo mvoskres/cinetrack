@@ -13,8 +13,11 @@ function openIO(target){
       <div class="st-row">
         <div class="st-row-head"><span class="st-lbl">Файли й обслуговування</span></div>
         <button class="st-act" onclick="doExport()">${ic('save')}<span><b>Зберегти бекап у файл</b><small>JSON з усіма списками й ключами</small></span></button>
-        <label class="st-act" for="impFile">${ic('upload')}<span><b>Відновити з файлу</b><small>backup.json, дані об'єднуються</small></span></label>
+        <label class="st-act" for="impFile">${ic('upload')}<span><b>Відновити з файлу: злити</b><small>backup.json, дані об'єднуються з наявними</small></span></label>
         <input type="file" id="impFile" accept=".json" onchange="doImport(event)" hidden>
+        <label class="st-act" for="impFileRep">${ic('upload')}<span><b>Відновити з файлу: замінити</b><small>списки стануть такими, як у файлі; перед цим зберігається знімок</small></span></label>
+        <input type="file" id="impFileRep" accept=".json" onchange="doImport(event,'replace')" hidden>
+        ${_snapshotRow()}
         <div id="impMsg" class="st-msg"></div>
         <label class="st-act" for="csvFile" id="stCsv">${ic('film')}<span><b>Імпорт з IMDb / Letterboxd</b><small>CSV з оцінками або watchlist</small></span></label>
         <input type="file" id="csvFile" accept=".csv,text/csv" onchange="doCsvImport(event)" hidden>
@@ -431,9 +434,58 @@ function _applyBackup(data){
   rWatched();rWatching(true);rPlanned();rDash();updateStats();renderPeopleTab();
   return{aw,awn,apl,skip:skipped.length,skipped,apeople,rejected,cacheDropped:cs.n,keys:{api:setApi,tmdb:setTmdb}};
 }
+/* ── REPLACE MODE + LOCAL SNAPSHOT ──
+   «Замінити» empties the lists and restores the file into them. Before that the current lists, hidden
+   titles and tracked people are kept as one snapshot (ct_snapshot, one slot), and can be put back. */
+const SNAP_KEY='ct_snapshot',SNAP_META='ct_snapshot_meta';
+function _snapshotTake(){
+  const meta={ts:Date.now(),w:watched.length,wn:watching.length,p:planned.length};
+  const ok=_lsSet(SNAP_KEY,JSON.stringify({ts:meta.ts,watched,watching,planned,hidden,trackedPeople:_trackedPeople}));
+  if(ok)_lsSet(SNAP_META,JSON.stringify(meta));
+  return ok;
+}
+function _snapshotMeta(){return _lsJSON(SNAP_META,null);}
+function _snapshotRow(){
+  const m=_snapshotMeta();if(!m||!m.ts)return '';
+  return `<button class="st-act" data-act="snapshotRestore">${ic('undo')}<span><b>Повернути знімок до заміни</b><small>${esc(_gdFmt(m.ts))}: ${m.w} переглянуто, ${m.wn} дивлюсь, ${m.p} заплановано</small></span></button>`;
+}
+function _redrawAll(){
+  ['watched','watching','planned'].forEach(buildBar);
+  rWatched();rWatching(true);rPlanned();rDash();updateStats();renderPeopleTab();
+}
+/* mode 'merge' (default) or 'replace' */
+function _restoreBackup(data,mode){
+  if(mode!=='replace')return _applyBackup(data);
+  if(!data||typeof data!=='object'||(!data.watched&&!data.watching&&!data.planned))throw new Error('Невірний формат');
+  if(!_snapshotTake())throw new Error('Не вдалося зберегти знімок поточних даних (сховище переповнене), заміну не виконано');
+  const keep=[watched.slice(),watching.slice(),planned.slice(),hidden.slice(),_trackedPeople.slice()];
+  watched.length=watching.length=planned.length=hidden.length=_trackedPeople.length=0;
+  try{const r=_applyBackup(data);r.replaced=true;return r;}
+  catch(e){watched.push(...keep[0]);watching.push(...keep[1]);planned.push(...keep[2]);hidden.push(...keep[3]);_trackedPeople.push(...keep[4]);throw e;}
+}
+function snapshotRestore(){
+  const s=_lsJSON(SNAP_KEY,null);
+  if(!s||!Array.isArray(s.watched)){toast('Знімка немає','err');return;}
+  if(!confirm('Повернути списки до знімка? Поточні списки буде замінено.'))return;
+  _lsBadRelease();
+  watched.splice(0,watched.length,...s.watched);watching.splice(0,watching.length,...(s.watching||[]));planned.splice(0,planned.length,...(s.planned||[]));
+  hidden.splice(0,hidden.length,...(s.hidden||[]));_trackedPeople.splice(0,_trackedPeople.length,...(s.trackedPeople||[]));
+  _peopleSave();save();
+  localStorage.removeItem(SNAP_KEY);localStorage.removeItem(SNAP_META);
+  _redrawAll();closeModal();toast('Списки повернуто до знімка','ok',3200);
+}
+/* a toast with «Повернути» right after a replace */
+function _snapshotToast(){
+  document.querySelectorAll('.toast').forEach(t=>t.remove());
+  const el=document.createElement('div');el.className='toast undo';
+  const lbl=document.createElement('span');lbl.textContent='Дані замінено, знімок попереднього стану збережено';
+  const btn=document.createElement('button');btn.className='t-undo';btn.innerHTML=ic('undo')+'Повернути';
+  btn.onclick=()=>{el.remove();snapshotRestore();};
+  el.append(lbl,btn);document.body.appendChild(el);setTimeout(()=>el.remove(),12000);
+}
 /* one honest sentence block for the import report (file import and Drive both use it) */
 function _backupReport(r){
-  const L=[`Імпортовано: ${r.aw} переглянуто, ${r.awn} дивлюсь, ${r.apl} заплановано${r.apeople?`, ${r.apeople} людей у стеженні`:''}`];
+  const L=[`${r.replaced?'Замінено. Знімок попереднього стану збережено. ':''}Імпортовано: ${r.aw} переглянуто, ${r.awn} дивлюсь, ${r.apl} заплановано${r.apeople?`, ${r.apeople} людей у стеженні`:''}`];
   const dup=r.skipped.filter(x=>x.why==='dup'),pair=r.skipped.filter(x=>x.why==='pair');
   if(dup.length)L.push(`Пропущено ${dup.length}: вже є в тому ж списку, лишилась твоя версія`);
   if(pair.length){
@@ -447,14 +499,16 @@ function _backupReport(r){
   if(r.cacheDropped)L.push(`Відкинуто ${r.cacheDropped} підозрілих записів кешу, вони завантажаться заново`);
   return L;
 }
-function doImport(e){
+function doImport(e,mode){
   const file=e.target.files[0];if(!file)return;
+  if(mode==='replace'&&!confirm('Замінити поточні списки даними з файлу? Перед цим буде збережено знімок поточного стану, його можна повернути в Налаштуваннях.')){e.target.value='';return;}
   const msg=document.getElementById('impMsg');if(msg){msg.style.color='var(--muted)';msg.textContent='Читаю файл…';}
   const rd=new FileReader();
   rd.onload=ev=>{
     const show=(c,t)=>{const el=document.getElementById('impMsg');if(el){el.style.color=c;el.style.whiteSpace='pre-line';el.textContent=t;}};
     try{
-      const r=_applyBackup(JSON.parse(ev.target.result));
+      const r=_restoreBackup(JSON.parse(ev.target.result),mode);
+      if(r.replaced)_snapshotToast();
       show(r.rejected.length?'var(--gold)':'var(--jade-2)',_backupReport(r).join('\n'));
       runMaintenance(); /* fresh titles arrive without country/rating */
     }catch(err){show('var(--rose)','✕ '+(err.message||'невірний файл'));}
