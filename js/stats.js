@@ -27,7 +27,7 @@ function renderStats(){
   /* ── Fun facts / personal records ── */
   const moviesWithRuntime=watched.filter(i=>i.type==='movie'&&i.runtime);
   const withRating=watched.filter(i=>i.imdbRating&&i.imdbRating!=='N/A');
-  const withYear=watched.filter(i=>{const y=parseInt((i.year||'').slice(0,4));return y>1880&&y<=2030;});
+  const withYear=watched.filter(i=>{const y=parseInt(String(i.year||'').slice(0,4));return y>1880&&y<=2030;});
   const totalRuntimeMin=moviesWithRuntime.reduce((s,i)=>s+i.runtime,0);
   const rtDays=Math.floor(totalRuntimeMin/1440),rtHrs=Math.floor((totalRuntimeMin%1440)/60);
   const missingRuntime=watched.filter(i=>i.type==='movie').length-moviesWithRuntime.length;
@@ -95,7 +95,7 @@ function renderStats(){
   /* ── Decade distribution — merge pre-1970 into one bucket ── */
   const decadeRaw={};const decadeRating={};const decadeN={};
   watched.forEach(i=>{
-    const y=parseInt((i.year||'').replace(/[^0-9]/g,'').slice(0,4));
+    const y=parseInt(String(i.year||'').replace(/[^0-9]/g,'').slice(0,4));
     if(!y||y<1900||y>2030)return;
     const d=y<1970?1960:Math.floor(y/10)*10; /* pre-1970 → "60s & earlier" */
     decadeRaw[d]=(decadeRaw[d]||0)+1;
@@ -148,7 +148,7 @@ function renderStats(){
     tip:`IMDb ${i+1}${i<9?'–'+(i+1)+'.9':''}: ${titles(n)}`}));
   /* mean marker: bucket i spans [i+1, i+2) across 10 equal columns */
   const meanPct=Math.max(0,Math.min(100,(parseFloat(avgRating)-1)/10*100));
-  const meanLine=`<div class="sx-mean" style="left:${meanPct}%" aria-hidden="true"><span>середній ${avgRating}</span></div>`;
+  const meanLine=`<div class="sx-mean${meanPct>62?' r':''}" style="left:${meanPct}%" aria-hidden="true"><span>середній ${avgRating}</span></div>`;
 
   el.innerHTML=`
   <section class="sx-kpis" aria-label="Підсумок">

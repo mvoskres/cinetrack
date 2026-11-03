@@ -39,7 +39,8 @@ function cleanScan(){
   [...watched,...watching,...planned].forEach(i=>{
     const cur=i.customCategory,g=_catGuess(i);
     if(!cur)fixes.push({grp:'cat',on:true,title:_ty(i),note:`без категорії → ${CAT_L[g]}`,run:()=>{i.customCategory=g;}});
-    else if(i.genre&&cur!==g&&CAT_L[cur])fixes.push({grp:'cat',on:true,title:_ty(i),note:`${CAT_L[cur]} → ${CAT_L[g]} (${i.country||'країна невідома'})`,run:()=>{i.customCategory=g;}});
+    /* a category someone set by hand is only a suggestion: off until ticked */
+    else if(i.genre&&cur!==g&&CAT_L[cur])fixes.push({grp:'cat',on:false,title:_ty(i),note:`${CAT_L[cur]} → ${CAT_L[g]} (${i.country||'країна невідома'}), категорія виставлена вручну чи раніше`,run:()=>{i.customCategory=g;}});
   });
   return fixes;
 }

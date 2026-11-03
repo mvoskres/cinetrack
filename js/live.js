@@ -44,9 +44,16 @@ function buildLiveHTML(ls){
   return `<div class="air">${out.join('')}</div>`;
 }
 /* strict: only a 404 means "not there" (null); 429/5xx/timeout throw, so callers can tell a miss from a failure */
+/* TVmaze answers 429 when asked too often; every render used to ask again at once. After a 429 (or its Retry-After)
+   calls fail fast without touching the network, and the cards keep the status they already have. */
+let _tvmazeUntil=0;
 function _fetchJson(url,ms=8000,strict=false){
+  const tv=url.includes('api.tvmaze.com');
+  if(tv&&Date.now()<_tvmazeUntil)return Promise.reject(new Error('HTTP 429 (backoff)'));
   const ctrl=new AbortController(),tid=setTimeout(()=>ctrl.abort(),ms);
-  return fetch(url,{signal:ctrl.signal}).then(r=>{if(r.ok)return r.json();if(strict&&r.status!==404)throw new Error('HTTP '+r.status);return null;}).finally(()=>clearTimeout(tid));
+  return fetch(url,{signal:ctrl.signal}).then(r=>{
+    if(r.status===429&&tv)_tvmazeUntil=Date.now()+Math.max(30,Math.min(600,+r.headers.get('Retry-After')||120))*1000;
+    if(r.ok)return r.json();if(strict&&r.status!==404)throw new Error('HTTP '+r.status);return null;}).finally(()=>clearTimeout(tid));
 }
 /* One TVmaze call per refresh: the IMDb lookup only redirects to the show id
    (and drops embed[]), so the id is resolved once and kept on the item; the
@@ -128,6 +135,8 @@ function adj(id,dim,d){
     const ls=it.liveStatus,max=+ls?.lastAiredEp&&it.season===+ls.lastAiredSeason?+ls.lastAiredEp:len;
     if(max&&it.episode>=max){toast(`Більше серій у ${it.season} сезоні поки немає`,'err',2200);return;}
   }
+  /* no season past the last one we know of (totalSeasons comes from TVmaze/OMDb and is refreshed with the air data) */
+  if(dim==='s'&&d>0&&it.season>=(it.totalSeasons||1)){toast(`Сезонів більше немає: усього ${it.totalSeasons||1}`,'err',2200);return;}
   if(dim==='s'){const prev=it.season;it.season=Math.max(1,it.season+d);
     if(it.season!==prev){
       if(d>0){it.prevEp={s:prev,e:it.episode};it.episode=1;} /* new season starts at episode 1, remember where we were */

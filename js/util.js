@@ -149,6 +149,10 @@ function ps(p){return safeUrl(p);}
    TMDB /find first — the title sheet already shows TMDB posters — then OMDb; the found URL is saved on
    the item so it is fixed once. Queued 3 at a time: a grid can hold dozens of broken posters */
 const _pfDone=new Set(),_pfQ=[];let _pfRun=0,_pfSaveT=null;
+/* a title for which neither TMDB nor OMDb had a poster is not searched again for a week (ct_nopic, a cache key) */
+const NOPIC_TTL=7*864e5;let _noPic=_lsJSON('ct_nopic',{}),_noPicT=null;
+{const now=Date.now();let d=false;for(const k in _noPic)if(!(now-_noPic[k]<NOPIC_TTL)){delete _noPic[k];d=true;}if(d)_lsSet('ct_nopic',JSON.stringify(_noPic));}
+function _noPicMark(id){_noPic[id]=Date.now();clearTimeout(_noPicT);_noPicT=setTimeout(()=>_lsSet('ct_nopic',JSON.stringify(_noPic)),1500);}
 /* src="…" value for a stored poster: http(s) only and escaped; anything else fails on purpose, so fixBrokenPoster looks for a real one */
 function posterSrc(p){return esc(ps(p)||'data:,');}
 /* same, with the blank placeholder instead of the failing 'data:,' (modals, search hits) */
@@ -158,13 +162,14 @@ function imdbHref(i){return /^tt\d+$/.test(i?.imdbID||'')?`https://www.imdb.com/
 function fixBrokenPoster(img,imdbID){
   const bad=img.getAttribute('src');
   img.src=BLANK;
-  if(!/^tt\d+$/.test(imdbID||'')||_pfDone.has(imdbID))return;
+  if(!/^tt\d+$/.test(imdbID||'')||_pfDone.has(imdbID)||Date.now()-(_noPic[imdbID]||0)<NOPIC_TTL)return;
   _pfDone.add(imdbID);_pfQ.push({img,imdbID,bad});_pfNext();
 }
 function _pfNext(){
   while(_pfRun<3&&_pfQ.length){
     const j=_pfQ.shift();_pfRun++;
     _pfFind(j.imdbID,j.bad).then(u=>{
+      if(u===''){_noPicMark(j.imdbID);return;} /* asked, and nobody has one */
       if(!u)return;
       [watched,watching,planned].forEach(l=>l.forEach(it=>{if(it.imdbID===j.imdbID)it.poster=u;}));
       document.querySelectorAll(`img[data-pf="${j.imdbID}"]`).forEach(im=>{im.onerror=null;im.src=u;}); /* the same title on other cards */
@@ -174,13 +179,15 @@ function _pfNext(){
 }
 /* a failed <img data-pf="imdbID">: no inline onerror (and so no data inside JS), one capture-phase listener for all of them */
 document.addEventListener('error',e=>{const im=e.target;if(im&&im.tagName==='IMG'&&im.dataset.pf&&im.getAttribute('src')!==BLANK)fixBrokenPoster(im,im.dataset.pf);},true);
+/* a URL when found, '' when the sources answered and have none (remembered), null when a source failed or none could be asked (retried later) */
 async function _pfFind(imdbID,bad){
+  let asked=0,failed=false;
   if(TMDB_KEY&&!_tmdbBlocked){
-    try{const d=await tmdbFetch(`/find/${imdbID}?external_source=imdb_id`);
-      const p=(d?.movie_results?.[0]||d?.tv_results?.[0])?.poster_path;if(p)return `https://image.tmdb.org/t/p/w342${p}`;}catch(e){}
+    try{const d=await tmdbFetch(`/find/${imdbID}?external_source=imdb_id`);asked++;
+      const p=_tsImg((d?.movie_results?.[0]||d?.tv_results?.[0])?.poster_path,'w342');if(p)return p;}catch(e){failed=true;}
   }
-  if(API){try{const u=ps((await aFetch('i='+imdbID))?.Poster);if(u&&u!==bad)return u;}catch(e){}}
-  return '';
+  if(API){try{const m=await aFetch('i='+imdbID);asked++;if(m&&m.Response==='False'&&/limit|key/i.test(m.Error||''))failed=true;const u=ps(m?.Poster);if(u&&u!==bad)return u;}catch(e){failed=true;}}
+  return asked&&!failed?'':null;
 }
 /* labels are HTML-safe: the fallback is the raw (possibly imported) value */
 function tl(t){return esc({movie:CAT.movie,series:CAT.series,episode:'Серія',game:'Гра'}[t]||t||'');}

@@ -66,7 +66,7 @@ function _freeCacheSpace(){
   _pruneApiCache(200);
   try{localStorage.setItem('ct_apicache',JSON.stringify(_apiCache));}catch(e){localStorage.removeItem('ct_apicache');}
   /* pure caches only (all refetched on demand); lists, tracked people, collections, game progress stay */
-  ['ct_gamebackdrops','ct_titlecache','ct_personcache','ct_recs'].forEach(k=>localStorage.removeItem(k));
+  ['ct_gamebackdrops','ct_titlecache','ct_personcache','ct_recs','ct_nopic'].forEach(k=>localStorage.removeItem(k));
 }
 function _pruneApiCache(max){
   const now=Date.now();let n=0;
@@ -84,7 +84,7 @@ let watching=_lsJSON('ct_watching',[]);
 let hidden  =_lsJSON('ct_hidden',[]);
 let planned =_lsJSON('ct_planned',[]);
 const _pendingMap={};
-function _pmSet(k,v){const ks=Object.keys(_pendingMap);if(ks.length>=100)delete _pendingMap[ks[0]];_pendingMap[k]=v;}let recsFetched=0;
+function _pmSet(k,v){const ks=Object.keys(_pendingMap);if(ks.length>=100)delete _pendingMap[ks[0]];_pendingMap[k]=v;}
 let TMDB_KEY=localStorage.getItem('ct_tmdbkey')||'';
 const GDRIVE_CLIENT_ID='736522220888-jt1nuelrnm81684kgs0krup3sv6p4d2d.apps.googleusercontent.com'; /* OAuth Client ID (Web application); ct_gclientid in localStorage overrides it (no field in the UI) */
 let _tmdbBlocked=false;

@@ -16,7 +16,7 @@ function _norm(s){return String(s||'').toLowerCase().replace(/[^\p{L}\p{N}]+/gu,
 
 function _ownedByTitleYear(){
   const map={};
-  const add=(i,status)=>{const key=_norm(i.title)+'|'+(i.year||'').slice(0,4);if(!map[key])map[key]={status,item:i};};
+  const add=(i,status)=>{const key=_norm(i.title)+'|'+String(i.year||'').slice(0,4);if(!map[key])map[key]={status,item:i};};
   watched.forEach(i=>add(i,'ok'));
   watching.forEach(i=>add(i,'wn'));
   planned.forEach(i=>add(i,'pl'));

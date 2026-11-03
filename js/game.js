@@ -46,7 +46,10 @@ function loadGameTab(){
 }
 function setGameFilter(k){_game.filter=k;loadGameTab();}
 
+/* bumped on every start and close: an answer that arrives for an older game must not paint over the current one */
+let _gameRun=0;
 function startGame(mode){
+  _gameRun++;
   mode=mode||_game.mode;
   const pool=_gameEligible().filter(i=>_game.filter==='all'||_gameKind(i)===_game.filter);
   if(pool.length<4)return;
@@ -57,7 +60,7 @@ function startGame(mode){
   document.getElementById('gamePlay').classList.remove('hidden');
   gameNextQuestion();
 }
-function closeGameModal(){document.getElementById('gameModalBg').classList.add('hidden');_game.answered=true;loadGameTab();}
+function closeGameModal(){_gameRun++;document.getElementById('gameModalBg').classList.add('hidden');_game.answered=true;loadGameTab();}
 
 function _gameHud(){
   const h=document.getElementById('gameHud');if(!h)return;
@@ -114,13 +117,16 @@ function _gameShuffle(arr){const a=arr.slice();for(let i=a.length-1;i>0;i--){con
 
 async function gameNextQuestion(){
   if(_game.mode==='round'&&_game.q>=GAME_ROUND){gameEnd();return;}
+  const run=_gameRun;
   _game.q++;_game.answered=true;
   document.getElementById('gameReveal').innerHTML='';
   document.getElementById('gameOpts').innerHTML='';
   document.getElementById('gameShotWrap').innerHTML='<div class="spinner">Завантажую кадр…</div>';
   _gameHud();
-  const pick=await(_game.next||_gamePick());_game.next=null;
-  if(document.getElementById('gameModalBg').classList.contains('hidden'))return; /* closed while loading */
+  const pick=await(_game.next||_gamePick());
+  if(run!==_gameRun)return; /* closed or restarted while loading */
+  _game.next=null;
+  if(document.getElementById('gameModalBg').classList.contains('hidden'))return;
   if(!pick){gameEnd(true);return;}
   _game.current=pick;
   _game.recent.push(pick.item.imdbID);if(_game.recent.length>Math.min(10,_game.pool.length-1))_game.recent.shift();

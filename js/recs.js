@@ -16,13 +16,15 @@ function _recsSave(){if(_recs)_lsSet('ct_recs',JSON.stringify(_recs));}
 
 /* What counts as "already yours": list items + hidden, by imdbID, by TMDB key, by title|year */
 function _recKnown(){
-  const imdb=new Set(),tmdb=new Set(),ty=new Set(),hiddenTitles=new Set();
+  const imdb=new Set(),tmdb=new Set(),ty=new Set(),hiddenTitles=new Set(); /* hiddenTitles: only legacy hides that have no year */
   [...watched,...watching,...planned].forEach(i=>{
     imdb.add(i.imdbID);
     ty.add(_norm(i.title)+'|'+String(i.year||'').slice(0,4));
     const f=_findCache[i.imdbID];if(f){if(f.m)tmdb.add('movie:'+f.m);if(f.t)tmdb.add('tv:'+f.t);}
   });
-  hidden.forEach(h=>{if(h.imdbID)imdb.add(h.imdbID);if(h.tmdb)tmdb.add(h.tmdb);hiddenTitles.add(_norm(h.title));
+  /* a hide matches by id, or by title+year: a remake with the same name but another year is a different title */
+  hidden.forEach(h=>{if(h.imdbID)imdb.add(h.imdbID);if(h.tmdb)tmdb.add(h.tmdb);
+    if(h.year)ty.add(_norm(h.title)+'|'+String(h.year).slice(0,4));else if(!h.imdbID&&!h.tmdb)hiddenTitles.add(_norm(h.title));
     const f=_findCache[h.imdbID];if(f){if(f.m)tmdb.add('movie:'+f.m);if(f.t)tmdb.add('tv:'+f.t);}});
   for(const k in _resolveCache)if(imdb.has(_resolveCache[k].imdbID))tmdb.add(k);
   return {imdb,tmdb,
@@ -147,7 +149,7 @@ async function buildRecs(){
   const seen=new Set();
   const clean=shelves.filter(Boolean).map(s=>({...s,items:s.items.filter(i=>seen.has(i.k)?false:(seen.add(i.k),true))})).filter(s=>s.items.length);
   _recs={ts:Date.now(),seedRot:rot,shelves:clean};_recsSave();
-  recsFetched=Date.now();_recBusy=false;
+  _recBusy=false;
   document.getElementById('recsRefresh')?.classList.remove('busy');
   renderRecs();
 }
@@ -159,7 +161,6 @@ function openRecs(){
   renderRecs();
 }
 async function refreshRecs(){_recOpen.clear();_recView='picks';const gp=document.getElementById('genrePick');if(gp)gp.value='';await buildRecs();}
-const loadRecs=openRecs; /* older callers */
 
 function _recFind(k){
   for(const s of _recs?.shelves||[]){const it=s.items.find(i=>i.k===k);if(it)return it;}

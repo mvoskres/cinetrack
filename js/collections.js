@@ -187,7 +187,7 @@ function _buildCollGroups(groups,collIds){
   return collIds.map(id=>{
     const grp=groups[id],det=_collDetails[id];
     const parts=(det?.parts||[]).slice().sort((a,b)=>(a.date||'9999').localeCompare(b.date||'9999'));
-    const list=parts.length?parts:grp.owned.map(o=>({title:o.title,year:(o.year||'').slice(0,4),id:null,imdbID:o.imdbID,imdbRating:o.imdbRating,poster:null}));
+    const list=parts.length?parts:grp.owned.map(o=>({title:o.title,year:String(o.year||'').slice(0,4),id:null,imdbID:o.imdbID,imdbRating:o.imdbRating,poster:null}));
     return{id,name:(det?.name||grp.collName||'').replace(/ Collection$/,''),poster:grp.collPoster||det?.poster||parts.find(p=>p.poster)?.poster,list, /* some collections have no poster of their own */
       types:[...new Set(grp.owned.map(o=>o.customCategory||o.type).filter(Boolean))],
       genres:[...new Set(grp.owned.flatMap(o=>(o.genre||'').split(',').map(s=>s.trim()).filter(Boolean)))]};

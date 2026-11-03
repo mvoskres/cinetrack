@@ -310,7 +310,7 @@ function cardMenu(ev,list,id){
   const items={
     watched:[{icon:'star',label:'Оцінка і коментар',fn:'editW',args:[id]},...common,{icon:'trash',label:'Видалити',fn:'_menuDel',args:['watched',id],danger:1}],
     planned:[{icon:'check',label:'Переглянуто',fn:'plToW',args:[id]},{icon:'play',label:'Почати дивитись',fn:'plToWn',args:[id]},...common,{icon:'trash',label:'Видалити',fn:'_menuDel',args:['planned',id],danger:1}],
-    watching:[ser&&{icon:'refresh',label:'Оновити дані ефіру',fn:'relive',args:[it.imdbID]},ser&&{icon:'plus',label:'Наступний сезон',fn:'adj',args:[id,'s',1]},ser&&it.season>1&&{icon:'minus',label:'Попередній сезон',fn:'adj',args:[id,'s',-1]},
+    watching:[ser&&{icon:'refresh',label:'Оновити дані ефіру',fn:'relive',args:[it.imdbID]},ser&&it.season<(it.totalSeasons||1)&&{icon:'plus',label:'Наступний сезон',fn:'adj',args:[id,'s',1]},ser&&it.season>1&&{icon:'minus',label:'Попередній сезон',fn:'adj',args:[id,'s',-1]},
       {icon:'check',label:'Переглянуто повністю',fn:'mvToW',args:[id]},...common,{icon:'trash',label:'Видалити',fn:'_menuDel',args:['watching',id],danger:1}],
   }[list];
   openMenu(ev,items);
