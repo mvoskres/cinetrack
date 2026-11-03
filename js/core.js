@@ -144,7 +144,7 @@ const F={
   watching:{q:'',cats:[],genres:[],decades:[],tags:[],sort:'added-desc'},
   planned: {q:'',cats:[],genres:[],decades:[],tags:[],sort:'added-desc'},
 };
-/* the one map of category labels; the other tabs derive theirs from it */
+/* the one map of category labels; the other tabs derive theirs from it (library CAT_L, people CREDIT_TYPE_LABEL, tl) */
 const CAT={movie:'Фільм',series:'Серіал',anime:'Аніме',cartoon:'Мульт',other:'Інше'};
 function catLabel(c){return esc(Object.hasOwn(CAT,c)?CAT[c]:c||'');}
 const S_ALL=[['added-desc','Нові'],['added-asc','Старі'],['year-desc','Рік ↓'],['year-asc','Рік ↑'],['title-asc','А→Я'],['genre-asc','Жанр'],['imdb-rating-desc','IMDb ↓'],['imdb-rating-asc','IMDb ↑']];
@@ -336,8 +336,6 @@ function updateStats(){
   document.getElementById('nb-watched').textContent=watched.length;
   document.getElementById('nb-watching').textContent=watching.length;
   document.getElementById('nb-planned').textContent=planned.length;
-  const tot=document.getElementById('totalCount');
-  if(tot)tot.textContent=watched.length+watching.length+planned.length;
   const wh=document.getElementById('wHead'),wnH=document.getElementById('wnHead'),plH=document.getElementById('plHead');
   if(wh) wh.textContent='· '+watched.length;
   if(wnH)wnH.textContent='· '+watching.length;

@@ -210,9 +210,6 @@ async function addPl(id){
   return true;
 }
 
-/* ── RIBBON ── */
-function ribbon(cat){const map={series:'series',anime:'anime',cartoon:'cartoon',other:'other'};const cls=map[cat]||'';return `<div class="card-ribbon${cls?' '+cls:''}">${{movie:'Фільм',series:'Серіал',anime:'Аніме',cartoon:'Мульт',other:'Інше'}[cat]||cat}</div>`;}
-
 /* ── PROGRESSIVE GRID ──
    826 watched cards rendered at once meant ~17k DOM nodes on every re-render
    (each add/delete/tag). Render a page, append more as the sentinel nears the

@@ -106,7 +106,7 @@ function _creditType(genreIds,mediaType,lang){
   if(g.includes(16))return lang==='ja'?'anime':'cartoon';
   return mediaType==='tv'?'tv':'movie';
 }
-const CREDIT_TYPE_LABEL={movie:'Фільм',tv:'Серіал',anime:'Аніме',cartoon:'Мультфільм',doc:'Документальний',talk:'Шоу'};
+const CREDIT_TYPE_LABEL={movie:CAT.movie,tv:CAT.series,anime:CAT.anime,cartoon:'Мультфільм',doc:'Документальний',talk:'Шоу'};
 
 /* Remembers credits where TMDB has no IMDb id at all, so "Додати" isn't offered again */
 let _unresolvable=_lsJSON('ct_unresolvable',{}); /* 'mediaType:tmdbId' -> true */

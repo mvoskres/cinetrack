@@ -4,7 +4,8 @@ function findItem(id){for(const l of[watched,watching,planned]){const it=l.find(
    One scan for what drifts over time: the same title twice in a list, a title left in
    Планую/Дивлюсь after it was marked watched, hidden titles that are in the lists,
    and missing or doubtful categories. Every fix is a checkbox; one undo restores all. */
-const CAT_L={movie:'Фільм',series:'Серіал',anime:'Аніме',cartoon:'Мульт'};
+/* the categories the data check may suggest: «Інше» is only ever set by hand */
+const CAT_L=Object.fromEntries(Object.entries(CAT).filter(([k])=>k!=='other'));
 const LIST_L={watched:'Переглянуте',watching:'Дивлюсь',planned:'Планую'};
 function _catGuess(i){return gc({Genre:i.genre,Country:i.country,Type:i.type});}
 const _richness=i=>(i.rating?4:0)+(i.comment?2:0)+((i.tags||[]).length?2:0)+(i.streamUrl?1:0)+(i.season?1:0);
