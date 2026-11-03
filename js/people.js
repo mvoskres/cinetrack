@@ -40,7 +40,7 @@ async function doPersonSearch(q){
     box.innerHTML=res.map(p=>{
       const already=_trackedPeople.find(t=>t.id===p.id);
       return `<div class="sug-item" data-act="addTrackedPerson" data-args="${A(p.id,p.name,p.profile_path||'',p.known_for_department||'')}">
-        <img class="sug-img" style="border-radius:50%;object-fit:cover" src="${p.profile_path?`https://image.tmdb.org/t/p/w92${p.profile_path}`:blank()}" onerror="this.src=BLANK">
+        <img class="sug-img" style="border-radius:50%;object-fit:cover" src="${_tsImg(p.profile_path,'w92')||blank()}" onerror="this.src=BLANK">
         <div class="sug-info"><div class="sug-title">${esc(p.name)}</div><div class="sug-meta">${esc(p.known_for_department||'')}</div></div>
         ${already?`<span class="sug-badge ok">${ic('check')}Стежу</span>`:''}
       </div>`;
@@ -77,8 +77,8 @@ function renderPeopleTab(){
     return;
   }
   box.innerHTML=!_trackedPeople.length?'':`<div class="people-chips">${_trackedPeople.map(p=>`
-    <button class="person-chip" data-pid="${p.id}" data-act="openPerson" data-args="${A((p.id))}">
-      <img src="${p.profile?`https://image.tmdb.org/t/p/w92${p.profile}`:BLANK}" alt="" onerror="this.src=BLANK">${esc(p.name)}
+    <button class="person-chip" data-pid="${esc(p.id)}" data-act="openPerson" data-args="${A((p.id))}">
+      <img src="${_tsImg(p.profile,'w92')||BLANK}" alt="" onerror="this.src=BLANK">${esc(p.name)}
     </button>`).join('')}</div>`;
   const detail=document.getElementById('personDetail');
   const cur=+detail?.dataset.pid;
@@ -169,7 +169,7 @@ async function openPerson(id){
 
   const all=_personAllCredits(credits);
   _personGroupsCache={personId:id,all};
-  const prof=person?.profile?`https://image.tmdb.org/t/p/w185${person.profile}`:BLANK;
+  const prof=_tsImg(person?.profile,'w185')||BLANK;
   detail.innerHTML=`<div class="person-head">
       <img class="person-photo" src="${prof}" alt="" onerror="this.src=BLANK">
       <div class="person-info">
@@ -291,15 +291,15 @@ function _personCardHtml(c){
   }
   const knownImdbForLink=c.owned?c.owned.item.imdbID:_resolveCache[ck]?.imdbID;
   const link=knownImdbForLink?`https://www.imdb.com/title/${knownImdbForLink}/`:`https://www.themoviedb.org/${c.mediaType==='tv'?'tv':'movie'}/${c.id}`;
-  const posterUrl=c.poster?`https://image.tmdb.org/t/p/w342${c.poster}`:BLANK;
+  const posterUrl=_tsImg(c.poster,'w342')||BLANK;
   const roleLbl=c.roles.has('directing')&&c.roles.has('acting')?'Режисер і актор':c.roles.has('directing')?'Режисер':c.lead?'Головна роль':'Роль';
   const role=roleLbl+(c.characters.length?' · '+c.characters.join(', '):'');
   const score=!out?`<span class="fc-up">${c.date?'вийде '+new Date(c.date+'T00:00:00').toLocaleDateString('uk-UA',{day:'numeric',month:'short',year:'numeric'}):'анонс'}</span>`
     :c.rating&&c.voteCount>=10?`<span class="imdb">TMDB <span class="num">${c.rating.toFixed(1)}</span></span>`:'';
   return `<article class="pc">
-    <div class="pc-art"><a href="${link}" target="_blank" rel="noopener" tabindex="-1" data-act="_tsClickT" data-args="${A('$ev',`${c.mediaType}`,(c.id))}"><img src="${posterUrl}" onerror="this.src=BLANK" loading="lazy" alt=""></a></div>
-    <div class="pc-t" title="${esc(c.title)}"><a href="${link}" target="_blank" rel="noopener" data-act="_tsClickT" data-args="${A('$ev',`${c.mediaType}`,(c.id))}">${esc(c.title)}</a></div>
-    <div class="pc-m">${c.year?`<span class="num">${c.year}</span>`:''}<span>${CREDIT_TYPE_LABEL[c.type]||''}</span>${score}</div>
+    <div class="pc-art"><a href="${esc(link)}" target="_blank" rel="noopener" tabindex="-1" data-act="_tsClickT" data-args="${A('$ev',`${c.mediaType}`,(c.id))}"><img src="${esc(posterUrl)}" onerror="this.src=BLANK" loading="lazy" alt=""></a></div>
+    <div class="pc-t" title="${esc(c.title)}"><a href="${esc(link)}" target="_blank" rel="noopener" data-act="_tsClickT" data-args="${A('$ev',`${c.mediaType}`,(c.id))}">${esc(c.title)}</a></div>
+    <div class="pc-m">${c.year?`<span class="num">${esc(c.year)}</span>`:''}<span>${CREDIT_TYPE_LABEL[c.type]||''}</span>${score}</div>
     <div class="pc-note" title="${esc(role)}">${esc(role)}</div>
     <div class="pc-status">${status}</div>
   </article>`;

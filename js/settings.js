@@ -284,63 +284,172 @@ async function runCsvImport(){
   toast(`Імпорт: додано ${added.length}`,'ok',2600);
   if(added.length)runMaintenance();
 }
+/* ── BACKUP VALIDATION ──
+   A backup file is outside input: it can be hand-edited, come from another version, or be hostile.
+   Every record is rebuilt from known fields with checked types, so nothing from the file reaches the page
+   as markup or as script. A record that cannot be made valid is dropped and listed in the report. */
+const _IMDB_RE=/^tt\d{1,12}$/,_TMDBKEY_RE=/^(movie|tv):\d{1,9}$/,_TMDBPATH_RE=/^\/[\w.\-]+$/;
+const _s=(v,max)=>typeof v==='string'?v.slice(0,max):typeof v==='number'&&isFinite(v)?String(v).slice(0,max):'';
+/* a number inside [lo,hi] (numeric strings count), else null */
+const _n=(v,lo,hi)=>{const n=typeof v==='number'?v:typeof v==='string'&&v.trim()!==''?Number(v):NaN;return Number.isFinite(n)&&n>=lo&&n<=hi?n:null;};
+const _i=(v,lo,hi)=>{const n=_n(v,lo,hi);return n===null?null:Math.trunc(n);};
+const _isoDate=v=>typeof v==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(v)?v:null;
+function _normLive(l){
+  if(!l||typeof l!=='object'||Array.isArray(l))return null;
+  const ep=v=>{const n=_i(v,0,99999);return n===null?null:String(n);};
+  const o={isEnded:!!l.isEnded,lastAiredSeason:_i(l.lastAiredSeason,0,999),lastAiredEp:ep(l.lastAiredEp),lastAiredDate:_isoDate(l.lastAiredDate),
+    nextEpSeason:_i(l.nextEpSeason,0,999),nextEpNum:ep(l.nextEpNum),nextEpDate:_isoDate(l.nextEpDate),_cachedAt:_n(l._cachedAt,0,9e15)||0};
+  if(l.src==='tvmaze'||l.src==='omdb')o.src=l.src; /* entries without src are re-asked once, keep them that way */
+  return o;
+}
+/* -> {item} or {bad:reason}. `list` decides which list-only fields are kept/defaulted */
+function _normItem(src,list){
+  if(!src||typeof src!=='object'||Array.isArray(src))return{bad:'не запис'};
+  const imdbID=typeof src.imdbID==='string'?src.imdbID.trim():'';
+  if(!_IMDB_RE.test(imdbID))return{bad:'некоректний imdbID'};
+  let id=null;
+  if(src.id!==undefined&&src.id!==null){id=_n(src.id,1,9e15);if(id===null)return{bad:'некоректний id'};id=Math.trunc(id);}
+  const o={id,imdbID,title:_s(src.title,300).trim()||imdbID,
+    poster:safeUrl(_s(src.poster,2000).replace(/^http:\/\//i,'https://'),true),
+    year:_s(src.year,12),type:['movie','series','episode','game'].includes(src.type)?src.type:'movie',
+    genre:_s(src.genre,200),country:_s(src.country,200),imdbUrl:`https://www.imdb.com/title/${imdbID}/`};
+  const r=_s(src.imdbRating,5);o.imdbRating=/^(10(\.0)?|\d(\.\d)?)$/.test(r)?r:null;
+  if(typeof src.customCategory==='string'&&Object.hasOwn(CAT,src.customCategory))o.customCategory=src.customCategory;
+  const at=_n(src.addedAt,0,9e15);if(at!==null)o.addedAt=at;
+  const rt=_i(src.rating,0,10);if(rt!==null)o.rating=rt;else if(list==='watched')o.rating=0;
+  if(typeof src.comment==='string')o.comment=src.comment.slice(0,4000);else if(list==='watched')o.comment='';
+  if(Array.isArray(src.tags)){const t=[...new Set(src.tags.filter(x=>typeof x==='string').map(x=>x.trim().slice(0,60)).filter(Boolean))].slice(0,40);if(t.length)o.tags=t;}
+  const su=safeUrl(_s(src.streamUrl,2000));if(su)o.streamUrl=su;
+  if(src.runtime===null)o.runtime=null;else{const m=_i(src.runtime,0,2000);if(m!==null)o.runtime=m;}
+  const rc=_n(src._ratingCheckedAt,0,9e15);if(rc!==null)o._ratingCheckedAt=rc;
+  const sn=_i(src.season,1,500),ep=_i(src.episode,1,100000),ts=_i(src.totalSeasons,1,500);
+  if(list==='watching'){o.season=sn||1;o.episode=ep||1;o.totalSeasons=ts||Math.max(1,o.season);}
+  else{if(sn)o.season=sn;if(ep)o.episode=ep;if(ts)o.totalSeasons=ts;}
+  if(src.prevEp&&typeof src.prevEp==='object'){const s=_i(src.prevEp.s,1,500),e=_i(src.prevEp.e,1,100000);if(s&&e)o.prevEp={s,e};}
+  if(src.seasonEps&&typeof src.seasonEps==='object'&&!Array.isArray(src.seasonEps)){
+    const eps={};for(const k of Object.keys(src.seasonEps)){const kk=_i(k,1,500),v=_i(src.seasonEps[k],1,100000);if(kk&&v)eps[kk]=v;}o.seasonEps=eps;}
+  const tv=_i(src.tvmazeId,1,1e9);if(tv)o.tvmazeId=tv;
+  const ls=_normLive(src.liveStatus);if(ls)o.liveStatus=ls;
+  return{item:o};
+}
+function _normHidden(h){
+  if(!h||typeof h!=='object'||Array.isArray(h))return null;
+  const imdbID=_IMDB_RE.test(h.imdbID||'')?h.imdbID:'',tmdb=_TMDBKEY_RE.test(h.tmdb||'')?h.tmdb:'';
+  if(!imdbID&&!tmdb)return null;
+  return{imdbID,tmdb,title:_s(h.title,300),year:_s(h.year,12),poster:safeUrl(_s(h.poster,2000),true)};
+}
+function _normPerson(p){
+  const id=_i(p&&p.id,1,1e9);if(id===null)return null;
+  return{id,name:_s(p.name,200),profile:_TMDBPATH_RE.test(p.profile||'')?p.profile:'',dept:_s(p.dept,30)};
+}
+/* Caches are regenerable, so they are filtered rather than repaired: a key must look like its kind of key,
+   and an entry carrying markup characters anywhere inside is dropped (it will be fetched again). */
+const _SAFE_KEY=/^[\w:.\-|]{1,60}$/;
+function _scrubOk(v,d=0){
+  if(d>7)return false;
+  if(v===null||typeof v==='boolean')return true;
+  if(typeof v==='number')return Number.isFinite(v);
+  if(typeof v==='string')return v.length<=3000&&!/[<>"`\\\u0000-\u0008\u000b-\u001f]/.test(v);
+  if(Array.isArray(v))return v.length<=5000&&v.every(x=>_scrubOk(x,d+1));
+  if(typeof v==='object')return Object.keys(v).length<=5000&&Object.keys(v).every(k=>_SAFE_KEY.test(k)&&k!=='__proto__'&&k!=='constructor'&&_scrubOk(v[k],d+1));
+  return false;
+}
+function _scrubCache(src,keyRe,stat){
+  const out={};
+  if(!src||typeof src!=='object'||Array.isArray(src))return out;
+  for(const k of Object.keys(src)){
+    if(!keyRe.test(k)||!_scrubOk(src[k])||!src[k]||typeof src[k]!=='object'){stat.n++;continue;}
+    out[k]=src[k];
+  }
+  return out;
+}
 /* Merges a parsed backup into the live state; shared by file import and Drive restore.
    Throws on a wrong shape before anything live is touched. */
 function _applyBackup(data){
   if(!data||typeof data!=='object'||(!data.watched&&!data.watching&&!data.planned))throw new Error('Невірний формат');
   /* Phase 1: parse and validate everything into temp variables. Nothing live is touched until the whole
      file has been read without a throw, so a broken file can't leave a half-merged state. */
-  const arr=v=>Array.isArray(v)?v.filter(x=>x&&typeof x==='object'):[];
-  const obj=v=>v&&typeof v==='object'&&!Array.isArray(v)?v:null;
+  const arr=v=>Array.isArray(v)?v:[];
+  const rejected=[]; /* {list,title,reason}: what was not taken, so the report can say it */
   let aw=0,awn=0,apl=0,skip=0;
   /* A title already in ANY local list is skipped: merging per-list used to
      put the same film into watched and planned at once (the main source of
      cross-list duplicates). The local state wins. */
   const have=new Set([...watched,...watching,...planned].map(x=>x.imdbID));
-  const take=(src,inc)=>{const out=[];arr(src).forEach(it=>{if(!it.imdbID)return;if(have.has(it.imdbID)){skip++;return;}have.add(it.imdbID);out.push(it);inc();});return out;};
-  const nW=take(data.watched,()=>aw++),nWn=take(data.watching,()=>awn++),nPl=take(data.planned,()=>apl++);
-  const nHidden=arr(data.hidden).filter(it=>{const key=it.imdbID||it.tmdb;return key&&!hidden.find(x=>(x.imdbID||x.tmdb)===key);});
-  const nPeople=arr(data.trackedPeople).filter(p=>p.id&&!_trackedPeople.find(t=>t.id===p.id));
-  const nPerson={};const pcIn=obj(data.personCache);
-  if(pcIn)for(const id in pcIn){const c=pcIn[id];if(c&&typeof c==='object')nPerson[id]={...c,cast:_slimCredits(c.cast),crew:_slimCredits(c.crew)};}
+  const usedIds=new Set([...watched,...watching,...planned].map(x=>x.id));
+  let idSeq=Date.now();
+  const take=(src,list,inc)=>{const out=[];arr(src).forEach(raw=>{
+    const r=_normItem(raw,list);
+    if(r.bad){rejected.push({list,title:_s(raw&&raw.title,80)||'(без назви)',reason:r.bad});return;}
+    const it=r.item;
+    if(have.has(it.imdbID)){skip++;return;}
+    have.add(it.imdbID);
+    if(it.id===null||usedIds.has(it.id)){while(usedIds.has(idSeq))idSeq--;it.id=idSeq--;} /* a file without ids, or an id taken here already */
+    usedIds.add(it.id);out.push(it);inc();});return out;};
+  const nW=take(data.watched,'watched',()=>aw++),nWn=take(data.watching,'watching',()=>awn++),nPl=take(data.planned,'planned',()=>apl++);
+  const nHidden=arr(data.hidden).map(_normHidden).filter(it=>{if(!it)return false;const key=it.imdbID||it.tmdb;return !hidden.find(x=>(x.imdbID||x.tmdb)===key);});
+  const nPeople=arr(data.trackedPeople).map(_normPerson).filter(p=>p&&!_trackedPeople.find(t=>t.id===p.id));
+  const cs={n:0};
+  const pcIn=data.personCache?_scrubCache(data.personCache,/^\d{1,9}$/,cs):null;
+  const nPerson={};
+  if(pcIn)for(const id in pcIn){const c=pcIn[id];nPerson[id]={ts:_n(c.ts,0,9e15)||0,cast:_slimCredits(Array.isArray(c.cast)?c.cast:[]),crew:_slimCredits(Array.isArray(c.crew)?c.crew:[])};}
+  const nColl=data.collCache?_scrubCache(data.collCache,_IMDB_RE,cs):null,nDet=data.collDetails?_scrubCache(data.collDetails,/^\d{1,9}$/,cs):null;
+  const nSkip=data.skippedParts?_scrubCache(data.skippedParts,_IMDB_RE,cs):null,nUnres=data.unresolvable?_scrubCache(data.unresolvable,_TMDBKEY_RE,cs):null;
+  const nGame=data.gameBackdropCache?_scrubCache(data.gameBackdropCache,_IMDB_RE,cs):null;
+  const nRes=data.resolveCache?_scrubCache(data.resolveCache,_TMDBKEY_RE,cs):null,nFind=data.tmdbFind?_scrubCache(data.tmdbFind,_IMDB_RE,cs):null;
+  /* keys: the file never replaces a key that already works here (a stale or foreign file used to swap them silently) */
+  const keyOk=k=>typeof k==='string'&&/^[\w\-]{5,64}$/.test(k);
+  const setApi=!API&&keyOk(data.apiKey),setTmdb=!TMDB_KEY&&keyOk(data.tmdbKey);
   /* Phase 2: apply (plain assignments only) */
+  _lsBadRelease(); /* a damaged user key is about to be replaced: its text is kept as ct_damaged_* */
   /* unshift one by one reverses the order; same result as before */
   watched.unshift(...nW.reverse());watching.unshift(...nWn.reverse());planned.unshift(...nPl.reverse());
   nHidden.forEach(it=>hidden.push(it));
   const apeople=nPeople.length;
   nPeople.forEach(p=>_trackedPeople.push(p));
   if(apeople){_peopleSave();}
-  if(data.collCache){Object.assign(_collCache,data.collCache);_collCacheSave();}
-  if(data.skippedParts){Object.assign(_skippedParts,data.skippedParts);_skippedSave();}
-  if(data.unresolvable){Object.assign(_unresolvable,data.unresolvable);_unresolvableSave();}
-  if(typeof data.gameBestScore==='number'&&data.gameBestScore>_gameBestScore){_gameBestScore=data.gameBestScore;_gameBestSave();}
-  if(typeof data.gameRoundBest==='number'&&data.gameRoundBest>_gameRoundBest){_gameRoundBest=data.gameRoundBest;_gameBestSave();}
-  if(data.gameBackdropCache){Object.assign(_gameBackdropCache,data.gameBackdropCache);_gameCacheSave();}
-  if(data.apiCache){Object.assign(_apiCache,data.apiCache);_cacheSave();}
-  if(data.collDetails){Object.assign(_collDetails,data.collDetails);_collDetailsSave();}
+  if(nColl){Object.assign(_collCache,nColl);_collCacheSave();}
+  if(nSkip){Object.assign(_skippedParts,nSkip);_skippedSave();}
+  if(nUnres){Object.assign(_unresolvable,nUnres);_unresolvableSave();}
+  const gb=_i(data.gameBestScore,0,1e6),gr=_i(data.gameRoundBest,0,1e6);
+  if(gb!==null&&gb>_gameBestScore){_gameBestScore=gb;_gameBestSave();}
+  if(gr!==null&&gr>_gameRoundBest){_gameRoundBest=gr;_gameBestSave();}
+  if(nGame){Object.assign(_gameBackdropCache,nGame);_gameCacheSave();}
+  /* data.apiCache is deliberately ignored: 24 h of someone else's answers, and the biggest thing in the file */
+  if(nDet){Object.assign(_collDetails,nDet);_collDetailsSave();}
   if(pcIn){Object.assign(_personCache,nPerson);_personCacheSave();}
-  if(data.resolveCache){Object.assign(_resolveCache,data.resolveCache);_resolveCacheSave();}
-  if(data.tmdbFind){Object.assign(_findCache,data.tmdbFind);_findSave();}
-  if(data.apiKey&&data.apiKey.length>4){API=data.apiKey;_lsSet('ct_apikey',data.apiKey);}
-  if(data.tmdbKey&&data.tmdbKey.length>4){TMDB_KEY=data.tmdbKey;_lsSet('ct_tmdbkey',data.tmdbKey);}
+  if(nRes){Object.assign(_resolveCache,nRes);_resolveCacheSave();}
+  if(nFind){Object.assign(_findCache,nFind);_findSave();}
+  if(setApi){API=data.apiKey;_lsSet('ct_apikey',API);}
+  if(setTmdb){TMDB_KEY=data.tmdbKey;_tmdbBlocked=false;_lsSet('ct_tmdbkey',TMDB_KEY);}
   /* lists changed: drop the cached shelves so Рекомендації rebuilds against the new lists (recsFetched was never read) */
   _recs=null;try{localStorage.removeItem('ct_recs');}catch(e){}
   save();['watched','watching','planned'].forEach(buildBar);
   rWatched();rWatching(true);rPlanned();rDash();updateStats();renderPeopleTab();
-  return{aw,awn,apl,skip,apeople};
+  return{aw,awn,apl,skip,apeople,rejected,cacheDropped:cs.n,keys:{api:setApi,tmdb:setTmdb}};
+}
+/* one honest sentence block for the import report (file import and Drive both use it) */
+function _backupReport(r){
+  const L=[`Імпортовано: ${r.aw} переглянуто, ${r.awn} дивлюсь, ${r.apl} заплановано${r.apeople?`, ${r.apeople} людей у стеженні`:''}`];
+  if(r.skip)L.push(`Пропущено ${r.skip}: ці тайтли вже є у твоїх списках, лишилась твоя версія`);
+  if(r.rejected.length){
+    const ex=r.rejected.slice(0,4).map(x=>`«${x.title}» (${x.reason})`).join(', ');
+    L.push(`Відкинуто ${r.rejected.length} пошкоджених записів: ${ex}${r.rejected.length>4?'…':''}`);
+  }
+  if(r.cacheDropped)L.push(`Відкинуто ${r.cacheDropped} підозрілих записів кешу, вони завантажаться заново`);
+  return L;
 }
 function doImport(e){
   const file=e.target.files[0];if(!file)return;
   const msg=document.getElementById('impMsg');if(msg){msg.style.color='var(--muted)';msg.textContent='Читаю файл…';}
   const rd=new FileReader();
   rd.onload=ev=>{
-    const show=(c,t)=>{const el=document.getElementById('impMsg');if(el){el.style.color=c;el.textContent=t;}};
+    const show=(c,t)=>{const el=document.getElementById('impMsg');if(el){el.style.color=c;el.style.whiteSpace='pre-line';el.textContent=t;}};
     try{
-      const {aw,awn,apl,skip,apeople}=_applyBackup(JSON.parse(ev.target.result));
-      show('var(--jade-2)',`Імпортовано: ${aw} переглянуто, ${awn} дивлюсь, ${apl} заплановано${apeople?`, ${apeople} людей у стеженні`:''}${skip?` · ${skip} пропущено (вже є у твоїх списках)`:''}`);
+      const r=_applyBackup(JSON.parse(ev.target.result));
+      show(r.rejected.length?'var(--gold)':'var(--jade-2)',_backupReport(r).join('\n'));
       runMaintenance(); /* fresh titles arrive without country/rating */
     }catch(err){show('var(--rose)','✕ '+(err.message||'невірний файл'));}
   };
   rd.readAsText(file);e.target.value='';
 }
-

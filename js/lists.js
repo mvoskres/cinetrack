@@ -59,7 +59,7 @@ async function _tmdbSearch(q){
     const t=r.title||r.name||'',o=r.original_title||r.original_name||'',y=(r.release_date||r.first_air_date||'').slice(0,4);
     return `<div class="sug-item" data-act="_sugOpen" data-args="${A(r.media_type,r.id)}">
       <img class="sug-img" src="${_tsImg(r.poster_path,'w92')||blank()}" loading="lazy" onerror="this.src=BLANK">
-      <div class="sug-info"><div class="sug-title">${esc(t)}</div><div class="sug-meta">${y?`<span class="sug-year">${y}</span> · `:''}${r.media_type==='tv'?'Серіал':'Фільм'}${o&&o!==t?` · ${esc(o)}`:''}</div></div>
+      <div class="sug-info"><div class="sug-title">${esc(t)}</div><div class="sug-meta">${y?`<span class="sug-year">${esc(y)}</span> · `:''}${r.media_type==='tv'?CAT.series:CAT.movie}${o&&o!==t?` · ${esc(o)}`:''}</div></div>
       ${_ownBadge(_tmdbOwnedId(r.media_type,r.id))}</div>`;
   }).join('')+people.map(p=>`<div class="sug-item" data-act="_sugPerson" data-args="${A(p.id,p.name,p.profile_path||'')}">
       <img class="sug-img round" src="${_tsImg(p.profile_path,'w92')}" loading="lazy" onerror="this.src=BLANK">
@@ -92,8 +92,8 @@ async function _omdbSearch(q){
       else if(watching.find(x=>x.imdbID===m.imdbID)) b=`<span class="sug-badge wn">${ic('play')}Дивлюсь</span>`;
       else if(planned.find(x=>x.imdbID===m.imdbID))  b=`<span class="sug-badge pl">${ic('bookmark')}Планую</span>`;
       return `<div class="sug-item" data-act="pickMovie" data-args="${A(`${m.imdbID}`)}">
-        <img class="sug-img" src="${ps(m.Poster)||blank()}" loading="lazy" onerror="this.src=BLANK">
-        <div class="sug-info"><div class="sug-title">${esc(m.Title)}</div><div class="sug-meta"><span class="sug-year">${m.Year}</span> · ${tl(m.Type)}</div></div>
+        <img class="sug-img" src="${imgSrc(m.Poster)}" loading="lazy" onerror="this.src=BLANK">
+        <div class="sug-info"><div class="sug-title">${esc(m.Title)}</div><div class="sug-meta"><span class="sug-year">${esc(m.Year)}</span> · ${tl(m.Type)}</div></div>
         ${b}</div>`;
     }).join('');
   }catch(e){hideSug();console.warn('Search error:',e);}
@@ -106,9 +106,9 @@ async function pickMovie(imdbID){
   let m=_pendingMap[imdbID];if(!m){m=await aFetch(`i=${imdbID}&plot=short`);_pmSet(imdbID,m);}
   const inW=!!watched.find(x=>x.imdbID===imdbID),inWn=!!watching.find(x=>x.imdbID===imdbID),inPl=!!planned.find(x=>x.imdbID===imdbID);
   modal(`
-    <img class="modal-poster" src="${ps(m.Poster)||blank()}" onerror="this.style.display='none'" alt="">
+    <img class="modal-poster" src="${imgSrc(m.Poster)}" onerror="this.style.display='none'" alt="">
     <h2 class="modal-title">${esc(m.Title)}</h2>
-    <div class="modal-sub">${m.Year} · ${tl(m.Type)} · ${m.imdbRating&&m.imdbRating!=='N/A'?'IMDb '+m.imdbRating:'без рейтингу'} · ${(m.Genre||'').split(',')[0]}</div>
+    <div class="modal-sub">${esc(m.Year)} · ${tl(m.Type)} · ${m.imdbRating&&m.imdbRating!=='N/A'?'IMDb '+esc(m.imdbRating):'без рейтингу'} · ${esc((m.Genre||'').split(',')[0])}</div>
     ${m.Plot&&m.Plot!=='N/A'?`<div class="modal-plot">${esc(m.Plot)}</div>`:''}
     <div class="modal-btns">
       ${inW ?`<div class="modal-already ok">${ic('check')}Вже у переглянутому</div>`:`<button class="m-btn j" data-act="_pickDo" data-args="${A('w',imdbID)}">${ic('check')}Переглянуто</button>`}
@@ -208,9 +208,10 @@ function openMenu(ev,items){
   closeMenu();
   const btn=ev.currentTarget;
   const m=document.createElement('div');m.className='ct-menu';m.setAttribute('role','menu');
+  /* item = {icon,label,fn,args} (fn is a global function name, args go through data-args) or {icon,label,href} */
   m.innerHTML=items.filter(Boolean).map(x=>x==='-'?'<hr>':x.href
-    ?`<a role="menuitem" href="${esc(x.href)}" target="_blank" rel="noopener" onclick="closeMenu()">${ic(x.icon)}${x.label}</a>`
-    :`<button role="menuitem" class="${x.danger?'danger':''}" onclick="closeMenu();${x.run}">${ic(x.icon)}${x.label}</button>`).join('');
+    ?`<a role="menuitem" href="${esc(safeUrl(x.href)||'#')}" target="_blank" rel="noopener" data-act="closeMenu">${ic(x.icon)}${x.label}</a>`
+    :`<button role="menuitem" class="${x.danger?'danger':''}" data-act="_menuRun" data-args="${A(x.fn,...(x.args||[]))}">${ic(x.icon)}${x.label}</button>`).join('');
   document.body.appendChild(m);
   const r=btn.getBoundingClientRect();
   const below=r.bottom+6+m.offsetHeight<=innerHeight-8;
@@ -219,6 +220,8 @@ function openMenu(ev,items){
   m.querySelector('button,a')?.focus({preventScroll:true});
 }
 function closeMenu(){document.querySelector('.ct-menu')?.remove();}
+function _menuRun(fn,...args){closeMenu();if(typeof window[fn]==='function')window[fn](...args);}
+function _menuDel(list,id){del(list,id,{watched:rWatched,watching:rWatching,planned:rPlanned}[list]);}
 document.addEventListener('click',e=>{if(!e.target.closest('.ct-menu'))closeMenu();});
 /* ── DELEGATED HANDLERS ──
    Markup carries data-act / data-input / data-change="fnName" and data-args (JSON from A()).
@@ -252,14 +255,14 @@ window.addEventListener('scroll',e=>{const t=e.target;if(t.classList?.contains('
 function cardMenu(ev,list,id){
   const it=findItem(id);if(!it)return;
   const ser=it.type==='series';
-  const common=[it.streamUrl&&{icon:'play',label:'Дивитись',href:it.streamUrl},
-    {icon:'link',label:it.streamUrl?'Змінити посилання':'Додати посилання',run:`editUrl(${id})`},
-    {icon:'tag',label:'Додати тег',run:`addTag(${id})`},'-'];
+  const common=[it.streamUrl&&safeUrl(it.streamUrl)&&{icon:'play',label:'Дивитись',href:it.streamUrl},
+    {icon:'link',label:it.streamUrl?'Змінити посилання':'Додати посилання',fn:'editUrl',args:[id]},
+    {icon:'tag',label:'Додати тег',fn:'addTag',args:[id]},'-'];
   const items={
-    watched:[{icon:'star',label:'Оцінка і коментар',run:`editW(${id})`},...common,{icon:'trash',label:'Видалити',run:`del('watched',${id},rWatched)`,danger:1}],
-    planned:[{icon:'check',label:'Переглянуто',run:`plToW(${id})`},{icon:'play',label:'Почати дивитись',run:`plToWn(${id})`},...common,{icon:'trash',label:'Видалити',run:`del('planned',${id},rPlanned)`,danger:1}],
-    watching:[ser&&{icon:'refresh',label:'Оновити дані ефіру',run:`relive('${it.imdbID}')`},ser&&{icon:'plus',label:'Наступний сезон',run:`adj(${id},'s',1)`},ser&&it.season>1&&{icon:'minus',label:'Попередній сезон',run:`adj(${id},'s',-1)`},
-      {icon:'check',label:'Переглянуто повністю',run:`mvToW(${id})`},...common,{icon:'trash',label:'Видалити',run:`del('watching',${id},rWatching)`,danger:1}],
+    watched:[{icon:'star',label:'Оцінка і коментар',fn:'editW',args:[id]},...common,{icon:'trash',label:'Видалити',fn:'_menuDel',args:['watched',id],danger:1}],
+    planned:[{icon:'check',label:'Переглянуто',fn:'plToW',args:[id]},{icon:'play',label:'Почати дивитись',fn:'plToWn',args:[id]},...common,{icon:'trash',label:'Видалити',fn:'_menuDel',args:['planned',id],danger:1}],
+    watching:[ser&&{icon:'refresh',label:'Оновити дані ефіру',fn:'relive',args:[it.imdbID]},ser&&{icon:'plus',label:'Наступний сезон',fn:'adj',args:[id,'s',1]},ser&&it.season>1&&{icon:'minus',label:'Попередній сезон',fn:'adj',args:[id,'s',-1]},
+      {icon:'check',label:'Переглянуто повністю',fn:'mvToW',args:[id]},...common,{icon:'trash',label:'Видалити',fn:'_menuDel',args:['watching',id],danger:1}],
   }[list];
   openMenu(ev,items);
 }
@@ -269,11 +272,11 @@ function _myMeta(i){const c=i.customCategory||i.type;return `<div class="pc-m">$
 function _tagsHtml(i){return (i.tags||[]).length?`<div class="card-utags">${i.tags.map(t=>`<span class="utag">${esc(t)}<button class="utag-x" data-act="rmTag" data-args="${A((i.id),`${uriSafe(t)}`)}" aria-label="Видалити тег ${esc(t)}">✕</button></span>`).join('')}</div>`:'';}
 function myCard(list,i){
   return `<article class="pc">
-    <div class="pc-art"><a href="${i.imdbUrl}" target="_blank" rel="noopener" tabindex="-1" data-act="_tsClick" data-args="${A('$ev',`${i.imdbID}`)}"><img src="${posterSrc(i.poster)}" data-pf="${i.imdbID}" alt="" loading="lazy" onerror="fixBrokenPoster(this,'${i.imdbID}')"></a>
-      ${i.rating?`<span class="pc-my">${ic('star')}${i.rating}</span>`:''}
-      ${i.streamUrl?`<a class="pc-fab play" href="${esc(i.streamUrl)}" target="_blank" rel="noopener" aria-label="Дивитись ${esc(i.title)}">${ic('play')}</a>`:''}
+    <div class="pc-art"><a href="${imdbHref(i)}" target="_blank" rel="noopener" tabindex="-1" data-act="_tsClick" data-args="${A('$ev',`${i.imdbID}`)}"><img src="${posterSrc(i.poster)}" data-pf="${esc(i.imdbID)}" alt="" loading="lazy"></a>
+      ${i.rating?`<span class="pc-my">${ic('star')}${esc(i.rating)}</span>`:''}
+      ${i.streamUrl&&safeUrl(i.streamUrl)?`<a class="pc-fab play" href="${esc(safeUrl(i.streamUrl))}" target="_blank" rel="noopener" aria-label="Дивитись ${esc(i.title)}">${ic('play')}</a>`:''}
       <button class="pc-fab more" data-act="cardMenu" data-args="${A('$ev',`${list}`,(i.id))}" aria-label="Дії: ${esc(i.title)}">${ic('dots')}</button></div>
-    <div class="pc-t"><a href="${i.imdbUrl}" target="_blank" rel="noopener" data-act="_tsClick" data-args="${A('$ev',`${i.imdbID}`)}">${esc(i.title)}</a></div>
+    <div class="pc-t"><a href="${imdbHref(i)}" target="_blank" rel="noopener" data-act="_tsClick" data-args="${A('$ev',`${i.imdbID}`)}">${esc(i.title)}</a></div>
     ${_myMeta(i)}
     ${i.comment?`<div class="pc-note" title="${esc(i.comment)}">${esc(i.comment)}</div>`:''}
     ${_tagsHtml(i)}
@@ -302,9 +305,9 @@ function rPlanned(){
 function editW(id){
   const it=watched.find(i=>i.id===id);if(!it)return;
   modal(`
-    <img class="modal-poster" src="${it.poster||blank()}" loading="lazy" onerror="this.src=BLANK" alt="">
+    <img class="modal-poster" src="${imgSrc(it.poster)}" loading="lazy" onerror="this.src=BLANK" alt="">
     <h2 class="modal-title">${esc(it.title)}</h2>
-    <div class="modal-sub" style="margin-bottom:1.1rem">${it.year||''} · ${tl(it.type)}</div>
+    <div class="modal-sub" style="margin-bottom:1.1rem">${esc(it.year||'')} · ${tl(it.type)}</div>
     <div class="form-g"><label class="form-lbl">Категорія</label>
       <select class="form-sel" id="eC">
         <option value="movie"   ${(it.customCategory||it.type)==='movie'   ?'selected':''}>Фільм</option>
@@ -315,7 +318,7 @@ function editW(id){
       </select></div>
     <div class="form-g"><label class="form-lbl">Моя оцінка</label>
       <div class="stars" id="starsBox">${buildStars(it.rating||0)}</div>
-      <input type="hidden" id="eR" value="${it.rating||0}"></div>
+      <input type="hidden" id="eR" value="${+it.rating||0}"></div>
     <div class="form-g"><label class="form-lbl">Коментар</label>
       <textarea class="form-ta" id="eCm" rows="3" placeholder="Враження…">${esc(it.comment||'')}</textarea></div>
     <div class="modal-btns">
@@ -342,24 +345,24 @@ function rWatching(skipLive){
   c.innerHTML=list.map(i=>{
     const isSeries=i.type==='series';
     const lh=i.liveStatus?buildLiveHTML(i.liveStatus):'<div class="live-loading">Завантажую дані ефіру…</div>';
-    const play=i.streamUrl?`<a class="btn sq" href="${esc(i.streamUrl)}" target="_blank" rel="noopener" aria-label="Дивитись" title="Дивитись">${ic('play')}</a>`:'';
-    return `<article class="tr" id="wc-${i.id}">
-      <img class="tr-art" src="${posterSrc(i.poster)}" data-pf="${i.imdbID}" alt="" loading="lazy" onerror="fixBrokenPoster(this,'${i.imdbID}')" data-act="openTitle" data-args="${A(`${i.imdbID}`)}" style="cursor:pointer">
+    const play=i.streamUrl&&safeUrl(i.streamUrl)?`<a class="btn sq" href="${esc(safeUrl(i.streamUrl))}" target="_blank" rel="noopener" aria-label="Дивитись" title="Дивитись">${ic('play')}</a>`:'';
+    return `<article class="tr" id="wc-${esc(i.id)}">
+      <img class="tr-art" src="${posterSrc(i.poster)}" data-pf="${esc(i.imdbID)}" alt="" loading="lazy" data-act="openTitle" data-args="${A(`${i.imdbID}`)}" style="cursor:pointer">
       <div class="tr-body">
         <div class="tr-top"><div class="tr-head">
-          <h3 class="tr-t"><a href="${i.imdbUrl}" target="_blank" rel="noopener" data-act="_tsClick" data-args="${A('$ev',`${i.imdbID}`)}">${esc(i.title)}</a>${_dupSet.has(i.imdbID)?'<span class="dup-badge" title="Цей тайтл є ще в іншому списку">дубль</span>':''}</h3>
+          <h3 class="tr-t"><a href="${imdbHref(i)}" target="_blank" rel="noopener" data-act="_tsClick" data-args="${A('$ev',`${i.imdbID}`)}">${esc(i.title)}</a>${_dupSet.has(i.imdbID)?'<span class="dup-badge" title="Цей тайтл є ще в іншому списку">дубль</span>':''}</h3>
           <div class="tr-meta">${catLabel(i.customCategory||i.type)}${i.year?` · <span class="num">${esc(i.year)}</span>`:''}${i.imdbRating?` · IMDb <span class="num">${esc(i.imdbRating)}</span>`:''}</div></div>
           <button class="icon-btn" data-act="cardMenu" data-args="${A('$ev','watching',(i.id))}" aria-label="Ще дії: ${esc(i.title)}">${ic('dots')}</button></div>
-        ${isSeries?`<div id="lv-${i.imdbID}">${lh}</div>
-          <div class="tr-bar" title="Сезон ${i.season} з ${i.totalSeasons||1}"><i style="width:${_seasonPct(i)}%"></i></div>
+        ${isSeries?`<div id="lv-${esc(i.imdbID)}">${lh}</div>
+          <div class="tr-bar" title="Сезон ${esc(i.season)} з ${esc(i.totalSeasons||1)}"><i style="width:${+_seasonPct(i)||0}%"></i></div>
           <div class="counter">
-            <div class="ep"><span class="ep-v">${_epLabel(i)}</span><small class="ep-of">сезон ${i.season} з ${i.totalSeasons||1}</small></div>
+            <div class="ep"><span class="ep-v">${_epLabel(i)}</span><small class="ep-of">сезон ${esc(i.season)} з ${esc(i.totalSeasons||1)}</small></div>
             <div class="step">${play}
               <button class="btn sq" data-act="adj" data-args="${A((i.id),'e',-1)}" aria-label="Мінус серія">${ic('minus')}</button>
               <button class="btn primary" data-act="adj" data-args="${A((i.id),'e',1)}">${ic('plus')}Серія</button>
               <button class="btn sq" data-act="mvToW" data-args="${A((i.id))}" aria-label="Переглянуто повністю" title="Переглянуто повністю">${ic('check')}</button>
             </div></div>`
-        :`<div class="tr-meta">Повнометражний${i.runtime?` · <span class="num">${i.runtime}</span> хв`:''}</div>
+        :`<div class="tr-meta">Повнометражний${i.runtime?` · <span class="num">${esc(i.runtime)}</span> хв`:''}</div>
           <div class="counter"><div class="step">${play}<button class="btn primary" data-act="mvToW" data-args="${A((i.id))}">${ic('check')}Переглянуто</button></div></div>`}
         ${_tagsHtml(i)}
       </div></article>`;

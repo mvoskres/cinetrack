@@ -38,8 +38,8 @@ function buildLiveHTML(ls){
   const fresh=ls.lastAiredDate&&(Date.now()-new Date(ls.lastAiredDate+'T00:00:00'))/864e5<=7;
   const out=[];
   if(ls.isEnded)out.push(`<span class="ended"><span class="dot"></span>Серіал завершено</span>`);
-  if(ls.lastAiredDate)out.push(`<span class="${fresh?'new':''}">${ls.isEnded?'':'<span class="dot"></span>'}Вийшла S${ls.lastAiredSeason}E${ls.lastAiredEp} · ${fd(ls.lastAiredDate)}</span>`);
-  if(ls.nextEpDate)out.push(`<span>Далі S${ls.nextEpSeason}E${ls.nextEpNum} · ${fd(ls.nextEpDate)}</span>`);
+  if(ls.lastAiredDate)out.push(`<span class="${fresh?'new':''}">${ls.isEnded?'':'<span class="dot"></span>'}Вийшла S${esc(ls.lastAiredSeason)}E${esc(ls.lastAiredEp)} · ${fd(ls.lastAiredDate)}</span>`);
+  if(ls.nextEpDate)out.push(`<span>Далі S${esc(ls.nextEpSeason)}E${esc(ls.nextEpNum)} · ${fd(ls.nextEpDate)}</span>`);
   else if(!ls.isEnded)out.push(`<span>Дата наступної серії невідома</span>`);
   return `<div class="air">${out.join('')}</div>`;
 }
@@ -107,7 +107,8 @@ async function fetchLive(imdbID){
   }finally{_liveBusy.delete(imdbID);}
 }
 function relive(imdbID){const it=watching.find(x=>x.imdbID===imdbID);if(it){delete it.liveStatus;save();}const el=document.getElementById(`lv-${imdbID}`);if(el)el.innerHTML='<div class="live-loading">Оновлюю дані ефіру…</div>';fetchLive(imdbID);}
-function _epLabel(it){return `S${String(it.season).padStart(2,'0')} E${String(it.episode).padStart(2,'0')}`;}
+/* numbers only: the label goes into markup and into textContent alike */
+function _epLabel(it){return `S${String(+it.season||1).padStart(2,'0')} E${String(+it.episode||1).padStart(2,'0')}`;}
 /* seasons finished + the share of the current season: aired episodes for the airing season,
    the season length from TVmaze for the others; reaching the last aired episode fills the bar */
 function _seasonPct(it){

@@ -94,8 +94,8 @@ async function _tsLoad(ref){
     cast:(d.credits?.cast||[]).slice(0,14).map(c=>({id:c.id,name:c.name,character:c.character||'',profile:c.profile_path||null})),
     directors:[...new Map(crew.filter(c=>c.job==='Director').map(c=>[c.id,{id:c.id,name:c.name,profile:c.profile_path||null}])).values()].slice(0,3),
     creators:(d.created_by||[]).map(c=>c.name),writers:names(['Screenplay','Writer','Story','Novel']).slice(0,4),music:names(['Original Music Composer','Music']).slice(0,2),
-    trailer:tr?{key:tr.key,lang:tr.iso_639_1}:null,
-    providers:ua?{link:ua.link,flat:pv(ua.flatrate),rent:pv(ua.rent),buy:pv(ua.buy)}:null,
+    trailer:tr&&_ytOk(tr.key)?{key:tr.key,lang:tr.iso_639_1}:null,
+    providers:ua?{link:safeUrl(ua.link,true),flat:pv(ua.flatrate),rent:pv(ua.rent),buy:pv(ua.buy)}:null,
     seasons:(d.seasons||[]).filter(s=>s.season_number>0).map(s=>({n:s.season_number,eps:s.episode_count,air:(s.air_date||'').slice(0,4)})),
     nextEp:d.next_episode_to_air?{s:d.next_episode_to_air.season_number,e:d.next_episode_to_air.episode_number,date:d.next_episode_to_air.air_date}:null,
     networks:(d.networks||[]).map(n=>n.name).slice(0,3),
@@ -123,7 +123,10 @@ function _tsTopBar(){
     ${_tsStack.length>1?`<button class="flt-pill" onclick="titleBack()">‹ Назад</button>`:'<span></span>'}
     <button class="game-modal-close" onclick="closeTitle()" aria-label="Закрити">✕</button></div>`;
 }
-const _tsImg=(p,w)=>p?`https://image.tmdb.org/t/p/${w}${p}`:'';
+/* TMDB image path -> URL; a path that is not a plain /file.ext (imported or cached junk) gives '' */
+const _tsImg=(p,w)=>typeof p==='string'&&/^\/[\w.\-]+$/.test(p)?`https://image.tmdb.org/t/p/${w}${p}`:'';
+/* YouTube video ids are 11 chars of [\w-]; anything else is not put in a link */
+const _ytOk=k=>/^[\w-]{6,20}$/.test(k||'');
 const _tsFd=d=>d?new Date(d+'T00:00:00').toLocaleDateString('uk-UA',{day:'numeric',month:'long',year:'numeric'}):'';
 
 function _tsActions(d){
@@ -186,10 +189,11 @@ function _tsRefreshActions(){
 function _tsMine(d){
   const it=_tsOwned(d.imdbID)?.item;if(!it)return '';
   const bits=[];
-  if(it.rating)bits.push(`<div><span class="ts-k">Твоя оцінка</span><span class="ts-stars" aria-label="${it.rating} з 10">${'★'.repeat(it.rating)}<i>${'★'.repeat(10-it.rating)}</i></span></div>`);
+  const rt=Math.max(0,Math.min(10,Math.round(+it.rating)||0)); /* repeat() throws on a negative or fractional count */
+  if(rt)bits.push(`<div><span class="ts-k">Твоя оцінка</span><span class="ts-stars" aria-label="${rt} з 10">${'★'.repeat(rt)}<i>${'★'.repeat(10-rt)}</i></span></div>`);
   if(it.comment)bits.push(`<div><span class="ts-k">Коментар</span><p>${esc(it.comment)}</p></div>`);
   if((it.tags||[]).length)bits.push(`<div><span class="ts-k">Теги</span>${_tagsHtml(it)}</div>`);
-  if(it.streamUrl)bits.push(`<div><span class="ts-k">Посилання</span><a href="${esc(it.streamUrl)}" target="_blank" rel="noopener">${esc(it.streamUrl.replace(/^https?:\/\//,'').slice(0,60))}</a></div>`);
+  if(safeUrl(it.streamUrl))bits.push(`<div><span class="ts-k">Посилання</span><a href="${esc(safeUrl(it.streamUrl))}" target="_blank" rel="noopener">${esc(it.streamUrl.replace(/^https?:\/\//,'').slice(0,60))}</a></div>`);
   return bits.length?`<section class="ts-sec"><h3>Твої нотатки</h3><div class="ts-mine">${bits.join('')}</div></section>`:'';
 }
 /* a click on a person only shows the filmography; following is the "Стежити" button there */
@@ -211,19 +215,19 @@ function _tsRender(){
   const meta=[d.year,d.runtime?`${d.runtime} хв${d.mt==='tv'?' серія':''}`:'',d.genres.slice(0,3).join(', '),d.countries.join(', ')].filter(Boolean).join(' · ');
   const scores=[imdbR&&`<span class="ts-score"><b>IMDb</b> ${esc(imdbR)}</span>`,d.vote&&d.votes>=20&&`<span class="ts-score"><b>TMDB</b> ${d.vote.toFixed(1)} <small>${nf2(d.votes)}</small></span>`,
     rt&&`<span class="ts-score"><b>Rotten Tomatoes</b> ${esc(rt)}</span>`,mc&&`<span class="ts-score"><b>Metacritic</b> ${esc(mc)}</span>`].filter(Boolean).join('');
-  const poster=d.posterUrl||_tsImg(d.poster,'w342')||own?.poster||BLANK;
-  const links=[d.trailer&&`<a class="btn" href="https://www.youtube.com/watch?v=${d.trailer.key}" target="_blank" rel="noopener">${ic('play')}Трейлер${d.trailer.lang==='uk'?' українською':''}</a>`,
-    d.imdbID&&`<a class="btn" href="https://www.imdb.com/title/${d.imdbID}/" target="_blank" rel="noopener">IMDb</a>`,
-    d.id&&`<a class="btn" href="https://www.themoviedb.org/${d.mt}/${d.id}" target="_blank" rel="noopener">TMDB</a>`].filter(Boolean).join('');
+  const poster=esc(ps(d.posterUrl)||_tsImg(d.poster,'w342')||ps(own?.poster)||BLANK);
+  const links=[d.trailer&&_ytOk(d.trailer.key)&&`<a class="btn" href="https://www.youtube.com/watch?v=${esc(d.trailer.key)}" target="_blank" rel="noopener">${ic('play')}Трейлер${d.trailer.lang==='uk'?' українською':''}</a>`,
+    /^tt\d+$/.test(d.imdbID||'')&&`<a class="btn" href="https://www.imdb.com/title/${d.imdbID}/" target="_blank" rel="noopener">IMDb</a>`,
+    d.id&&`<a class="btn" href="https://www.themoviedb.org/${d.mt==='tv'?'tv':'movie'}/${+d.id||0}" target="_blank" rel="noopener">TMDB</a>`].filter(Boolean).join('');
   const crewRows=[d.directors.length&&['Режисер',d.directors.map(p=>p.id?`<button class="link-btn" data-act="_tsPerson" data-args="${A(p.id,p.name,p.profile||'')}">${esc(p.name)}</button>`:esc(p.name)).join(', ')],
     d.creators.length&&['Автори серіалу',esc(d.creators.join(', '))],d.writers.length&&['Сценарій',esc(d.writers.join(', '))],d.music.length&&['Музика',esc(d.music.join(', '))],
     d.networks.length&&['Канал',esc(d.networks.join(', '))]].filter(Boolean);
   const prov=d.providers&&(d.providers.flat.length||d.providers.rent.length||d.providers.buy.length)?`<section class="ts-sec"><h3>Де дивитись в Україні</h3>
     ${[['flat','Підписка'],['rent','Оренда'],['buy','Купівля']].filter(([k])=>d.providers[k].length).map(([k,l])=>`<div class="ts-prov"><span class="ts-k">${l}</span>${d.providers[k].map(p=>`<span class="ts-prov-i">${p.logo?`<img src="${_tsImg(p.logo,'w45')}" alt="">`:''}${esc(p.name)}</span>`).join('')}</div>`).join('')}
-    <p class="ts-note">Дані JustWatch через TMDB${d.providers.link?` · <a href="${d.providers.link}" target="_blank" rel="noopener">усі варіанти</a>`:''}</p></section>`:'';
+    <p class="ts-note">Дані JustWatch через TMDB${safeUrl(d.providers.link,true)?` · <a href="${esc(safeUrl(d.providers.link,true))}" target="_blank" rel="noopener">усі варіанти</a>`:''}</p></section>`:'';
   const seasons=d.seasons.length?`<section class="ts-sec"><h3>Сезони <small>${d.status==='Ended'?'серіал завершено':d.status==='Returning Series'?'серіал триває':''}</small></h3>
     <div class="ts-seasons" id="tsSeasons">${_tsSeasonChips(d)}</div>
-    ${d.nextEp?`<p class="ts-note">Наступна серія S${d.nextEp.s}E${d.nextEp.e}: ${_tsFd(d.nextEp.date)}</p>`:''}
+    ${d.nextEp?`<p class="ts-note">Наступна серія S${esc(d.nextEp.s)}E${esc(d.nextEp.e)}: ${esc(_tsFd(d.nextEp.date))}</p>`:''}
     <div id="tsEps"></div></section>`:'';
   body.innerHTML=`${_tsTopBar()}
     <header class="ts-hero"${d.backdrop?` style="--bd:url('${_tsImg(d.backdrop,'w1280')}')"`:''}>
@@ -261,7 +265,7 @@ function _tsSeasonChips(d){
   const w=_tsOwned(d.imdbID),it=w?.item,open=_tsCur?.data===d?_tsCur.season:0;
   return d.seasons.map(s=>{
     const st=w?.list==='watched'||w?.list==='watching'&&s.n<it.season?' done':w?.list==='watching'&&s.n===it.season?' cur':'';
-    return `<button class="ts-sn${st}${open===s.n?' open':''}" data-act="_tsSeason" data-args="${A(s.n)}" aria-expanded="${open===s.n}"><b>S${s.n}</b> ${s.eps} сер.${s.air?` · ${s.air}`:''}</button>`;
+    return `<button class="ts-sn${st}${open===s.n?' open':''}" data-act="_tsSeason" data-args="${A(s.n)}" aria-expanded="${open===s.n}"><b>S${esc(s.n)}</b> ${esc(s.eps)} сер.${s.air?` · ${esc(s.air)}`:''}</button>`;
   }).join('');
 }
 async function _tsSeason(n){

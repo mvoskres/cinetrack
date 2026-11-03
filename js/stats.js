@@ -169,10 +169,10 @@ function renderStats(){
 
   ${facts.length?`<section class="sx-facts" aria-label="Рекорди">${facts.map(f=>`
     <div class="sx-fact">
-      <img src="${posterSrc(f.item.poster)}" data-pf="${f.item.imdbID}" onerror="fixBrokenPoster(this,'${f.item.imdbID}')" loading="lazy" alt="">
+      <img src="${posterSrc(f.item.poster)}" data-pf="${esc(f.item.imdbID)}" loading="lazy" alt="">
       <div class="sx-fact-body">
         <div class="sx-fact-lbl">${f.lbl}</div>
-        <div class="sx-fact-title" title="${esc(f.item.title)}">${f.item.imdbUrl?`<a href="${f.item.imdbUrl}" target="_blank" rel="noopener" data-act="_tsClick" data-args="${A('$ev',`${f.item.imdbID}`)}">${esc(f.item.title)}</a>`:esc(f.item.title)}</div>
+        <div class="sx-fact-title" title="${esc(f.item.title)}">${f.item.imdbID?`<a href="${imdbHref(f.item)}" target="_blank" rel="noopener" data-act="_tsClick" data-args="${A('$ev',`${f.item.imdbID}`)}">${esc(f.item.title)}</a>`:esc(f.item.title)}</div>
         <div class="sx-fact-val num">${esc(f.val)}</div>
       </div>
     </div>`).join('')}</section>`:''}

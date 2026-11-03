@@ -97,17 +97,22 @@ function aFetch(p,retries=2){
 }
 
 /* ── HELPERS ── */
-function ps(p){return p&&p!=='N/A'?p:'';}
+/* poster URL from OMDb/TMDB/a file: http(s) or nothing ('N/A' and javascript: both end up as '') */
+function ps(p){return safeUrl(p);}
 /* A card poster that 404s (OMDb's Amazon links rot) or was never stored ('data:,' fails on purpose):
    TMDB /find first — the title sheet already shows TMDB posters — then OMDb; the found URL is saved on
    the item so it is fixed once. Queued 3 at a time: a grid can hold dozens of broken posters */
 const _pfDone=new Set(),_pfQ=[];let _pfRun=0,_pfSaveT=null;
-function posterSrc(p){return p||'data:,';}
+/* src="…" value for a stored poster: http(s) only and escaped; anything else fails on purpose, so fixBrokenPoster looks for a real one */
+function posterSrc(p){return esc(ps(p)||'data:,');}
+/* same, with the blank placeholder instead of the failing 'data:,' (modals, search hits) */
+function imgSrc(p){return esc(ps(p)||blank());}
+/* the IMDb page is always derived from the id, never taken from a stored (importable) URL */
+function imdbHref(i){return /^tt\d+$/.test(i?.imdbID||'')?`https://www.imdb.com/title/${i.imdbID}/`:'#';}
 function fixBrokenPoster(img,imdbID){
-  img.onerror=null;
   const bad=img.getAttribute('src');
   img.src=BLANK;
-  if(!imdbID||_pfDone.has(imdbID))return;
+  if(!/^tt\d+$/.test(imdbID||'')||_pfDone.has(imdbID))return;
   _pfDone.add(imdbID);_pfQ.push({img,imdbID,bad});_pfNext();
 }
 function _pfNext(){
@@ -121,6 +126,8 @@ function _pfNext(){
     }).catch(()=>{}).finally(()=>{_pfRun--;_pfNext();});
   }
 }
+/* a failed <img data-pf="imdbID">: no inline onerror (and so no data inside JS), one capture-phase listener for all of them */
+document.addEventListener('error',e=>{const im=e.target;if(im&&im.tagName==='IMG'&&im.dataset.pf&&im.getAttribute('src')!==BLANK)fixBrokenPoster(im,im.dataset.pf);},true);
 async function _pfFind(imdbID,bad){
   if(TMDB_KEY&&!_tmdbBlocked){
     try{const d=await tmdbFetch(`/find/${imdbID}?external_source=imdb_id`);
@@ -129,15 +136,8 @@ async function _pfFind(imdbID,bad){
   if(API){try{const u=ps((await aFetch('i='+imdbID))?.Poster);if(u&&u!==bad)return u;}catch(e){}}
   return '';
 }
-function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-/* encodeURIComponent does NOT escape apostrophes ('), which breaks any value
-   embedded as a single-quoted argument inside an inline onclick="" handler
-   (e.g. tag names, titles with "Philosopher's Stone"-style apostrophes).
-   Use this instead of bare encodeURIComponent wherever the result gets
-   interpolated into onclick="...('...')". */
-function uriSafe(s){return encodeURIComponent(s).replace(/'/g,'%27');}
-function tl(t){return{movie:'Фільм',series:'Серіал',episode:'Серія',game:'Гра'}[t]||(t||'');}
-function catLabel(c){return{movie:'Фільм',series:'Серіал',anime:'Аніме',cartoon:'Мульт',other:'Інше'}[c]||(c||'');}
+/* labels are HTML-safe: the fallback is the raw (possibly imported) value */
+function tl(t){return esc({movie:CAT.movie,series:CAT.series,episode:'Серія',game:'Гра'}[t]||t||'');}
 /* Anime = Japan is credited AND an East Asian country leads the list. «United States, Japan»
    is how OMDb credits most Pixar/Disney films, and those are cartoons. */
 function isAnimeCountry(country){const c=(country||'').toLowerCase().split(',').map(x=>x.trim());return c.includes('japan')&&['japan','south korea','china','taiwan'].includes(c[0]);}
@@ -192,7 +192,7 @@ function tmdbFetch(endpoint,timeout=6000,force){
 
 /* IMDb id → TMDB ids, kept permanently: the mapping never changes, and /find
    was being repeated by recommendations (8 per load), collections and the game. */
-let _findCache=JSON.parse(localStorage.getItem('ct_tmdbfind')||'{}'); /* imdbID -> {m:movieId|0,t:tvId|0} */
+let _findCache=_lsJSON('ct_tmdbfind',{}); /* imdbID -> {m:movieId|0,t:tvId|0} */
 let _findSaveT=null;
 function _findSave(){clearTimeout(_findSaveT);_findSaveT=setTimeout(()=>_lsSet('ct_tmdbfind',JSON.stringify(_findCache)),1500);}
 async function tmdbFindIds(imdbID){

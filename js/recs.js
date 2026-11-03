@@ -172,8 +172,8 @@ function _recDrop(k){
   _recsSave();renderRecs();
 }
 function recMenu(ev,k){
-  openMenu(ev,[{icon:'check',label:'Переглянуто',run:`recAct('${k}','watched')`},{icon:'play',label:'Дивлюсь',run:`recAct('${k}','watching')`},
-    {icon:'bookmark',label:'Запланувати',run:`recAct('${k}','planned')`},'-',{icon:'eye-off',label:'Не цікаво, сховати',run:`recAct('${k}','hide')`}]);
+  openMenu(ev,[{icon:'check',label:'Переглянуто',fn:'recAct',args:[k,'watched']},{icon:'play',label:'Дивлюсь',fn:'recAct',args:[k,'watching']},
+    {icon:'bookmark',label:'Запланувати',fn:'recAct',args:[k,'planned']},'-',{icon:'eye-off',label:'Не цікаво, сховати',fn:'recAct',args:[k,'hide']}]);
 }
 /* IMDb id is resolved only here, when a title is actually added */
 async function recAct(k,action){
@@ -210,10 +210,10 @@ function recType(t){_recType=t;renderRecs();}
 function recShelfMore(id){_recOpen.has(id)?_recOpen.delete(id):_recOpen.add(id);renderRecs();}
 
 function _recCard(it){
-  const href=it.imdbID?`https://www.imdb.com/title/${it.imdbID}/`:`https://www.themoviedb.org/${it.mt}/${it.id}`;
-  const poster=it.poster?(it.poster.startsWith('http')?it.poster:`https://image.tmdb.org/t/p/w342${it.poster}`):BLANK;
+  const href=esc(/^tt\d+$/.test(it.imdbID||'')?`https://www.imdb.com/title/${it.imdbID}/`:`https://www.themoviedb.org/${it.mt==='tv'?'tv':'movie'}/${+it.id||0}`);
+  const poster=esc(String(it.poster||'').startsWith('http')?ps(it.poster)||BLANK:_tsImg(it.poster,'w342')||BLANK);
   const score=it.imdbRating?`<span class="imdb">IMDb <span class="num">${esc(it.imdbRating)}</span></span>`:it.rating?`<span class="imdb">TMDB <span class="num">${it.rating.toFixed(1)}</span></span>`:'';
-  return `<article class="pc" id="rc-${it.k.replace(':','-')}">
+  return `<article class="pc" id="rc-${esc(String(it.k).replace(':','-'))}">
     <div class="pc-art"><a href="${href}" target="_blank" rel="noopener" tabindex="-1" data-act="_tsClickT" data-args="${A('$ev',`${it.mt}`,(it.id))}"><img src="${poster}" alt="" loading="lazy" onerror="this.src=BLANK"></a>
       <button class="pc-fab more always" data-act="recMenu" data-args="${A('$ev',`${it.k}`)}" aria-label="Додати або сховати: ${esc(it.title)}">${ic('plus')}</button></div>
     <div class="pc-t"><a href="${href}" target="_blank" rel="noopener" data-act="_tsClickT" data-args="${A('$ev',`${it.mt}`,(it.id))}">${esc(it.title)}</a></div>
@@ -272,9 +272,9 @@ function showHidden(){
   _gridRender('hidden',document.getElementById('hiddenGrid'),list,({h,idx})=>{
     const found=h.imdbID?_hl(h.imdbID):null;
     const poster=found?.poster||h.poster||'';
-    const href=h.imdbID?`https://www.imdb.com/title/${h.imdbID}/`:h.tmdb?`https://www.themoviedb.org/${h.tmdb.replace(':','/')}`:'#';
+    const href=esc(/^tt\d+$/.test(h.imdbID||'')?`https://www.imdb.com/title/${h.imdbID}/`:/^(movie|tv):\d+$/.test(h.tmdb||'')?`https://www.themoviedb.org/${h.tmdb.replace(':','/')}`:'#');
     const year=found?.year||h.year||'';
-    return `<article class="pc"><div class="pc-art"><a href="${href}" target="_blank" rel="noopener" tabindex="-1"><img src="${ps(poster)||BLANK}" alt="" loading="lazy" onerror="this.src=BLANK"></a></div>
+    return `<article class="pc"><div class="pc-art"><a href="${href}" target="_blank" rel="noopener" tabindex="-1"><img src="${esc(ps(poster)||BLANK)}" alt="" loading="lazy" onerror="this.src=BLANK"></a></div>
       <div class="pc-t"><a href="${href}" target="_blank" rel="noopener">${esc(h.title)}</a></div>
       <div class="pc-m">${year?`<span class="num">${esc(year)}</span>`:''}${found?`<span>${tl(found.type)}</span>`:''}</div>
       <div class="pc-status"><button class="pc-act" data-act="unhide" data-args="${A((idx))}">${ic('eye')}Повернути</button></div></article>`;

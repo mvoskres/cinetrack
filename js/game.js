@@ -124,7 +124,7 @@ async function gameNextQuestion(){
   if(!pick){gameEnd(true);return;}
   _game.current=pick;
   _game.recent.push(pick.item.imdbID);if(_game.recent.length>Math.min(10,_game.pool.length-1))_game.recent.shift();
-  document.getElementById('gameShotWrap').innerHTML=`<img src="${pick.url}" alt="Кадр, який треба впізнати">`;
+  document.getElementById('gameShotWrap').innerHTML=`<img src="${esc(pick.url)}" alt="Кадр, який треба впізнати">`;
   const opts=_gameShuffle([pick.item.title,..._gameDistractors(pick.item)]);
   const box=document.getElementById('gameOpts');box.innerHTML='';
   opts.forEach((t,k)=>{const b=document.createElement('button');b.className='game-opt';b.dataset.title=t;
@@ -144,8 +144,8 @@ function _gameAnswer(btn){
   _gameHud();
   const last=_game.mode==='round'?_game.q>=GAME_ROUND:!ok;
   document.getElementById('gameReveal').innerHTML=`
-    <img src="${item.poster||BLANK}" alt="" onerror="this.src=BLANK">
-    <div class="game-reveal-txt"><div><b>${ok?'Так!':'Ні.'}</b> Це <a href="${item.imdbUrl}" target="_blank" rel="noopener">${esc(item.title)}</a></div>
+    <img src="${esc(ps(item.poster)||BLANK)}" alt="" onerror="this.src=BLANK">
+    <div class="game-reveal-txt"><div><b>${ok?'Так!':'Ні.'}</b> Це <a href="${imdbHref(item)}" target="_blank" rel="noopener">${esc(item.title)}</a></div>
       <span>${esc(item.year||'')} · ${catLabel(item.customCategory||item.type)}${item.imdbRating?` · IMDb ${esc(item.imdbRating)}`:''}</span></div>
     <button class="btn primary" id="gameNextBtn" onclick="${last?'gameEnd()':'gameNextQuestion()'}">${last?'Підсумок':'Далі'} <kbd>Enter</kbd></button>`;
   document.getElementById('gameNextBtn').focus({preventScroll:true});
@@ -165,7 +165,7 @@ function gameEnd(noMoreImages){
     <div class="game-over-ic">${ic(noMoreImages?'frame':record?'trophy':_game.score?'check':'film')}</div>
     <div class="game-over-title">${head}</div>
     <div class="game-over-sub">${sub}</div>
-    ${log.length?`<ol class="game-log">${log.map(l=>`<li class="${l.ok?'ok':'bad'}">${ic(l.ok?'check':'minus')}<a href="${l.item.imdbUrl}" target="_blank" rel="noopener">${esc(l.item.title)}</a><span class="num">${esc(l.item.year||'')}</span></li>`).join('')}</ol>`:''}
+    ${log.length?`<ol class="game-log">${log.map(l=>`<li class="${l.ok?'ok':'bad'}">${ic(l.ok?'check':'minus')}<a href="${imdbHref(l.item)}" target="_blank" rel="noopener">${esc(l.item.title)}</a><span class="num">${esc(l.item.year||'')}</span></li>`).join('')}</ol>`:''}
     <div class="game-over-btns">
       <button class="btn primary" id="gameAgainBtn" onclick="startGame()">${ic('refresh')}Ще раз <kbd>Enter</kbd></button>
       <button class="btn" onclick="closeGameModal()">Закрити</button>

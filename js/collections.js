@@ -25,7 +25,7 @@ function _markCollRun(){_lsSet('ct_coll_lastrun',String(Date.now()));}
    entries (Bond 26, Shrek 5 in 2027…) used to keep 44 finished franchises
    "incomplete" forever. */
 /* local date (as rDash does): toISOString is UTC, so after midnight in Kyiv "today" was still yesterday */
-const _todayISO=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
+/* _todayISO lives in core.js: recs.js needs it at load time */
 function _partOut(p){return p.id===null||(!!p.date&&p.date<=_todayISO());}
 /* Ratings come from the /collection response itself (TMDB score); the old
    per-part OMDb lookup cost 263 requests of the 1000/day quota on a full scan. */
@@ -314,7 +314,7 @@ function renderCollections(preserveOrder){
 
 const COLL_ROWS=6; /* parts shown before "Усі частини" */
 function _collCardHtml(c,ownedMap){
-  const poster=c.poster?`https://image.tmdb.org/t/p/w185${c.poster}`:BLANK;
+  const poster=_tsImg(c.poster,'w185')||BLANK;
   const pct=c.total?Math.round(100*c.owned/c.total):0;
   const complete=c.total>0&&c.owned>=c.total;
   const isOpen=_collExpanded.has(String(c.id));
@@ -327,17 +327,17 @@ function _collCardHtml(c,ownedMap){
     else if(skipped)st=`<button class="st skip" data-act="collAddMissing" data-args="${A(`${p.imdbID}`,`${_collMetaEnc(p)}`)}" title="Пропущено, натисни щоб змінити" aria-label="Пропущено: ${esc(p.title)}">${ic('ban')}</button>`;
     else if(p.imdbID)st=`<button class="st add" data-act="collAddMissing" data-args="${A(`${p.imdbID}`,`${_collMetaEnc(p)}`)}" title="Додати" aria-label="Додати ${esc(p.title)}">${ic('plus')}</button>`;
     const link=p.imdbID?`https://www.imdb.com/title/${p.imdbID}/`:(p.id?`https://www.themoviedb.org/movie/${p.id}`:null);
-    const t=link?`<a href="${link}" target="_blank" rel="noopener" ${p.id?`data-act="_tsClickT" data-args="${A('$ev','movie',p.id)}"`:`data-act="_tsClick" data-args="${A('$ev',p.imdbID)}"`}>${esc(p.title)}</a>`:esc(p.title);
+    const t=link?`<a href="${esc(link)}" target="_blank" rel="noopener" ${p.id?`data-act="_tsClickT" data-args="${A('$ev','movie',p.id)}"`:`data-act="_tsClick" data-args="${A('$ev',p.imdbID)}"`}>${esc(p.title)}</a>`:esc(p.title);
     const out=_partOut(p);
     if(!out){st='<span class="st"></span>';}
     const ir=owned?.item.imdbRating||p.imdbRating;
     const rt=!out?`<span class="fc-up">${p.date?'вийде '+new Date(p.date+'T00:00:00').toLocaleDateString('uk-UA',{day:'numeric',month:'short',year:'numeric'}):'анонс'}</span>`
-      :ir?`IMDb ${esc(ir)}`:p.vote?`TMDB ${p.vote}`:'';
+      :ir?`IMDb ${esc(ir)}`:p.vote?`TMDB ${esc(p.vote)}`:'';
     return `<div class="fc-part${owned||skipped?'':' missing'}${out?'':' upcoming'}${k>=COLL_ROWS?' extra':''}"><span class="fc-ord">${String(k+1).padStart(2,'0')}</span><span class="fc-pt" title="${esc(p.title)}">${t} ${p.year?`<span class="num">${esc(p.year)}</span>`:''}</span><span class="fc-rt">${rt}</span>${st}</div>`;
   }).join('');
-  const more=c.list.length>COLL_ROWS?`<button class="fc-more" data-cid="${c.id}" data-count="${c.list.length}" onclick="toggleCollParts(this)">${isOpen?'Згорнути':`Усі частини (${c.list.length})`}</button>`:'';
+  const more=c.list.length>COLL_ROWS?`<button class="fc-more" data-cid="${esc(c.id)}" data-count="${c.list.length}" onclick="toggleCollParts(this)">${isOpen?'Згорнути':`Усі частини (${c.list.length})`}</button>`:'';
   return `<article class="fc${isOpen?' expanded':''}">
-    <div class="fc-head"><img src="${poster}" alt="" loading="lazy" onerror="this.src=BLANK">
+    <div class="fc-head"><img src="${esc(poster)}" alt="" loading="lazy" onerror="this.src=BLANK">
       <div><div class="fc-name">${esc(c.name)}</div><div class="fc-sub"><span class="num">${c.owned}/${c.total}</span> переглянуто${c.upcoming?` · ще ${c.upcoming} не вийшли`:''}</div></div>
       <span class="fc-pill ${complete?'done':'todo'}">${complete?'Повна':`Бракує ${c.total-c.owned}`}</span></div>
     <div class="tr-bar"><i style="width:${pct}%"></i></div>
@@ -380,9 +380,9 @@ function openStatusPicker(imdbID,meta,onDone){
   const sub=[meta.year,meta.rating?`★ ${meta.rating}`:null].filter(Boolean).join(' · ');
   _collPickerOnDone=onDone;
   modal(`
-    <img class="modal-poster" src="${meta.poster||blank()}" onerror="this.style.display='none'" alt="">
+    <img class="modal-poster" src="${imgSrc(meta.poster)}" onerror="this.style.display='none'" alt="">
     <h2 class="modal-title">${esc(meta.title||'')}</h2>
-    ${sub?`<div class="modal-sub">${sub}</div>`:''}
+    ${sub?`<div class="modal-sub">${esc(sub)}</div>`:''}
     <div class="modal-btns">
       ${already.watched ?`<div class="modal-already ok">${ic('check')}Вже у переглянутому</div>`:`<button class="m-btn j" data-act="_pickStatus" data-args="${A(`${imdbID}`,'watched')}">${ic('check')}Переглянуто</button>`}
       ${already.watching?`<div class="modal-already go">${ic('play')}Вже дивлюсь</div>`:`<button class="m-btn s" data-act="_pickStatus" data-args="${A(`${imdbID}`,'watching')}">${ic('play')}Дивлюсь зараз</button>`}

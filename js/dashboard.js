@@ -115,20 +115,20 @@ function rDash(){
     const ls=i.liveStatus;
     let ep,pill,cls;
     if(type==='airing'){
-      ep=ls.nextEpSeason&&ls.nextEpNum?`S${ls.nextEpSeason}E${ls.nextEpNum}`:'Новий епізод';
+      ep=ls.nextEpSeason&&ls.nextEpNum?`S${esc(ls.nextEpSeason)}E${esc(ls.nextEpNum)}`:'Новий епізод';
       const isToday=ls.nextEpDate===tStr;
       pill=isToday?'Сьогодні':'Завтра';
       cls='dc-airing';
     }else if(type==='recent'){
-      ep=ls.lastAiredSeason&&ls.lastAiredEp?`S${ls.lastAiredSeason}E${ls.lastAiredEp}`:'Новий епізод';
+      ep=ls.lastAiredSeason&&ls.lastAiredEp?`S${esc(ls.lastAiredSeason)}E${esc(ls.lastAiredEp)}`:'Новий епізод';
       pill=`Вийшла ${fdPast(ls.lastAiredDate)}`;
       cls='dc-recent';
     }else{
-      ep=ls.nextEpSeason&&ls.nextEpNum?`S${ls.nextEpSeason}E${ls.nextEpNum}`:'Новий епізод';
+      ep=ls.nextEpSeason&&ls.nextEpNum?`S${esc(ls.nextEpSeason)}E${esc(ls.nextEpNum)}`:'Новий епізод';
       pill=fdFuture(ls.nextEpDate);
       cls='dc-soon';
     }
-    return `<div class="dash-card ${cls}"><img class="dash-img" src="${posterSrc(i.poster)}" data-pf="${i.imdbID}" loading="lazy" onerror="fixBrokenPoster(this,'${i.imdbID}')"><div class="dash-info"><div class="dash-title"><a href="${i.imdbUrl}" target="_blank">${esc(i.title)}</a></div><div class="dash-ep">${ep}</div><div class="dash-pill">${pill}</div></div></div>`;
+    return `<div class="dash-card ${cls}"><img class="dash-img" src="${posterSrc(i.poster)}" data-pf="${esc(i.imdbID)}" loading="lazy"><div class="dash-info"><div class="dash-title"><a href="${imdbHref(i)}" target="_blank" rel="noopener">${esc(i.title)}</a></div><div class="dash-ep">${ep}</div><div class="dash-pill">${pill}</div></div></div>`;
   };
 
   const allCards=[

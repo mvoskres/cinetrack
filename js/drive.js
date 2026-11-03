@@ -191,7 +191,7 @@ async function gdRestoreList(){
   try{
     await _gdToken('');
     const l=await _gdList(await _gdFolder(),GD_KEEP);
-    if(el())el().innerHTML=l.length?l.map(f=>`<button class="w-btn st-copy" onclick="gdRestorePick('${f.id}')"><span>${_gdFmt(Date.parse(f.createdTime))}</span><span style="color:var(--muted)">${Math.round((+f.size||0)/1024)} КБ</span></button>`).join(''):'<p class="st-hint">У папці ще немає бекапів.</p>';
+    if(el())el().innerHTML=l.length?l.map(f=>`<button class="w-btn st-copy" data-act="gdRestorePick" data-args="${A(f.id)}"><span>${_gdFmt(Date.parse(f.createdTime))}</span><span style="color:var(--muted)">${Math.round((+f.size||0)/1024)} КБ</span></button>`).join(''):'<p class="st-hint">У папці ще немає бекапів.</p>';
   }catch(e){if(el())el().innerHTML='';_gdFail(e);}
 }
 async function gdRestorePick(id){

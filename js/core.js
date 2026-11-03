@@ -1,6 +1,22 @@
 /* Pause the animated aurora background while the tab is hidden — no visible cost, saves GPU work */
 document.addEventListener('visibilitychange',()=>{document.querySelector('.bg-fx')?.classList.toggle('paused',document.hidden);});
 
+/* ── ESCAPING + SAFE VALUES ──
+   Everything that came from a file, an API or the user's own text goes through esc() before it
+   lands in innerHTML, and URLs through safeUrl() before they land in href/src. */
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+/* encodeURIComponent leaves ' alone; kept for args that travel inside data-args as encoded strings */
+function uriSafe(s){return encodeURIComponent(s).replace(/'/g,'%27');}
+/* http(s) only (https only when asked); anything else, javascript: included, becomes '' */
+function safeUrl(u,httpsOnly){
+  if(typeof u!=='string')return '';
+  u=u.trim();
+  if(!u||u.length>2000||/[\s"<>`\\]/.test(u))return '';
+  try{const p=new URL(u).protocol;return p==='https:'||(!httpsOnly&&p==='http:')?u:'';}catch(e){return '';}
+}
+/* local date, as the franchises tab needs it (toISOString is UTC: after midnight in Kyiv "today" was yesterday) */
+function _todayISO(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+
 /* ── SAFE STORAGE ──
    localStorage holds ~5M chars per origin, and every file:// page shares that
    one origin. A full store makes setItem throw, which used to abort whatever
@@ -9,7 +25,33 @@ document.addEventListener('visibilitychange',()=>{document.querySelector('.bg-fx
    user's own lists are never pruned. */
 let _quotaWarned=false;
 const _LIST_KEYS=['ct_watched','ct_watching','ct_hidden','ct_planned'];
+/* what the user typed in or decided, as opposed to caches that are refetched on demand */
+const _USER_KEYS=[..._LIST_KEYS,'ct_trackedpeople','ct_skipped'];
+const _lsBad=new Set(); /* user keys that failed to parse: left untouched on disk, never overwritten by a save */
+/* JSON from localStorage that can't take the app down. Broken cache -> the key is dropped (it refills itself);
+   broken user data -> left exactly as it is, reported by init.js, and not written over until a restore replaces it */
+function _lsJSON(k,def){
+  let raw=null;
+  try{raw=localStorage.getItem(k);}catch(e){return def;}
+  if(raw===null||raw==='')return def;
+  try{
+    const v=JSON.parse(raw);
+    if(Array.isArray(def)?!Array.isArray(v):(def&&typeof def==='object')?(!v||typeof v!=='object'||Array.isArray(v)):false)throw new Error('wrong shape');
+    return v;
+  }catch(e){
+    console.warn('[CineTrack] '+k+' is damaged:',e.message);
+    if(_USER_KEYS.includes(k))_lsBad.add(k);
+    else try{localStorage.removeItem(k);}catch(_){}
+    return def;
+  }
+}
+/* a restore is about to replace a damaged user key: keep the damaged text under another name first */
+function _lsBadRelease(){
+  _lsBad.forEach(k=>{try{localStorage.setItem('ct_damaged_'+k,localStorage.getItem(k)||'');}catch(e){}});
+  _lsBad.clear();
+}
 function _lsSet(k,v){
+  if(_lsBad.has(k)){try{toast('Збережене в браузері «'+k+'» пошкоджено, тому зміни не записуються, щоб не затерти його. Відновіть дані з бекапу: Налаштування','err',9000);}catch(_){}return false;}
   try{localStorage.setItem(k,v);return true;}catch(e){}
   _freeCacheSpace();
   if(k==='ct_apicache')return true; /* _freeCacheSpace just wrote the pruned cache */
@@ -37,10 +79,10 @@ function _storageChars(){let n=0;for(let i=0;i<localStorage.length;i++){const k=
 
 /* ── STATE ── */
 let API=localStorage.getItem('ct_apikey')||'';
-let watched =JSON.parse(localStorage.getItem('ct_watched') ||'[]');
-let watching=JSON.parse(localStorage.getItem('ct_watching')||'[]');
-let hidden  =JSON.parse(localStorage.getItem('ct_hidden')  ||'[]');
-let planned =JSON.parse(localStorage.getItem('ct_planned') ||'[]');
+let watched =_lsJSON('ct_watched',[]);
+let watching=_lsJSON('ct_watching',[]);
+let hidden  =_lsJSON('ct_hidden',[]);
+let planned =_lsJSON('ct_planned',[]);
 const _pendingMap={};
 function _pmSet(k,v){const ks=Object.keys(_pendingMap);if(ks.length>=100)delete _pendingMap[ks[0]];_pendingMap[k]=v;}let recsFetched=0;
 let TMDB_KEY=localStorage.getItem('ct_tmdbkey')||'';
@@ -48,7 +90,7 @@ const GDRIVE_CLIENT_ID='736522220888-jt1nuelrnm81684kgs0krup3sv6p4d2d.apps.googl
 let _tmdbBlocked=false;
 
 /* ── PERSISTENT API CACHE (24h TTL) ── */
-const _apiCache=JSON.parse(localStorage.getItem('ct_apicache')||'{}');
+const _apiCache=_lsJSON('ct_apicache',{});
 const _apiTTL    = 86400000;  /* 24h in ms */
 const OMDB_TIMEOUT = 8000;    /* aFetch per-request timeout (ms) */
 const RETRY_DELAY  = 1000;    /* aFetch base retry backoff (ms) */
@@ -80,7 +122,7 @@ localStorage.removeItem('ct_livecache');
    we thought was "ended" later got renewed, or status data was unknown at
    first resolve. Ended-status is taken from the item's liveStatus when we track the show
    in "Дивлюсь", otherwise defaults to "series → refresh every 2 days". */
-let _resolveCache=JSON.parse(localStorage.getItem('ct_resolvecache')||'{}');
+let _resolveCache=_lsJSON('ct_resolvecache',{});
 const RESOLVE_TV_TTL=2*24*60*60*1000; /* 2 days */
 function _resolveCacheSave(){
   const ks=Object.keys(_resolveCache);
@@ -102,7 +144,9 @@ const F={
   watching:{q:'',cats:[],genres:[],decades:[],tags:[],sort:'added-desc'},
   planned: {q:'',cats:[],genres:[],decades:[],tags:[],sort:'added-desc'},
 };
+/* the one map of category labels; the other tabs derive theirs from it */
 const CAT={movie:'Фільм',series:'Серіал',anime:'Аніме',cartoon:'Мульт',other:'Інше'};
+function catLabel(c){return esc(Object.hasOwn(CAT,c)?CAT[c]:c||'');}
 const S_ALL=[['added-desc','Нові'],['added-asc','Старі'],['year-desc','Рік ↓'],['year-asc','Рік ↑'],['title-asc','А→Я'],['genre-asc','Жанр'],['imdb-rating-desc','IMDb ↓'],['imdb-rating-asc','IMDb ↑']];
 const S_W  =[...S_ALL,['rating-desc','Оцінка ↓']];
 
