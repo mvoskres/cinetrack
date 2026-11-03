@@ -246,14 +246,88 @@ function sort(l,s){
 function fg(i){return(i.genre||'').split(',')[0].trim()||'Я';}
 function rerender(t){if(t in _gridShown)_gridShown[t]=GRID_PAGE;if(t==='watched')rWatched();if(t==='watching')rWatching();if(t==='planned')rPlanned();}
 
+/* ── TWO TABS, ONE STORE ──
+   save() writes whole lists, so a tab that had been open for a while used to overwrite what another tab
+   saved since. Now each tab remembers the text it last read or wrote per list (_base) and a version counter
+   ct_ver. Before a write, if storage no longer matches _base (or ct_ver moved), the lists are merged
+   three-way, base / ours / theirs, per record: what the other tab added or changed stays, what this tab
+   added, removed or changed on top of that is applied, and only then is anything written. A `storage`
+   event does the same merge at once, so the other tab's change also shows up without a reload. */
+const _SYNC_KEYS=_LIST_KEYS; /* same four keys */
+const _base={};
+let _myVer=0;
+function _ver(){try{return +localStorage.getItem('ct_ver')||0;}catch(e){return 0;}}
+function _syncBase(){
+  _SYNC_KEYS.forEach(k=>{try{_base[k]=localStorage.getItem(k)||'[]';}catch(e){_base[k]='[]';}});
+  _myVer=_ver();
+}
+_syncBase();
+function _keyOf(k){return k==='ct_hidden'?(x=>(x.imdbID||'')+'|'+(x.tmdb||'')):(x=>x.id!==undefined?x.id:'i:'+x.imdbID);}
+function _merge3(base,ours,theirs,keyOf){
+  const B=new Map(base.map(x=>[keyOf(x),JSON.stringify(x)])),O=new Map(ours.map(x=>[keyOf(x),x]));
+  const edited=k=>O.has(k)&&B.has(k)&&JSON.stringify(O.get(k))!==B.get(k);
+  const res=[],seen=new Set();
+  theirs.forEach(t=>{const k=keyOf(t);seen.add(k);
+    if(B.has(k)&&!O.has(k))return;           /* this tab deleted it */
+    res.push(edited(k)?O.get(k):t);});       /* this tab edited it, else the other tab's version */
+  ours.forEach((o,i)=>{const k=keyOf(o);
+    if(seen.has(k))return;
+    if(!B.has(k)||edited(k))res.splice(Math.min(i,res.length),0,o);}); /* added here, or edited here and deleted there: keep */
+  return res;
+}
+/* has another tab (or an older copy of the app) written since this tab last read or wrote? */
+function _foreignWrite(){
+  if(_ver()!==_myVer)return true;
+  try{return _SYNC_KEYS.some(k=>!_lsBad.has(k)&&(localStorage.getItem(k)||'[]')!==_base[k]);}catch(e){return false;}
+}
+/* merge storage into memory (in place: other code holds these arrays); true if memory differs from storage afterwards,
+   i.e. this tab still has changes of its own to write */
+function _reconcile(){
+  let ownDiff=false;
+  [['ct_watched',watched],['ct_watching',watching],['ct_hidden',hidden],['ct_planned',planned]].forEach(([k,mem])=>{
+    if(_lsBad.has(k))return;
+    let theirs,base;
+    try{theirs=_lsJSON(k,[]);base=JSON.parse(_base[k]);}catch(e){return;}
+    if(!Array.isArray(base))base=[];
+    const merged=_merge3(base,mem,theirs,_keyOf(k));
+    if(JSON.stringify(merged)!==JSON.stringify(mem))mem.splice(0,mem.length,...merged);
+    if(JSON.stringify(merged)!==JSON.stringify(theirs))ownDiff=true;
+    try{_base[k]=localStorage.getItem(k)||'[]';}catch(e){}
+  });
+  _myVer=_ver();
+  return ownDiff;
+}
+let _foreignT=null;
+function _onStorage(e){
+  if(e.storageArea&&e.storageArea!==localStorage)return;
+  if(e.key!==null&&e.key!=='ct_ver'&&!_SYNC_KEYS.includes(e.key))return;
+  clearTimeout(_foreignT);_foreignT=setTimeout(_foreignSync,80); /* the writer sets four lists and ct_ver in a row: wait for the burst */
+}
+function _foreignSync(){
+  if(!_foreignWrite())return;
+  const ownDiff=_reconcile();
+  if(ownDiff)save(); /* this tab had unsaved changes of its own (a debounced write): put the merged result on disk */
+  /* redraw from the merged lists; the filter bars are left alone while one of their inputs has focus */
+  if(!document.activeElement?.closest?.('.filter-row'))['watched','watching','planned'].forEach(buildBar);
+  updateStats();rDash();
+  if(typeof _refreshVisibleTab==='function')_refreshVisibleTab();
+  if(typeof _tsRefreshActions==='function')_tsRefreshActions();
+  const modalOpen=!!document.getElementById('mbox')?.innerHTML.trim();
+  toast(modalOpen?'Дані змінено в іншій вкладці, списки оновлено. Закрий вікно й перевір свою правку':'Дані змінено в іншій вкладці, оновлено','',modalOpen?6000:3200);
+}
+window.addEventListener('storage',_onStorage);
+
 /* ── SAVE ── */
 function save(){
   if(typeof _tsRefreshActions==='function')setTimeout(_tsRefreshActions,0);
+  /* another tab wrote since we last looked: merge first, never write our whole lists over theirs */
+  if(_foreignWrite()){_reconcile();setTimeout(()=>{['watched','watching','planned'].forEach(buildBar);updateStats();rDash();if(typeof _refreshVisibleTab==='function')_refreshVisibleTab();toast('Дані змінено в іншій вкладці: твою правку злито з ними','',3600);},0);}
   /* a move between lists must never drop the item from both on disk: write the lists that grew
      (destinations) first, and if one fails keep the shrunken ones (sources) as they were */
   const L=[['ct_watched',watched],['ct_watching',watching],['ct_hidden',hidden],['ct_planned',planned]].map(([k,a])=>{const j=JSON.stringify(a);let p=0;try{p=(localStorage.getItem(k)||'').length;}catch(e){}return{k,j,d:j.length-p};}).sort((a,b)=>b.d-a.d);
   let failed=false;
-  L.forEach(({k,j,d})=>{if(failed&&d<0)return;if(!_lsSet(k,j))failed=true;});
+  L.forEach(({k,j,d})=>{if(failed&&d<0)return;if(!_lsSet(k,j))failed=true;else _base[k]=j;});
+  if(!failed){try{_myVer=Math.max(_ver(),_myVer)+1;localStorage.setItem('ct_ver',String(_myVer));}catch(e){}}
   updateStats();
   return !failed;
 }
