@@ -215,7 +215,7 @@ function _recCard(it){
   const poster=esc(String(it.poster||'').startsWith('http')?ps(it.poster)||BLANK:_tsImg(it.poster,'w342')||BLANK);
   const score=it.imdbRating?`<span class="imdb">IMDb <span class="num">${esc(it.imdbRating)}</span></span>`:it.rating?`<span class="imdb">TMDB <span class="num">${it.rating.toFixed(1)}</span></span>`:'';
   return `<article class="pc" id="rc-${esc(String(it.k).replace(':','-'))}">
-    <div class="pc-art"><a href="${href}" target="_blank" rel="noopener" tabindex="-1" data-act="_tsClickT" data-args="${A('$ev',`${it.mt}`,(it.id))}"><img src="${poster}" alt="" loading="lazy" onerror="this.src=BLANK"></a>
+    <div class="pc-art"><a href="${href}" target="_blank" rel="noopener" tabindex="-1" data-act="_tsClickT" data-args="${A('$ev',`${it.mt}`,(it.id))}"><img src="${poster}" alt="" loading="lazy" data-fb></a>
       <button class="pc-fab more always" data-act="recMenu" data-args="${A('$ev',`${it.k}`)}" aria-label="Додати або сховати: ${esc(it.title)}">${ic('plus')}</button></div>
     <div class="pc-t"><a href="${href}" target="_blank" rel="noopener" data-act="_tsClickT" data-args="${A('$ev',`${it.mt}`,(it.id))}">${esc(it.title)}</a></div>
     <div class="pc-m">${it.year?`<span class="num">${esc(it.year)}</span>`:''}<span>${_recTypeLabel(it)}</span>${score}</div>
@@ -239,7 +239,7 @@ function renderRecs(){
   if(bar)bar.innerHTML=pool.length?`<div class="cat-seg" role="group" aria-label="Тип">${[['all','Усе'],['movie','Фільми'],['tv','Серіали'],['anim','Анімація']].filter(([k])=>k==='all'||cnt[k]).map(([k,l])=>`<button class="cat-chip${_recType===k?' on':''}" data-act="recType" data-args="${A(`${k}`)}">${l}<span class="num">${cnt[k]}</span></button>`).join('')}</div>`:'';
   if(_recView==='genre'){
     const st=_recGenreState;
-    if(sub)sub.innerHTML=`Популярне в жанрі ${esc(st?.name||'')} · <button class="link-btn" onclick="recView('picks')">до підбірки</button>`;
+    if(sub)sub.innerHTML=`Популярне в жанрі ${esc(st?.name||'')} · <button class="link-btn" data-act="recView" data-args="[&quot;picks&quot;]">до підбірки</button>`;
     if(!st?.loaded){g.innerHTML='<div class="spinner">Шукаю популярне в жанрі…</div>';return;}
     const items=st.items.filter(fresh).filter(_recTypeOk);
     g.innerHTML=items.length?`<div class="grid">${items.map(_recCard).join('')}</div>`:`<div class="empty"><span class="empty-icon">${ic('search')}</span><div class="empty-txt">Усе популярне в цьому жанрі вже є у твоїх списках</div></div>`;
@@ -275,7 +275,7 @@ function showHidden(){
     const poster=found?.poster||h.poster||'';
     const href=esc(/^tt\d+$/.test(h.imdbID||'')?`https://www.imdb.com/title/${h.imdbID}/`:/^(movie|tv):\d+$/.test(h.tmdb||'')?`https://www.themoviedb.org/${h.tmdb.replace(':','/')}`:'#');
     const year=found?.year||h.year||'';
-    return `<article class="pc"><div class="pc-art"><a href="${href}" target="_blank" rel="noopener" tabindex="-1"><img src="${esc(ps(poster)||BLANK)}" alt="" loading="lazy" onerror="this.src=BLANK"></a></div>
+    return `<article class="pc"><div class="pc-art"><a href="${href}" target="_blank" rel="noopener" tabindex="-1"><img src="${esc(ps(poster)||BLANK)}" alt="" loading="lazy" data-fb></a></div>
       <div class="pc-t"><a href="${href}" target="_blank" rel="noopener">${esc(h.title)}</a></div>
       <div class="pc-m">${year?`<span class="num">${esc(year)}</span>`:''}${found?`<span>${tl(found.type)}</span>`:''}</div>
       <div class="pc-status"><button class="pc-act" data-act="unhide" data-args="${A((idx))}">${ic('eye')}Повернути</button></div></article>`;

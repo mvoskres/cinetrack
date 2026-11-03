@@ -55,7 +55,7 @@ function runCleanScan(){
     const rows=_clean.map((f,k)=>({f,k})).filter(x=>x.f.grp===g);if(!rows.length)return'';
     return `<div class="cl-grp"><div class="cl-h">${lbl} <span class="num">${rows.length}</span></div>${rows.map(({f,k})=>
       `<label class="cl-row"><input type="checkbox" data-change="cleanToggle" data-args="${A(k,'$el')}"${f.on?' checked':''}><span><b>${esc(f.title)}</b><small>${esc(f.note)}</small></span></label>`).join('')}</div>`;
-  }).join('')+`<button class="w-btn cl-go" id="cleanGo" onclick="cleanApply()"></button>`;
+  }).join('')+`<button class="w-btn cl-go" id="cleanGo" data-act="cleanApply"></button>`;
   _cleanCount();
 }
 function cleanToggle(k,el){_clean[k].on=el.checked;_cleanCount();}
@@ -89,12 +89,12 @@ function addTag(id){
     <div class="modal-sub" style="margin-bottom:1rem">${esc(it.title)}</div>
     <div class="form-g"><label class="form-lbl" for="tagInp">Назва тегу</label>
       <input class="api-inp" id="tagInp" type="text" placeholder="наприклад: улюблене, передивитись…" autofocus
-        onkeydown="if(event.key==='Enter')saveTag(${+id})">
+        data-enter="saveTag" data-args="${A(+id)}">
       <div id="tagErr" style="font-size:.7rem;color:var(--rose);min-height:.85rem;margin-top:.25rem"></div>
     </div>
     <div class="modal-btns">
       <button class="m-btn g" data-act="saveTag" data-args="${A((id))}">Додати тег</button>
-      <button class="m-btn can" onclick="closeModal()">Скасувати</button>
+      <button class="m-btn can" data-act="closeModal">Скасувати</button>
     </div>`);
   setTimeout(()=>document.getElementById('tagInp')?.focus(),120);
 }
@@ -137,13 +137,13 @@ function editUrl(id){
     <div class="modal-sub" style="margin-bottom:1rem">${esc(it.title)}</div>
     <div class="form-g"><label class="form-lbl" for="urlInp">URL для перегляду</label>
       <input class="api-inp" id="urlInp" type="url" placeholder="https://…" value="${esc(it.streamUrl||'')}" autofocus
-        onkeydown="if(event.key==='Enter')saveUrl(${+id})">
+        data-enter="saveUrl" data-args="${A(+id)}">
       <div id="urlErr" style="font-size:.7rem;color:var(--rose);min-height:.85rem;margin-top:.25rem"></div>
     </div>
     <div class="modal-btns">
       <button class="m-btn g" data-act="saveUrl" data-args="${A((id))}">Зберегти</button>
       ${hasUrl?`<button class="m-btn can" data-act="removeUrl" data-args="${A((id))}" style="border-color:var(--rose-b);color:var(--rose)">${ic('trash')}Видалити посилання</button>`:''}
-      <button class="m-btn can" onclick="closeModal()">Скасувати</button>
+      <button class="m-btn can" data-act="closeModal">Скасувати</button>
     </div>`);
   setTimeout(()=>document.getElementById('urlInp')?.focus(),120);
 }

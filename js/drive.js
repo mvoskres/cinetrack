@@ -118,13 +118,13 @@ function _gdHtml(){
       <p class="st-hint">${last?'Останній бекап: '+_gdFmt(last)+' <span style="color:var(--ok)">✓</span>':'Останній бекап: ще не було'}</p>
       ${localStorage.getItem('ct_gd_warn')?`<p class="st-hint" style="color:var(--rose)">${esc(localStorage.getItem('ct_gd_warn'))}</p><button class="m-btn can" data-act="gdBackupForce">Все одно зберегти</button>`:''}
       <div class="st-pair">
-        <button class="m-btn g" onclick="gdBackup()">${ic('save')}Зробити бекап</button>
-        <button class="m-btn can" onclick="gdRestoreList()">${ic('upload')}Відновити</button>
+        <button class="m-btn g" data-act="gdBackup">${ic('save')}Зробити бекап</button>
+        <button class="m-btn can" data-act="gdRestoreList">${ic('upload')}Відновити</button>
       </div>
-      <button class="st-out" onclick="gdSignOut()">Вийти</button>`
+      <button class="st-out" data-act="gdSignOut">Вийти</button>`
     :`<p class="st-hint">Копія списків у твоєму Google Drive: автоматично раз на 3 дні, лишаються 10 останніх.</p>
       ${location.protocol==='file:'?'<p class="st-hint" style="color:var(--gold)">Сторінку відкрито як файл (file://): вхід працює лише на https-сайті.</p>':''}
-      <button class="m-btn g st-big" onclick="gdSignIn()">Увійти через Google</button>`}
+      <button class="m-btn g st-big" data-act="gdSignIn">Увійти через Google</button>`}
     <div id="gdMsg" class="st-msg" style="color:${_gdMsg.c||'var(--muted)'}">${esc(_gdMsg.t)}</div>
     <div id="gdList"></div>`;
 }
@@ -190,8 +190,9 @@ function _gdOffer(d,found){
     <p style="font-size:.8rem;color:var(--text-2);line-height:1.55;margin:.4rem 0 1rem">${found?'Знайдено бекап':'Бекап'} від <strong style="color:var(--text)">${t}</strong> (${n('watched')} переглянуто, ${n('watching')} дивлюсь, ${n('planned')} заплановано). ${_gdHasData()?'Дані об\'єднаються з тими, що вже є тут: твої записи лишаються, а чого не взято (дублі, суперечності) буде в звіті.':'Тут даних ще немає.'} Підтягнути?</p>
     <div style="display:flex;gap:.5rem;flex-wrap:wrap"><button class="m-btn g" data-act="gdApplyPending">Підтягнути (злити)</button>
       ${_gdHasData()?`<button class="m-btn can" data-act="gdApplyPending" data-args="${A('replace')}" title="Спершу зберігається знімок твоїх поточних даних, його можна повернути">Замінити моє цим бекапом</button>`:''}
-      <button class="m-btn can" onclick="_gdPend=null;closeModal()">Ні</button></div>`);
+      <button class="m-btn can" data-act="gdDecline">Ні</button></div>`);
 }
+function gdDecline(){_gdPend=null;closeModal();}
 function gdApplyPending(mode){
   const d=_gdPend;_gdPend=null;closeModal();if(!d)return;
   try{const r=_restoreBackup(d,mode);_lsSet('ct_gd_seen',String(Date.now()));

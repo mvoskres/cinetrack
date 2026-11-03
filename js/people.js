@@ -40,7 +40,7 @@ async function doPersonSearch(q){
     box.innerHTML=res.map(p=>{
       const already=_trackedPeople.find(t=>t.id===p.id);
       return `<div class="sug-item" data-act="addTrackedPerson" data-args="${A(p.id,p.name,p.profile_path||'',p.known_for_department||'')}">
-        <img class="sug-img" style="border-radius:50%;object-fit:cover" src="${_tsImg(p.profile_path,'w92')||blank()}" onerror="this.src=BLANK">
+        <img class="sug-img" style="border-radius:50%;object-fit:cover" src="${_tsImg(p.profile_path,'w92')||blank()}" data-fb>
         <div class="sug-info"><div class="sug-title">${esc(p.name)}</div><div class="sug-meta">${esc(p.known_for_department||'')}</div></div>
         ${already?`<span class="sug-badge ok">${ic('check')}Стежу</span>`:''}
       </div>`;
@@ -79,7 +79,7 @@ function renderPeopleTab(){
   }
   box.innerHTML=!_trackedPeople.length?'':`<div class="people-chips">${_trackedPeople.map(p=>`
     <button class="person-chip" data-pid="${esc(p.id)}" data-act="openPerson" data-args="${A((p.id))}">
-      <img src="${_tsImg(p.profile,'w92')||BLANK}" alt="" onerror="this.src=BLANK">${esc(p.name)}
+      <img src="${_tsImg(p.profile,'w92')||BLANK}" alt="" data-fb>${esc(p.name)}
     </button>`).join('')}</div>`;
   const detail=document.getElementById('personDetail');
   const cur=+detail?.dataset.pid;
@@ -172,7 +172,7 @@ async function openPerson(id){
   _personGroupsCache={personId:id,all};
   const prof=_tsImg(person?.profile,'w185')||BLANK;
   detail.innerHTML=`<div class="person-head">
-      <img class="person-photo" src="${prof}" alt="" onerror="this.src=BLANK">
+      <img class="person-photo" src="${prof}" alt="" data-fb>
       <div class="person-info">
         <h2 class="person-name">${esc(person?.name||'')}</h2>
         <div class="person-stats" id="personStats"></div>
@@ -204,19 +204,20 @@ function buildPersonBar(){
   el.innerHTML=`
     <div class="cat-seg" role="group" aria-label="Наявність">${chips([['missing','Чого бракує',cntO.missing],['owned','Є в списках',cntO.owned],['all','Усе',cntO.all]],f.ownership,'personSetOwnership')}</div>
     <div class="local-search-wrap"><span class="local-search-icon">${ic('search')}</span>
-      <input class="local-search" type="text" placeholder="Пошук у фільмографії…" aria-label="Пошук у фільмографії" value="${esc(f.q)}" oninput="personListSearch(this.value)">
+      <input class="local-search" type="text" placeholder="Пошук у фільмографії…" aria-label="Пошук у фільмографії" value="${esc(f.q)}" data-input="personListSearch" data-args="[&quot;$value&quot;]">
     </div>
-    <select class="sort-sel" aria-label="Сортування" onchange="personSetSort(this.value)">
+    <select class="sort-sel" aria-label="Сортування" data-change="personSetSort" data-args="[&quot;$value&quot;]">
       ${[['popular','Найвідоміші'],['year-desc','Спочатку нові'],['year-asc','Спочатку старі'],['rating-desc','За рейтингом'],['name-asc','А→Я']].map(([v,l])=>`<option value="${v}"${f.sort===v?' selected':''}>${l}</option>`).join('')}
     </select>
     <div class="person-sub">
       <div class="cat-seg" role="group" aria-label="Тип">${chips([['all','Усі типи',null],...[['movie','Фільми'],['tv','Серіали'],['anim','Анімація'],['doc','Документальні'],['talk','Шоу']].filter(([k])=>tCnt[k]).map(([k,l])=>[k,l,tCnt[k]])],f.type,'personSetType')}</div>
       <div class="cat-seg" role="group" aria-label="Роль">${chips([['all','Усі ролі',null],...(leads?[['lead','Головні ролі',leads]]:[]),...(dirs?[['directing','Режисура',dirs]]:[])],f.role,'personSetRole')}</div>
-      ${minor?`<button class="link-btn" onclick="personToggleMinor()">${f.showMinor?'Сховати шоу й дрібні появи':`Показати шоу й дрібні появи (${minor})`}</button>`:''}
+      ${minor?`<button class="link-btn" data-act="personToggleMinor">${f.showMinor?'Сховати шоу й дрібні появи':`Показати шоу й дрібні появи (${minor})`}</button>`:''}
     </div>`;
 }
 function personSetType(v){_personFilter.type=v;_personShown=PERSON_PAGE_SIZE;buildPersonBar();renderPersonList();}
 function personSetRole(v){_personFilter.role=v;_personShown=PERSON_PAGE_SIZE;buildPersonBar();renderPersonList();}
+function personMore(){_personShown+=PERSON_PAGE_SIZE;renderPersonList();}
 function personToggleMinor(){_personFilter.showMinor=!_personFilter.showMinor;if(!_personFilter.showMinor&&(_personFilter.type==='doc'||_personFilter.type==='talk'))_personFilter.type='all';buildPersonBar();renderPersonList();}
 let _personSearchT;
 function personListSearch(v){clearTimeout(_personSearchT);_personSearchT=setTimeout(()=>{_personFilter.q=v.trim();renderPersonList();},220);}
@@ -268,7 +269,7 @@ function renderPersonList(){
   const shown=items.slice(0,_personShown);
   listEl.innerHTML=`<div class="person-grid">${shown.map(c=>_personCardHtml(c)).join('')}</div>
     ${shown.length<items.length?`<div style="text-align:center;margin-top:1.1rem">
-      <button class="rec-btn m" onclick="_personShown+=PERSON_PAGE_SIZE;renderPersonList()">Показати ще (${items.length-shown.length})</button>
+      <button class="rec-btn m" data-act="personMore">Показати ще (${items.length-shown.length})</button>
     </div>`:''}`;
 }
 
@@ -298,7 +299,7 @@ function _personCardHtml(c){
   const score=!out?`<span class="fc-up">${c.date?'вийде '+new Date(c.date+'T00:00:00').toLocaleDateString('uk-UA',{day:'numeric',month:'short',year:'numeric'}):'анонс'}</span>`
     :c.rating&&c.voteCount>=10?`<span class="imdb">TMDB <span class="num">${c.rating.toFixed(1)}</span></span>`:'';
   return `<article class="pc">
-    <div class="pc-art"><a href="${esc(link)}" target="_blank" rel="noopener" tabindex="-1" data-act="_tsClickT" data-args="${A('$ev',`${c.mediaType}`,(c.id))}"><img src="${esc(posterUrl)}" onerror="this.src=BLANK" loading="lazy" alt=""></a></div>
+    <div class="pc-art"><a href="${esc(link)}" target="_blank" rel="noopener" tabindex="-1" data-act="_tsClickT" data-args="${A('$ev',`${c.mediaType}`,(c.id))}"><img src="${esc(posterUrl)}" data-fb loading="lazy" alt=""></a></div>
     <div class="pc-t" title="${esc(c.title)}"><a href="${esc(link)}" target="_blank" rel="noopener" data-act="_tsClickT" data-args="${A('$ev',`${c.mediaType}`,(c.id))}">${esc(c.title)}</a></div>
     <div class="pc-m">${c.year?`<span class="num">${esc(c.year)}</span>`:''}<span>${CREDIT_TYPE_LABEL[c.type]||''}</span>${score}</div>
     <div class="pc-note" title="${esc(role)}">${esc(role)}</div>

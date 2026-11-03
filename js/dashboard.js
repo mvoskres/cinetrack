@@ -15,7 +15,7 @@ function mvToW(id){
       <textarea class="form-ta" id="eCm" rows="3" placeholder="Що сподобалось?"></textarea></div>
     <div class="modal-btns">
       <button class="m-btn g" data-act="confirmMv" data-args="${A((id))}">Перенести в переглянуте</button>
-      <button class="m-btn can" onclick="closeModal()">Скасувати</button>
+      <button class="m-btn can" data-act="closeModal">Скасувати</button>
     </div>`);
 }
 function confirmMv(id){
@@ -146,9 +146,9 @@ function rDash(){
   sec.innerHTML=`<div class="dash-strip-wrap">
     <div class="dash-strip-head">Серіали в ефірі &nbsp;·&nbsp; ${parts.join(' &nbsp;·&nbsp; ')}</div>
     <div class="dash-strip-outer" id="dsOuter">
-      <button class="ds-btn ds-btn-l" onclick="dsScroll(-1)" aria-label="Прокрутити ліворуч">‹</button>
+      <button class="ds-btn ds-btn-l" data-act="dsScroll" data-args="[-1]" aria-label="Прокрутити ліворуч">‹</button>
       <div class="dash-strip" id="dsStrip">${allCards.join('')}</div>
-      <button class="ds-btn ds-btn-r" onclick="dsScroll(1)" aria-label="Прокрутити праворуч">›</button>
+      <button class="ds-btn ds-btn-r" data-act="dsScroll" data-args="[1]" aria-label="Прокрутити праворуч">›</button>
     </div>
   </div>`;
   /* Init scroll state after render */

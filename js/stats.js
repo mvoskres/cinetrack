@@ -204,7 +204,7 @@ function renderStats(){
   <div class="sx-grid sx-grid-3">
     <section class="stat-card">
       <h3 class="sx-h">Франшизи</h3>
-      ${!franchiseAnalyzed?`<p class="sx-sub">Відкрий <button class="link-btn" onclick="goTab('collections',document.getElementById('ni-collections'))">Франшизи</button>, щоб порахувати прогрес</p>`:
+      ${!franchiseAnalyzed?`<p class="sx-sub">Відкрий <button class="link-btn" data-act="goTab" data-args="[&quot;collections&quot;]">Франшизи</button>, щоб порахувати прогрес</p>`:
         !franchiseRowsFull.length?`<p class="sx-sub">Серед твоїх фільмів поки немає франшиз із кількох частин</p>`:`
         <div class="sx-mini">
           <div><b>${nf(franchiseTotalCount)}</b><span>усього</span></div>
@@ -213,11 +213,11 @@ function renderStats(){
         </div>
         <p class="sx-sub">Найбільше переглянутих частин</p>
         ${rows(franchiseRows.map(f=>({lbl:f.name,n:f.owned,max:Math.max(1,f.total),extra:`з ${f.total}`,tip:`${f.name}: ${f.owned} з ${f.total}`})),1)}
-        <button class="link-btn" onclick="goTab('collections',document.getElementById('ni-collections'))">Усі франшизи</button>`}
+        <button class="link-btn" data-act="goTab" data-args="[&quot;collections&quot;]">Усі франшизи</button>`}
     </section>
     <section class="stat-card">
       <h3 class="sx-h">Люди, за якими стежиш</h3>
-      ${!peopleAnalyzed?`<p class="sx-sub">Додай актора чи режисера у вкладці <button class="link-btn" onclick="goTab('people',document.getElementById('ni-people'))">Люди</button></p>`:
+      ${!peopleAnalyzed?`<p class="sx-sub">Додай актора чи режисера у вкладці <button class="link-btn" data-act="goTab" data-args="[&quot;people&quot;]">Люди</button></p>`:
         !peopleRows.length?`<p class="sx-sub">Відкрий людину у вкладці «Люди», щоб порахувати прогрес</p>`:`
         <p class="sx-sub">Переглянуто з помітної фільмографії</p>
         ${rows(peopleRows.map(p=>({lbl:p.name,n:p.matched,extra:`з ${p.total}`,tip:`${p.name}: ${p.matched} з ${p.total}`})),Math.max(...peopleRows.map(p=>p.total),1))}`}

@@ -6,28 +6,28 @@ function openIO(target){
   modal(`
     <div class="st-head">
       <h2 class="modal-title">Налаштування</h2>
-      <button class="st-x" onclick="closeModal()" title="Закрити" aria-label="Закрити">✕</button>
+      <button class="st-x" data-act="closeModal" title="Закрити" aria-label="Закрити">✕</button>
     </div>
     <div class="st-body">
       ${API?acc+key:key+acc}
       <div class="st-row">
         <div class="st-row-head"><span class="st-lbl">Файли й обслуговування</span></div>
-        <button class="st-act" onclick="doExport()">${ic('save')}<span><b>Зберегти бекап у файл</b><small>JSON з усіма списками й ключами</small></span></button>
+        <button class="st-act" data-act="doExport">${ic('save')}<span><b>Зберегти бекап у файл</b><small>JSON з усіма списками й ключами</small></span></button>
         <label class="st-act" for="impFile">${ic('upload')}<span><b>Відновити з файлу: злити</b><small>backup.json, дані об'єднуються з наявними</small></span></label>
-        <input type="file" id="impFile" accept=".json" onchange="doImport(event)" hidden>
+        <input type="file" id="impFile" accept=".json" data-change="doImport" data-args="[&quot;$ev&quot;]" hidden>
         <label class="st-act" for="impFileRep">${ic('upload')}<span><b>Відновити з файлу: замінити</b><small>списки стануть такими, як у файлі; перед цим зберігається знімок</small></span></label>
-        <input type="file" id="impFileRep" accept=".json" onchange="doImport(event,'replace')" hidden>
+        <input type="file" id="impFileRep" accept=".json" data-change="doImport" data-args="[&quot;$ev&quot;,&quot;replace&quot;]" hidden>
         ${_snapshotRow()}
         <div id="impMsg" class="st-msg"></div>
         <label class="st-act" for="csvFile" id="stCsv">${ic('film')}<span><b>Імпорт з IMDb / Letterboxd</b><small>CSV з оцінками або watchlist</small></span></label>
-        <input type="file" id="csvFile" accept=".csv,text/csv" onchange="doCsvImport(event)" hidden>
+        <input type="file" id="csvFile" accept=".csv,text/csv" data-change="doCsvImport" data-args="[&quot;$ev&quot;]" hidden>
         <div id="csvBox"></div>
-        <button class="st-act" onclick="runCleanScan()">${ic('check')}<span><b>Перевірка даних</b><small>Дублі й сумнівні категорії</small></span></button>
+        <button class="st-act" data-act="runCleanScan">${ic('check')}<span><b>Перевірка даних</b><small>Дублі й сумнівні категорії</small></span></button>
         <div id="cleanMsg" class="cl-msg"></div>
         <div id="cleanList"></div>
         ${_storageChars()/STORAGE_QUOTA_CHARS>=.7?`<div class="st-sto"><span class="st-lbl">Сховище браузера</span>
           <p class="st-hint" id="stoInfo">${_storageInfo()}</p>
-          <button class="w-btn" onclick="clearCaches()">Очистити кеші</button>
+          <button class="w-btn" data-act="clearCaches">Очистити кеші</button>
           <div id="stoMsg" class="st-msg"></div></div>`:''}
       </div>
     </div>`);
@@ -40,12 +40,12 @@ function _stKeyRow(id,name,key,save,url,opt,bad,hint){
   const has=!!key;
   return `<div class="st-key">
     <div class="st-key-line"><span class="st-key-n">${name}${opt?'<em>необов\'язковий</em>':''}</span>
-      ${has?`<span class="st-key-v${bad?' bad':''}">${bad?'✕ недоступний':'✓ '+esc(key.slice(0,4))+'••••'}</span><button class="st-chg" onclick="stKeyEdit('${id}')">Змінити</button>`:'<span class="st-key-v off">не встановлено</span>'}
+      ${has?`<span class="st-key-v${bad?' bad':''}">${bad?'✕ недоступний':'✓ '+esc(key.slice(0,4))+'••••'}</span><button class="st-chg" data-act="stKeyEdit" data-args="${A(id)}">Змінити</button>`:'<span class="st-key-v off">не встановлено</span>'}
       <a href="${url}" target="_blank" rel="noopener" class="st-link">отримати ключ →</a></div>
     ${bad?'<p class="st-hint" style="color:var(--rose)">TMDB недоступний з цієї мережі, спробуй VPN</p>':!has&&hint?`<p class="st-hint">${hint}</p>`:''}
     <div class="st-ed" id="${id}Ed"${has?' style="display:none"':''}>
-      <input class="api-inp" id="${id}K" type="text" placeholder="Вставте ключ…" aria-label="Ключ ${name}" onkeydown="if(event.key==='Enter')${save}()">
-      <button class="st-save-btn" onclick="${save}()">Зберегти</button></div>
+      <input class="api-inp" id="${id}K" type="text" placeholder="Вставте ключ…" aria-label="Ключ ${name}" data-enter="${save}">
+      <button class="st-save-btn" data-act="${save}">Зберегти</button></div>
     <div id="${id}Msg" class="st-msg"></div></div>`;
 }
 function _stKeys(){
@@ -162,7 +162,7 @@ function _buildBackup(incK){
     personCache:_personCache,resolveCache:_resolveCache,tmdbFind:_findCache}; /* no apiCache: it expires in 24h anyway */
 }
 async function doExport(){
-  const btn=document.querySelector('[onclick="doExport()"] small'),orig=btn?.textContent; /* the row's grey line doubles as progress */
+  const btn=document.querySelector('[data-act="doExport"] small'),orig=btn?.textContent; /* the row's grey line doubles as progress */
   if(btn)btn.textContent='Готую…';
   const data=_buildBackup(true); /* keys always in: a restored file then works at once */
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
@@ -229,7 +229,7 @@ function doCsvImport(e){
       <p class="csv-line">${known?`${known} вже є у твоїх списках, їх пропущу. `:''}${p.needsTmdb?'Кожен фільм шукаю на TMDB за назвою й роком; ті, що вже є у списках, теж пропущу.':''}</p>
       <label class="csv-line">Куди додати <select id="csvList" class="csv-sel">${Object.entries(LIST_L).map(([k,l])=>`<option value="${k}"${k===p.list?' selected':''}>${l}</option>`).join('')}</select></label>
       ${rated?`<label class="cl-row"><input type="checkbox" id="csvRatings" checked><span><b>Перенести оцінки (${rated})</b><small>${p.src.startsWith('Letterboxd')?'зірки 0,5–5 стають 1–10':'твої оцінки 1–10 з IMDb'}, лише для «Переглянуте»</small></span></label>`:''}
-      <button class="w-btn cl-go" id="csvGo" onclick="runCsvImport()">Імпортувати ${p.entries.length-known}</button>
+      <button class="w-btn cl-go" id="csvGo" data-act="runCsvImport">Імпортувати ${p.entries.length-known}</button>
       <div id="csvMsg" class="cl-msg"></div></div>`;
   };
   rd.readAsText(file);e.target.value='';

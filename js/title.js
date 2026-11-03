@@ -126,8 +126,8 @@ async function _tsFromOmdb(imdbID){
 
 function _tsTopBar(){
   return `<div class="ts-top">
-    ${_tsStack.length>1?`<button class="flt-pill" onclick="titleBack()">‹ Назад</button>`:'<span></span>'}
-    <button class="game-modal-close" onclick="closeTitle()" aria-label="Закрити">✕</button></div>`;
+    ${_tsStack.length>1?`<button class="flt-pill" data-act="titleBack">‹ Назад</button>`:'<span></span>'}
+    <button class="game-modal-close" data-act="closeTitle" aria-label="Закрити">✕</button></div>`;
 }
 /* TMDB image path -> URL; a path that is not a plain /file.ext (imported or cached junk) gives '' */
 const _tsImg=(p,w)=>typeof p==='string'&&/^\/[\w.\-]+$/.test(p)?`https://image.tmdb.org/t/p/${w}${p}`:'';
@@ -237,7 +237,7 @@ function _tsRender(){
     <div id="tsEps"></div></section>`:'';
   body.innerHTML=`${_tsTopBar()}
     <header class="ts-hero"${d.backdrop?` style="--bd:url('${_tsImg(d.backdrop,'w1280')}')"`:''}>
-      <img class="ts-poster" src="${poster}" alt="" onerror="this.src=BLANK">
+      <img class="ts-poster" src="${poster}" alt="" data-fb>
       <div class="ts-head">
         <h2 class="ts-title">${esc(listTitle)}</h2>
         ${alt?`<div class="ts-alt">${esc(alt)}</div>`:''}
@@ -254,7 +254,7 @@ function _tsRender(){
       ${prov}${seasons}
       ${d.cast.length?`<section class="ts-sec"><h3>Актори</h3><div class="ts-cast">${d.cast.map(c=>`
         <button class="ts-person"${c.id?` data-act="_tsPerson" data-args="${A(c.id,c.name,c.profile||'')}" title="Фільмографія"`:' disabled'}>
-          <img src="${c.profile?_tsImg(c.profile,'w185'):BLANK}" alt="" loading="lazy" onerror="this.src=BLANK">
+          <img src="${c.profile?_tsImg(c.profile,'w185'):BLANK}" alt="" loading="lazy" data-fb>
           <b>${esc(c.name)}</b><span>${esc(c.character)}</span></button>`).join('')}</div></section>`:''}
       ${crewRows.length?`<section class="ts-sec"><dl class="ts-crew">${crewRows.map(([k,v])=>`<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl></section>`:''}
       ${_tsColl(d)}
@@ -322,7 +322,7 @@ function _tsRecsHtml(d){
   const own=_ownedMovieMap(),ST={ok:'переглянуто',wn:'дивлюсь',pl:'заплановано'}; /* same wording as the franchise row */
   return `<section class="ts-sec" id="tsRecs"><h3>Схожі</h3><div class="ts-recs">${d.recs.map(r=>{const st=own[_tmdbOwnedId(r.mt,r.id)]?.status;
       const info=[r.year,st?ST[st]:r.vote?`TMDB ${r.vote.toFixed(1)}`:''].filter(Boolean).join(' · ');return `
-        <button class="ts-rec${st?' '+st:''}" data-act="_tsOpen" data-args="${A({mt:r.mt,id:r.id},true)}"><img src="${_tsImg(r.poster,'w185')}" alt="" loading="lazy" onerror="this.src=BLANK"><b>${esc(r.title)}</b><span>${esc(info)}</span></button>`;}).join('')}</div></section>`;
+        <button class="ts-rec${st?' '+st:''}" data-act="_tsOpen" data-args="${A({mt:r.mt,id:r.id},true)}"><img src="${_tsImg(r.poster,'w185')}" alt="" loading="lazy" data-fb><b>${esc(r.title)}</b><span>${esc(info)}</span></button>`;}).join('')}</div></section>`;
 }
 let _ownFillP=null;
 function _fillOwnedTmdb(){
@@ -367,7 +367,7 @@ function _tsCollHtml(d,det){
     <div class="ts-recs">${parts.map(p=>{
       const cur=p.id===d.id,st=own[p.imdbID||_resolveCache[`movie:${p.id}`]?.imdbID]?.status;
       const info=[_partOut(p)?p.year:p.year?`вийде ${p.year}`:'анонс',cur?'цей фільм':ST[st]].filter(Boolean).join(' · ');
-      return `<button class="ts-rec${cur?' cur':st?' '+st:''}"${cur?' disabled':` data-act="_tsOpen" data-args="${A({mt:'movie',id:p.id},true)}"`}><img src="${p.poster?_tsImg(p.poster,'w185'):BLANK}" alt="" loading="lazy" onerror="this.src=BLANK"><b>${esc(p.title)}</b><span>${esc(info)}</span></button>`;}).join('')}</div>
+      return `<button class="ts-rec${cur?' cur':st?' '+st:''}"${cur?' disabled':` data-act="_tsOpen" data-args="${A({mt:'movie',id:p.id},true)}"`}><img src="${p.poster?_tsImg(p.poster,'w185'):BLANK}" alt="" loading="lazy" data-fb><b>${esc(p.title)}</b><span>${esc(info)}</span></button>`;}).join('')}</div>
     ${mine?`<button class="link-btn" data-act="_tsGoColl" data-args="${A(name)}">${ic('stack')} Відкрити у франшизах</button>`:''}</section>`;
 }
 function _tsGoColl(name){closeTitle();_collFilter.q=name;_collFilter.status='all';goTab('collections',document.getElementById('ni-collections'));}

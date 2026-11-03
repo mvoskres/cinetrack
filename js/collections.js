@@ -217,10 +217,10 @@ function buildCollBar(){
     <div class="cat-seg" role="group" aria-label="Статус">${[['incomplete','Незавершені'],['complete','Повні'],['upcoming','Чекають продовження'],['all','Усі']]
       .map(([k,l])=>`<button class="cat-chip${f.status===k?' on':''}" data-act="collSetStatus" data-args="${A(`${k}`)}">${l}<span class="num">${cnt[k]}</span></button>`).join('')}</div>
     <div class="local-search-wrap"><span class="local-search-icon">${ic('search')}</span>
-      <input class="local-search" type="text" placeholder="Пошук франшизи…" aria-label="Пошук франшизи" value="${esc(f.q)}" oninput="collSearch(this.value)">
+      <input class="local-search" type="text" placeholder="Пошук франшизи…" aria-label="Пошук франшизи" value="${esc(f.q)}" data-input="collSearch" data-args="[&quot;$value&quot;]">
     </div>
-    <button id="collFbtn" class="flt-pill${n?' has-n':''}" onclick="toggleCollPan()">${ic('filter')}Тип, жанр${n?` <span class="flt-n">${n}</span>`:''}</button>
-    <select class="sort-sel" aria-label="Сортування" onchange="collSetSort(this.value)">
+    <button id="collFbtn" class="flt-pill${n?' has-n':''}" data-act="toggleCollPan">${ic('filter')}Тип, жанр${n?` <span class="flt-n">${n}</span>`:''}</button>
+    <select class="sort-sel" aria-label="Сортування" data-change="collSetSort" data-args="[&quot;$value&quot;]">
       ${[['missing-asc','Найближчі до завершення'],['owned-desc','Найбільше переглянуто'],['next-asc','Найближча прем\'єра'],['name-asc','А→Я']]
         .map(([v,l])=>`<option value="${v}"${f.sort===v?' selected':''}>${l}</option>`).join('')}
     </select>`;
@@ -240,7 +240,7 @@ function buildCollPan(){
   let h='';
   if(types.length>1)h+=`<div class="flt-row"><span class="flt-lbl">Тип</span><div class="flt-chips">${types.map(t=>`<button class="flt-chip${f.types.includes(t)?' on':''}" data-act="collChip" data-args="${A('types',`${t}`)}">${CAT[t]||t}</button>`).join('')}</div></div>`;
   if(genres.length)h+=`<div class="flt-row"><span class="flt-lbl">Жанр</span><div class="flt-chips">${genres.map(g=>`<button class="flt-chip${f.genres.includes(g)?' on':''}" data-act="collChip" data-args="${A('genres',`${uriSafe(g)}`)}">${esc(g)}</button>`).join('')}</div></div>`;
-  h+=`<div class="flt-panel-footer"><button class="flt-reset" onclick="collClearPan()">✕ Скинути тип/жанр</button></div>`;
+  h+=`<div class="flt-panel-footer"><button class="flt-reset" data-act="collClearPan">✕ Скинути тип/жанр</button></div>`;
   el.innerHTML=h;
 }
 function collChip(dim,val){
@@ -308,7 +308,7 @@ function renderCollections(preserveOrder){
   const shown=list.slice(0,_collShown);
   g.innerHTML=`<div class="coll-grid">${shown.map(c=>_collCardHtml(c,ownedMap)).join('')}</div>
     ${shown.length<list.length?`<div style="text-align:center;margin-top:1.25rem">
-      <button class="rec-btn m" onclick="_collShown+=COLL_PAGE_SIZE;renderCollections(true)">Показати ще (${list.length-shown.length})</button>
+      <button class="rec-btn m" data-act="collMore">Показати ще (${list.length-shown.length})</button>
     </div>`:''}`;
 }
 
@@ -335,9 +335,9 @@ function _collCardHtml(c,ownedMap){
       :ir?`IMDb ${esc(ir)}`:p.vote?`TMDB ${esc(p.vote)}`:'';
     return `<div class="fc-part${owned||skipped?'':' missing'}${out?'':' upcoming'}${k>=COLL_ROWS?' extra':''}"><span class="fc-ord">${String(k+1).padStart(2,'0')}</span><span class="fc-pt" title="${esc(p.title)}">${t} ${p.year?`<span class="num">${esc(p.year)}</span>`:''}</span><span class="fc-rt">${rt}</span>${st}</div>`;
   }).join('');
-  const more=c.list.length>COLL_ROWS?`<button class="fc-more" data-cid="${esc(c.id)}" data-count="${c.list.length}" onclick="toggleCollParts(this)">${isOpen?'Згорнути':`Усі частини (${c.list.length})`}</button>`:'';
+  const more=c.list.length>COLL_ROWS?`<button class="fc-more" data-cid="${esc(c.id)}" data-count="${c.list.length}" data-act="toggleCollParts" data-args="[&quot;$el&quot;]">${isOpen?'Згорнути':`Усі частини (${c.list.length})`}</button>`:'';
   return `<article class="fc${isOpen?' expanded':''}">
-    <div class="fc-head"><img src="${esc(poster)}" alt="" loading="lazy" onerror="this.src=BLANK">
+    <div class="fc-head"><img src="${esc(poster)}" alt="" loading="lazy" data-fb>
       <div><div class="fc-name">${esc(c.name)}</div><div class="fc-sub"><span class="num">${c.owned}/${c.total}</span> переглянуто${c.upcoming?` · ще ${c.upcoming} не вийшли`:''}</div></div>
       <span class="fc-pill ${complete?'done':'todo'}">${complete?'Повна':`Бракує ${c.total-c.owned}`}</span></div>
     <div class="tr-bar"><i style="width:${pct}%"></i></div>
@@ -346,6 +346,7 @@ function _collCardHtml(c,ownedMap){
 }
 let _collExpanded=new Set(); /* which franchise cards show all parts — survives re-renders so
   adding a movie mid-list doesn't collapse the card you're working in */
+function collMore(){_collShown+=COLL_PAGE_SIZE;renderCollections(true);}
 function toggleCollParts(btn){
   const card=btn.closest('.fc'),open=card.classList.toggle('expanded'),cid=btn.dataset.cid;
   if(open)_collExpanded.add(cid);else _collExpanded.delete(cid);
@@ -380,7 +381,7 @@ function openStatusPicker(imdbID,meta,onDone){
   const sub=[meta.year,meta.rating?`★ ${meta.rating}`:null].filter(Boolean).join(' · ');
   _collPickerOnDone=onDone;
   modal(`
-    <img class="modal-poster" src="${imgSrc(meta.poster)}" onerror="this.style.display='none'" alt="">
+    <img class="modal-poster" src="${imgSrc(meta.poster)}" data-fb="hide" alt="">
     <h2 class="modal-title">${esc(meta.title||'')}</h2>
     ${sub?`<div class="modal-sub">${esc(sub)}</div>`:''}
     <div class="modal-btns">
@@ -390,7 +391,7 @@ function openStatusPicker(imdbID,meta,onDone){
       ${skipped
         ?`<div class="modal-already skip">${ic('ban')}Позначено «не буду дивитись»</div><button class="m-btn can" data-act="_unskipPart" data-args="${A(`${imdbID}`)}">${ic('undo')}Скасувати позначку</button>`
         :`<button class="m-btn skip" data-act="_skipPart" data-args="${A(`${imdbID}`)}">${ic('ban')}Не буду дивитись</button>`}
-      <button class="m-btn can" onclick="closeModal()">Закрити</button>
+      <button class="m-btn can" data-act="closeModal">Закрити</button>
     </div>`);
 }
 let _collPickerOnDone=null;

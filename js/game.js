@@ -29,13 +29,13 @@ function loadGameTab(){
       .map(([k,l])=>`<button class="cat-chip${_game.filter===k?' on':''}" data-act="setGameFilter" data-args="${A(`${k}`)}">${l}<span class="num">${cnt[k]}</span></button>`).join('')}</div>
     ${blocked?`<div class="recs-note">${ic('info')}<span>${blocked}</span></div>`:''}
     <div class="game-modes">
-      <button class="game-mode" onclick="startGame('streak')" ${blocked?'disabled':''}>
+      <button class="game-mode" data-act="startGame" data-args="[&quot;streak&quot;]" ${blocked?'disabled':''}>
         <span class="game-mode-ic">${ic('spark')}</span>
         <span class="game-mode-name">Серія</span>
         <span class="game-mode-desc">Кадри йдуть, доки не помилишся</span>
         <span class="game-mode-best">Рекорд: <b class="num">${_gameBestScore}</b> поспіль</span>
       </button>
-      <button class="game-mode" onclick="startGame('round')" ${blocked?'disabled':''}>
+      <button class="game-mode" data-act="startGame" data-args="[&quot;round&quot;]" ${blocked?'disabled':''}>
         <span class="game-mode-ic">${ic('frame')}</span>
         <span class="game-mode-name">Раунд з ${GAME_ROUND} кадрів</span>
         <span class="game-mode-desc">Помилки не зупиняють гру, рахунок у кінці</span>
@@ -150,10 +150,10 @@ function _gameAnswer(btn){
   _gameHud();
   const last=_game.mode==='round'?_game.q>=GAME_ROUND:!ok;
   document.getElementById('gameReveal').innerHTML=`
-    <img src="${esc(ps(item.poster)||BLANK)}" alt="" onerror="this.src=BLANK">
+    <img src="${esc(ps(item.poster)||BLANK)}" alt="" data-fb>
     <div class="game-reveal-txt"><div><b>${ok?'Так!':'Ні.'}</b> Це <a href="${imdbHref(item)}" target="_blank" rel="noopener">${esc(item.title)}</a></div>
       <span>${esc(item.year||'')} · ${catLabel(item.customCategory||item.type)}${item.imdbRating?` · IMDb ${esc(item.imdbRating)}`:''}</span></div>
-    <button class="btn primary" id="gameNextBtn" onclick="${last?'gameEnd()':'gameNextQuestion()'}">${last?'Підсумок':'Далі'} <kbd>Enter</kbd></button>`;
+    <button class="btn primary" id="gameNextBtn" data-act="${last?'gameEnd':'gameNextQuestion'}">${last?'Підсумок':'Далі'} <kbd>Enter</kbd></button>`;
   document.getElementById('gameNextBtn').focus({preventScroll:true});
 }
 
@@ -173,8 +173,8 @@ function gameEnd(noMoreImages){
     <div class="game-over-sub">${sub}</div>
     ${log.length?`<ol class="game-log">${log.map(l=>`<li class="${l.ok?'ok':'bad'}">${ic(l.ok?'check':'minus')}<a href="${imdbHref(l.item)}" target="_blank" rel="noopener">${esc(l.item.title)}</a><span class="num">${esc(l.item.year||'')}</span></li>`).join('')}</ol>`:''}
     <div class="game-over-btns">
-      <button class="btn primary" id="gameAgainBtn" onclick="startGame()">${ic('refresh')}Ще раз <kbd>Enter</kbd></button>
-      <button class="btn" onclick="closeGameModal()">Закрити</button>
+      <button class="btn primary" id="gameAgainBtn" data-act="startGame">${ic('refresh')}Ще раз <kbd>Enter</kbd></button>
+      <button class="btn" data-act="closeGameModal">Закрити</button>
     </div>`;
   _gameHud();
   document.getElementById('gameAgainBtn').focus({preventScroll:true});

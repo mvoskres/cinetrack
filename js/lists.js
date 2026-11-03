@@ -1,6 +1,7 @@
 /* ── TABS ── */
 const TITLES={watched:'Переглянуте',watching:'Дивлюсь',planned:'Планую',stats:'Статистика',recs:'Рекомендації',collections:'Франшизи',people:'Актори й режисери',game:'Впізнай кадр'};
 function goTab(id,btn){
+  btn=btn||document.getElementById('ni-'+id); /* data-act buttons pass only the id (or themselves) */
   document.getElementById('gameModalBg')?.classList.add('hidden');
   document.querySelectorAll('[id^="tab-"]').forEach(t=>t.classList.add('hidden'));
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
@@ -58,11 +59,11 @@ async function _tmdbSearch(q){
   box.innerHTML=titles.map(r=>{
     const t=r.title||r.name||'',o=r.original_title||r.original_name||'',y=(r.release_date||r.first_air_date||'').slice(0,4);
     return `<div class="sug-item" data-act="_sugOpen" data-args="${A(r.media_type,r.id)}">
-      <img class="sug-img" src="${_tsImg(r.poster_path,'w92')||blank()}" loading="lazy" onerror="this.src=BLANK">
+      <img class="sug-img" src="${_tsImg(r.poster_path,'w92')||blank()}" loading="lazy" data-fb>
       <div class="sug-info"><div class="sug-title">${esc(t)}</div><div class="sug-meta">${y?`<span class="sug-year">${esc(y)}</span> · `:''}${r.media_type==='tv'?CAT.series:CAT.movie}${o&&o!==t?` · ${esc(o)}`:''}</div></div>
       ${_ownBadge(_tmdbOwnedId(r.media_type,r.id))}</div>`;
   }).join('')+people.map(p=>`<div class="sug-item" data-act="_sugPerson" data-args="${A(p.id,p.name,p.profile_path||'')}">
-      <img class="sug-img round" src="${_tsImg(p.profile_path,'w92')}" loading="lazy" onerror="this.src=BLANK">
+      <img class="sug-img round" src="${_tsImg(p.profile_path,'w92')}" loading="lazy" data-fb>
       <div class="sug-info"><div class="sug-title">${esc(p.name)}</div><div class="sug-meta">${p.known_for_department==='Directing'?'Режисер':'Актор'} · фільмографія</div></div></div>`).join('');
   _sugSync('searchInput','suggestions');
   return true;
@@ -93,7 +94,7 @@ async function _omdbSearch(q){
       else if(watching.find(x=>x.imdbID===m.imdbID)) b=`<span class="sug-badge wn">${ic('play')}Дивлюсь</span>`;
       else if(planned.find(x=>x.imdbID===m.imdbID))  b=`<span class="sug-badge pl">${ic('bookmark')}Планую</span>`;
       return `<div class="sug-item" data-act="pickMovie" data-args="${A(`${m.imdbID}`)}">
-        <img class="sug-img" src="${imgSrc(m.Poster)}" loading="lazy" onerror="this.src=BLANK">
+        <img class="sug-img" src="${imgSrc(m.Poster)}" loading="lazy" data-fb>
         <div class="sug-info"><div class="sug-title">${esc(m.Title)}</div><div class="sug-meta"><span class="sug-year">${esc(m.Year)}</span> · ${tl(m.Type)}</div></div>
         ${b}</div>`;
     }).join('');
@@ -146,7 +147,7 @@ async function pickMovie(imdbID){
   }
   const inW=!!watched.find(x=>x.imdbID===imdbID),inWn=!!watching.find(x=>x.imdbID===imdbID),inPl=!!planned.find(x=>x.imdbID===imdbID);
   modal(`
-    <img class="modal-poster" src="${imgSrc(m.Poster)}" onerror="this.style.display='none'" alt="">
+    <img class="modal-poster" src="${imgSrc(m.Poster)}" data-fb="hide" alt="">
     <h2 class="modal-title">${esc(m.Title)}</h2>
     <div class="modal-sub">${esc(m.Year)} · ${tl(m.Type)} · ${m.imdbRating&&m.imdbRating!=='N/A'?'IMDb '+esc(m.imdbRating):'без рейтингу'} · ${esc((m.Genre||'').split(',')[0])}</div>
     ${m.Plot&&m.Plot!=='N/A'?`<div class="modal-plot">${esc(m.Plot)}</div>`:''}
@@ -155,7 +156,7 @@ async function pickMovie(imdbID){
       ${inWn?`<div class="modal-already go">${ic('play')}Вже дивлюсь</div>`:`<button class="m-btn s" data-act="_pickDo" data-args="${A('wn',imdbID)}">${ic('play')}Дивлюсь зараз</button>`}
       <button class="m-btn s" data-act="_pickDo" data-args="${A('info',imdbID)}">${ic('info')}Детальніше</button>
       ${inPl?`<div class="modal-already pl">${ic('bookmark')}Вже заплановано</div>`:`<button class="m-btn m" data-act="_pickDo" data-args="${A('pl',imdbID)}">${ic('bookmark')}Запланувати</button>`}
-      <button class="m-btn can" onclick="closeModal()">Закрити</button>
+      <button class="m-btn can" data-act="closeModal">Закрити</button>
     </div>`);
 }
 
@@ -265,6 +266,8 @@ document.addEventListener('click',e=>{if(!e.target.closest('.ct-menu'))closeMenu
    '$ev' '$el' '$value' stand for the event, the element and its value. Ancestors with the
    same attribute run too, like inline handlers bubbling, until one stops propagation. */
 function A(...a){return esc(JSON.stringify(a));}
+/* Enter in a field marked data-enter="fnName" (+ data-args) */
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.closest?.('[data-enter]'))_dispatch(e,'data-enter');});
 function _dispatch(ev,attr){
   let el=ev.target.closest?.('['+attr+']');
   while(el){
@@ -335,7 +338,7 @@ function rWatched(){
   const list=applyF(watched,'watched');
   const cnt=document.getElementById('wCount');
   if(cnt)cnt.textContent=list.length!==watched.length?`${list.length} з ${watched.length} записів`:'';
-  if(!list.length){g.innerHTML=watched.length?`<div class="empty"><span class="empty-icon">${ic('search')}</span><div class="empty-txt">Нічого не знайдено за фільтром</div></div>`:`<div class="empty"><span class="empty-icon">${ic('film')}</span><div class="empty-txt">Тут з'являтимуться переглянуті фільми та серіали</div><button class="w-btn gold empty-act" onclick="openIO('stCsv')">${ic('upload')}Імпортувати з IMDb / Letterboxd</button></div>`;return;}
+  if(!list.length){g.innerHTML=watched.length?`<div class="empty"><span class="empty-icon">${ic('search')}</span><div class="empty-txt">Нічого не знайдено за фільтром</div></div>`:`<div class="empty"><span class="empty-icon">${ic('film')}</span><div class="empty-txt">Тут з'являтимуться переглянуті фільми та серіали</div><button class="w-btn gold empty-act" data-act="openIO" data-args="[&quot;stCsv&quot;]">${ic('upload')}Імпортувати з IMDb / Letterboxd</button></div>`;return;}
   _gridRender('watched',g,list,i=>myCard('watched',i));
 }
 
@@ -351,7 +354,7 @@ function rPlanned(){
 function editW(id){
   const it=watched.find(i=>i.id===id);if(!it)return;
   modal(`
-    <img class="modal-poster" src="${imgSrc(it.poster)}" loading="lazy" onerror="this.src=BLANK" alt="">
+    <img class="modal-poster" src="${imgSrc(it.poster)}" loading="lazy" data-fb alt="">
     <h2 class="modal-title">${esc(it.title)}</h2>
     <div class="modal-sub" style="margin-bottom:1.1rem">${esc(it.year||'')} · ${tl(it.type)}</div>
     <div class="form-g"><label class="form-lbl" for="eC">Категорія</label>
@@ -369,7 +372,7 @@ function editW(id){
       <textarea class="form-ta" id="eCm" rows="3" placeholder="Враження…">${esc(it.comment||'')}</textarea></div>
     <div class="modal-btns">
       <button class="m-btn g" data-act="saveEditW" data-args="${A((id))}">Зберегти</button>
-      <button class="m-btn can" onclick="closeModal()">Скасувати</button>
+      <button class="m-btn can" data-act="closeModal">Скасувати</button>
     </div>`);
 }
 function saveEditW(id){

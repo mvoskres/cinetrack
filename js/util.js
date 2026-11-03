@@ -177,6 +177,11 @@ function _pfNext(){
     }).catch(()=>{}).finally(()=>{_pfRun--;_pfNext();});
   }
 }
+/* <img data-fb> that fails: the blank placeholder (or hidden, for data-fb="hide") instead of an inline onerror */
+document.addEventListener('error',e=>{
+  const im=e.target;if(!im||im.tagName!=='IMG'||!im.hasAttribute('data-fb'))return;
+  if(im.dataset.fb==='hide')im.style.display='none';else if(im.getAttribute('src')!==BLANK)im.src=BLANK;
+},true);
 /* a failed <img data-pf="imdbID">: no inline onerror (and so no data inside JS), one capture-phase listener for all of them */
 document.addEventListener('error',e=>{const im=e.target;if(im&&im.tagName==='IMG'&&im.dataset.pf&&im.getAttribute('src')!==BLANK)fixBrokenPoster(im,im.dataset.pf);},true);
 /* a URL when found, '' when the sources answered and have none (remembered), null when a source failed or none could be asked (retried later) */
@@ -195,8 +200,7 @@ function tl(t){return esc({movie:CAT.movie,series:CAT.series,episode:'Серія
    is how OMDb credits most Pixar/Disney films, and those are cartoons. */
 function isAnimeCountry(country){const c=(country||'').toLowerCase().split(',').map(x=>x.trim());return c.includes('japan')&&['japan','south korea','china','taiwan'].includes(c[0]);}
 function gc(m){const g=(m.Genre||'').toLowerCase();if(g.includes('animation'))return isAnimeCountry(m.Country)?'anime':'cartoon';if(m.Type==='series')return'series';return'movie';}
-/* Quotes are %27-encoded: this URI is interpolated into onerror="this.src='…'",
-   where a bare ' ended the string early and every poster fallback threw. */
+/* Quotes are %27-encoded: this URI goes into src="…" attributes and JS strings alike. */
 const BLANK=blank();
 function blank(){return"data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 155 232%27%3E%3Crect fill=%27%230e1218%27 width=%27155%27 height=%27232%27/%3E%3Ctext x=%2777%27 y=%27125%27 text-anchor=%27middle%27 fill=%27%234a5260%27 font-size=%2742%27%3E✦%3C/text%3E%3C/svg%3E";}
 

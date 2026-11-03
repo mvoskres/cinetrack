@@ -2,8 +2,11 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8"/>
+<!-- No inline scripts or event attributes anywhere: every handler is a data-act/data-input/data-change/data-enter/data-fb attribute run by the delegation in js/lists.js and js/util.js. Inline styles stay (style-src unsafe-inline). -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://accounts.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://www.omdbapi.com https://api.themoviedb.org https://api.tvmaze.com https://www.googleapis.com https://accounts.google.com; frame-src https://accounts.google.com; object-src 'none'; base-uri 'self'; form-action 'none'"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>CineTrack</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%230e1218'/%3E%3Crect x='5' y='5' width='14' height='14' rx='1.5' fill='none' stroke='%23e8a33d' stroke-width='1.8'/%3E%3Cpath d='M9 5v14M15 5v14M5 10h4M5 14h4M15 10h4M15 14h4' stroke='%23e8a33d' stroke-width='1.4'/%3E%3C/svg%3E">
 <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Onest:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/styles.css?v=adc52bb6">
 </head>
@@ -23,39 +26,39 @@
 
     <nav class="sidebar-nav">
       <div class="nav-section-lbl">Списки</div>
-      <button class="nav-item active" id="ni-watched"   onclick="goTab('watched',this)">
+      <button class="nav-item active" id="ni-watched"   data-act="goTab" data-args="[&quot;watched&quot;]">
         <span class="nav-icon"><svg class="i" aria-hidden="true"><use href="#i-film"/></svg></span>Переглянуте
         <span class="nav-badge" id="nb-watched">0</span>
       </button>
-      <button class="nav-item" id="ni-watching" onclick="goTab('watching',this)">
+      <button class="nav-item" id="ni-watching" data-act="goTab" data-args="[&quot;watching&quot;]">
         <span class="nav-icon"><svg class="i" aria-hidden="true"><use href="#i-play"/></svg></span>Дивлюсь
         <span class="nav-badge" id="nb-watching">0</span>
       </button>
-      <button class="nav-item" id="ni-planned"  onclick="goTab('planned',this)">
+      <button class="nav-item" id="ni-planned"  data-act="goTab" data-args="[&quot;planned&quot;]">
         <span class="nav-icon"><svg class="i" aria-hidden="true"><use href="#i-bookmark"/></svg></span>Планую
         <span class="nav-badge" id="nb-planned">0</span>
       </button>
       <div class="nav-section-lbl" style="margin-top:.5rem">Відкриття</div>
-      <button class="nav-item" id="ni-stats"    onclick="goTab('stats',this)">
+      <button class="nav-item" id="ni-stats"    data-act="goTab" data-args="[&quot;stats&quot;]">
         <span class="nav-icon"><svg class="i" aria-hidden="true"><use href="#i-chart"/></svg></span>Статистика
       </button>
-      <button class="nav-item" id="ni-recs"     onclick="goTab('recs',this)">
+      <button class="nav-item" id="ni-recs"     data-act="goTab" data-args="[&quot;recs&quot;]">
         <span class="nav-icon"><svg class="i" aria-hidden="true"><use href="#i-spark"/></svg></span>Рекомендації
       </button>
-      <button class="nav-item" id="ni-collections" onclick="goTab('collections',this)">
+      <button class="nav-item" id="ni-collections" data-act="goTab" data-args="[&quot;collections&quot;]">
         <span class="nav-icon"><svg class="i" aria-hidden="true"><use href="#i-stack"/></svg></span>Франшизи
       </button>
-      <button class="nav-item" id="ni-people"   onclick="goTab('people',this)">
+      <button class="nav-item" id="ni-people"   data-act="goTab" data-args="[&quot;people&quot;]">
         <span class="nav-icon"><svg class="i" aria-hidden="true"><use href="#i-person"/></svg></span>Люди
       </button>
-      <button class="nav-item" id="ni-game"   onclick="goTab('game',this)">
+      <button class="nav-item" id="ni-game"   data-act="goTab" data-args="[&quot;game&quot;]">
         <span class="nav-icon"><svg class="i" aria-hidden="true"><use href="#i-frame"/></svg></span>Впізнай кадр
       </button>
     </nav>
 
     <div class="sidebar-footer">
-      <button class="backup-state" id="backupState" onclick="openIO('gdBox')"><svg class="i" aria-hidden="true"><use href="#i-save"/></svg><span>Бекап</span></button>
-      <button class="settings-btn" onclick="openIO()"><svg class="i" aria-hidden="true"><use href="#i-gear"/></svg>Налаштування</button>
+      <button class="backup-state" id="backupState" data-act="openIO" data-args="[&quot;gdBox&quot;]"><svg class="i" aria-hidden="true"><use href="#i-save"/></svg><span>Бекап</span></button>
+      <button class="settings-btn" data-act="openIO"><svg class="i" aria-hidden="true"><use href="#i-gear"/></svg>Налаштування</button>
     </div>
   </aside>
 
@@ -67,7 +70,7 @@
       <div class="topbar-title" id="topbarTitle">Переглянуте</div>
       <div class="search-wrap">
         <span class="search-icon"><svg class="i" aria-hidden="true"><use href="#i-search"/></svg></span>
-        <input id="searchInput" class="search-input" placeholder="Фільм, серіал або актор…" oninput="handleSearch()" data-blur="hideSug" data-blur-box="suggestions" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="suggestions" aria-label="Додати фільм або серіал" autocomplete="off"><kbd class="search-kbd">/</kbd>
+        <input id="searchInput" class="search-input" placeholder="Фільм, серіал або актор…" data-input="handleSearch" data-blur="hideSug" data-blur-box="suggestions" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="suggestions" aria-label="Додати фільм або серіал" autocomplete="off"><kbd class="search-kbd">/</kbd>
         <div id="suggestions" class="suggestions hidden" role="listbox" aria-label="Знайдені назви"></div>
       </div>
     </header>
@@ -118,14 +121,14 @@
           <div><h1 class="section-title">Рекомендації</h1><div class="recs-sub" id="recsSub"></div></div>
           <div class="recs-actions">
             <div class="seg" role="group" aria-label="Що показати">
-              <button class="seg-b on" id="rv-picks" onclick="recView('picks')">Підбірка</button>
-              <button class="seg-b" id="rv-hidden" onclick="recView('hidden')">Приховані <span class="num" id="rvHiddenN"></span></button>
+              <button class="seg-b on" id="rv-picks" data-act="recView" data-args="[&quot;picks&quot;]">Підбірка</button>
+              <button class="seg-b" id="rv-hidden" data-act="recView" data-args="[&quot;hidden&quot;]">Приховані <span class="num" id="rvHiddenN"></span></button>
             </div>
-            <select id="genrePick" class="sort-sel" onchange="recGenre(this.value)" aria-label="Огляд за жанром">
+            <select id="genrePick" class="sort-sel" data-change="recGenre" data-args="[&quot;$value&quot;]" aria-label="Огляд за жанром">
               <option value="">Огляд за жанром…</option>
               <option value="Action">Action</option><option value="Adventure">Adventure</option><option value="Animation">Animation</option><option value="Comedy">Comedy</option><option value="Crime">Crime</option><option value="Documentary">Documentary</option><option value="Drama">Drama</option><option value="Family">Family</option><option value="Fantasy">Fantasy</option><option value="History">History</option><option value="Horror">Horror</option><option value="Music">Music</option><option value="Mystery">Mystery</option><option value="Romance">Romance</option><option value="Sci-Fi">Sci-Fi</option><option value="Thriller">Thriller</option><option value="War">War</option><option value="Western">Western</option>
             </select>
-            <button class="flt-pill" id="recsRefresh" onclick="refreshRecs()" title="Зібрати нову підбірку"><svg class="i" aria-hidden="true"><use href="#i-refresh"/></svg>Оновити</button>
+            <button class="flt-pill" id="recsRefresh" data-act="refreshRecs" title="Зібрати нову підбірку"><svg class="i" aria-hidden="true"><use href="#i-refresh"/></svg>Оновити</button>
           </div>
         </div>
         <div class="filter-row" id="recsBar"></div>
@@ -137,7 +140,7 @@
           <div><div class="section-eyebrow">Франшизи</div><h1 class="section-title">Франшизи</h1><div class="recs-sub" id="collSub"></div></div>
           <div style="display:flex;align-items:center;gap:.6rem;">
             <span id="collLastRun" style="font-size:.65rem;color:var(--muted)"></span>
-            <button class="rec-btn m" onclick="refreshCollectionsData()" id="collRefresh" title="Перечитати склад усіх франшиз: нові частини, дати, постери"><svg class="i" aria-hidden="true"><use href="#i-refresh"/></svg> Оновити дані</button>
+            <button class="rec-btn m" data-act="refreshCollectionsData" id="collRefresh" title="Перечитати склад усіх франшиз: нові частини, дати, постери"><svg class="i" aria-hidden="true"><use href="#i-refresh"/></svg> Оновити дані</button>
           </div>
         </div>
         <div class="filter-row" id="collBar"></div>
@@ -150,7 +153,7 @@
           <div><div class="section-eyebrow">Фільмографія</div><h1 class="section-title">Актори й режисери</h1></div>
           <div class="search-wrap" style="max-width:20rem;position:relative">
             <span class="search-icon"><svg class="i" aria-hidden="true"><use href="#i-search"/></svg></span>
-            <input id="personSearchInput" class="search-input" placeholder="Знайти людину…" oninput="handlePersonSearch()" data-blur="hidePersonSug" data-blur-box="personSuggestions" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="personSuggestions" aria-label="Знайти актора чи режисера" autocomplete="off">
+            <input id="personSearchInput" class="search-input" placeholder="Знайти людину…" data-input="handlePersonSearch" data-blur="hidePersonSug" data-blur-box="personSuggestions" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="personSuggestions" aria-label="Знайти актора чи режисера" autocomplete="off">
             <div id="personSuggestions" class="suggestions hidden" role="listbox" aria-label="Знайдені люди"></div>
           </div>
         </div>
@@ -166,12 +169,12 @@
         <div id="gameStart"></div>
       </div>
 
-      <div id="gameModalBg" class="game-modal-bg hidden" onclick="if(event.target===this)closeGameModal()">
+      <div id="gameModalBg" class="game-modal-bg hidden" data-act="_bgClose" data-args="[&quot;$ev&quot;,&quot;$el&quot;,&quot;closeGameModal&quot;]">
         <div class="game-modal" role="dialog" aria-modal="true" aria-labelledby="gameTitle">
           <div class="game-modal-head">
             <h2 class="game-modal-title" id="gameTitle">Впізнай кадр</h2>
             <div class="game-hud" id="gameHud"></div>
-            <button class="game-modal-close" onclick="closeGameModal()" aria-label="Закрити гру">✕</button>
+            <button class="game-modal-close" data-act="closeGameModal" aria-label="Закрити гру">✕</button>
           </div>
           <div id="gamePlay" class="hidden game-modal-body">
             <div id="gameShotWrap" class="game-shot"><div class="spinner">Завантажую кадр…</div></div>
@@ -185,24 +188,24 @@
     </div><!-- /content -->
   </div><!-- /main -->
 </div><!-- /shell -->
-<div id="titleSheet" class="ts-bg hidden" onclick="if(event.target===this)closeTitle()"><aside class="ts" role="dialog" aria-modal="true" aria-label="Деталі тайтлу" tabindex="-1"><div id="tsBody"></div></aside></div>
+<div id="titleSheet" class="ts-bg hidden" data-act="_bgClose" data-args="[&quot;$ev&quot;,&quot;$el&quot;,&quot;closeTitle&quot;]"><aside class="ts" role="dialog" aria-modal="true" aria-label="Деталі тайтлу" tabindex="-1"><div id="tsBody"></div></aside></div>
 <div id="mbox"></div>
-<nav class="tabbar" aria-label="Розділи"><button data-tab="watched" class="active" onclick="goTab('watched',document.getElementById('ni-watched'))"><svg class="i" aria-hidden="true"><use href="#i-film"/></svg>Переглянуте</button><button data-tab="watching" onclick="goTab('watching',document.getElementById('ni-watching'))"><svg class="i" aria-hidden="true"><use href="#i-play"/></svg>Дивлюсь</button><button data-tab="planned" onclick="goTab('planned',document.getElementById('ni-planned'))"><svg class="i" aria-hidden="true"><use href="#i-bookmark"/></svg>Планую</button><button data-tab="collections" onclick="goTab('collections',document.getElementById('ni-collections'))"><svg class="i" aria-hidden="true"><use href="#i-stack"/></svg>Франшизи</button><button data-act="toggleSidebar"><svg class="i" aria-hidden="true"><use href="#i-dots"/></svg>Ще</button></nav>
+<nav class="tabbar" aria-label="Розділи"><button data-tab="watched" class="active" data-act="goTab" data-args="[&quot;watched&quot;]"><svg class="i" aria-hidden="true"><use href="#i-film"/></svg>Переглянуте</button><button data-tab="watching" data-act="goTab" data-args="[&quot;watching&quot;]"><svg class="i" aria-hidden="true"><use href="#i-play"/></svg>Дивлюсь</button><button data-tab="planned" data-act="goTab" data-args="[&quot;planned&quot;]"><svg class="i" aria-hidden="true"><use href="#i-bookmark"/></svg>Планую</button><button data-tab="collections" data-act="goTab" data-args="[&quot;collections&quot;]"><svg class="i" aria-hidden="true"><use href="#i-stack"/></svg>Франшизи</button><button data-act="toggleSidebar"><svg class="i" aria-hidden="true"><use href="#i-dots"/></svg>Ще</button></nav>
 <script src="js/core.js?v=b3aa1263"></script>
-<script src="js/lists.js?v=3d59de84"></script>
+<script src="js/lists.js?v=4c444662"></script>
 <script src="js/live.js?v=35a082be"></script>
-<script src="js/dashboard.js?v=f16f745b"></script>
-<script src="js/collections.js?v=4b66f3fa"></script>
-<script src="js/people.js?v=8c0bd820"></script>
-<script src="js/game.js?v=f2ae43f0"></script>
-<script src="js/recs.js?v=d26bdc80"></script>
-<script src="js/title.js?v=025e783a"></script>
-<script src="js/library.js?v=a4ba8f2a"></script>
-<script src="js/util.js?v=6a079349"></script>
-<script src="js/settings.js?v=ac596ac7"></script>
-<script src="js/drive.js?v=2f28050d"></script>
+<script src="js/dashboard.js?v=27be97c7"></script>
+<script src="js/collections.js?v=55cee453"></script>
+<script src="js/people.js?v=73c24d20"></script>
+<script src="js/game.js?v=0d5c3fe3"></script>
+<script src="js/recs.js?v=d3e626be"></script>
+<script src="js/title.js?v=2996f7f0"></script>
+<script src="js/library.js?v=d3717d85"></script>
+<script src="js/util.js?v=e8153bac"></script>
+<script src="js/settings.js?v=0431b761"></script>
+<script src="js/drive.js?v=8ae57ebc"></script>
 <script src="js/ui.js?v=d1add381"></script>
-<script src="js/stats.js?v=2836b60e"></script>
+<script src="js/stats.js?v=a42394e4"></script>
 <script src="js/init.js?v=6693b9fd"></script>
 
 
