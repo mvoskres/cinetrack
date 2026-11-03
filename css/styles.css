@@ -253,6 +253,8 @@ body::after{content:none;}
 .sug-item{display:flex;align-items:center;gap:.85rem;padding:.65rem 1rem;cursor:pointer;transition:background .14s;border-bottom:1px solid rgba(255,255,255,.04);}
 .sug-item:last-child{border-bottom:none;}
 .sug-item:hover{background:rgba(255,255,255,.04);}
+.sug-item.active{background:rgba(255,255,255,.09);}
+.star:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:4px;}
 .sug-img{width:30px;height:44px;object-fit:cover;border-radius:5px;flex-shrink:0;background:var(--ink-3);}
 .sug-info{flex:1;min-width:0;}
 .sug-title{font-weight:600;font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}

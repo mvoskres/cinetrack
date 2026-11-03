@@ -35,7 +35,7 @@ async function doPersonSearch(q){
     const r=await tmdbFetch(`/search/person?query=${encodeURIComponent(q)}`);
     const res=(r?.results||[]).slice(0,7);
     const box=document.getElementById('personSuggestions');
-    if(!res.length){box.classList.add('hidden');return;}
+    if(!res.length){box.classList.add('hidden');_sugSync('personSearchInput','personSuggestions');return;}
     box.classList.remove('hidden');
     box.innerHTML=res.map(p=>{
       const already=_trackedPeople.find(t=>t.id===p.id);
@@ -45,9 +45,10 @@ async function doPersonSearch(q){
         ${already?`<span class="sug-badge ok">${ic('check')}Стежу</span>`:''}
       </div>`;
     }).join('');
+    _sugSync('personSearchInput','personSuggestions');
   }catch(e){}
 }
-function hidePersonSug(){document.getElementById('personSuggestions')?.classList.add('hidden');}
+function hidePersonSug(){document.getElementById('personSuggestions')?.classList.add('hidden');_sugSync('personSearchInput','personSuggestions');}
 
 function addTrackedPerson(id,name,profile,dept){
   hidePersonSug();document.getElementById('personSearchInput').value='';

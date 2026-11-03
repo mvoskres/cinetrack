@@ -1,5 +1,16 @@
 /* ── MODAL ── */
-function _modalEsc(e){if(e.key==='Escape')closeModal();}
+/* Esc closes; Tab stays inside the dialog */
+const _FOCUSABLE='a[href],button:not([disabled]),input:not([disabled]):not([type=hidden]),select:not([disabled]),textarea:not([disabled]),[tabindex="0"]';
+function _modalKeys(e){
+  if(e.key==='Escape'){closeModal();return;}
+  if(e.key!=='Tab')return;
+  const m=document.querySelector('#mbox .modal');if(!m)return;
+  const f=[...m.querySelectorAll(_FOCUSABLE)].filter(x=>x.offsetParent!==null),a=document.activeElement;
+  if(!f.length){e.preventDefault();m.focus();return;}
+  if(e.shiftKey&&(a===f[0]||a===m)){e.preventDefault();f[f.length-1].focus();}
+  else if(!e.shiftKey&&a===f[f.length-1]){e.preventDefault();f[0].focus();}
+}
+function _bgClose(ev,el,fn){if(ev.target===el&&typeof window[fn]==='function')window[fn]();}
 document.addEventListener('keydown',e=>{
   if(e.key==='/'&&e.target.tagName!=='INPUT'&&e.target.tagName!=='TEXTAREA'&&e.target.tagName!=='SELECT'){
     e.preventDefault();
@@ -7,12 +18,47 @@ document.addEventListener('keydown',e=>{
     if(si){si.focus();si.select();}
   }
 });
-function modal(h){document.getElementById('mbox').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal">${h}</div></div>`;document.addEventListener('keydown',_modalEsc);}
-function closeModal(){document.getElementById('mbox').innerHTML='';document.removeEventListener('keydown',_modalEsc);}
+/* a dialog: role + label for screen readers, focus moves in and comes back to where it was on close */
+let _modalPrev=null;
+function modal(h){
+  const box=document.getElementById('mbox');
+  if(!box.innerHTML.trim())_modalPrev=document.activeElement; /* a modal replacing another keeps the first return point */
+  box.innerHTML=`<div class="modal-bg" data-act="_bgClose" data-args="${A('$ev','$el','closeModal')}"><div class="modal" role="dialog" aria-modal="true" tabindex="-1">${h}</div></div>`;
+  const m=box.querySelector('.modal'),t=m.querySelector('.modal-title');
+  if(t){t.id='modalTitle';m.setAttribute('aria-labelledby','modalTitle');}else m.setAttribute('aria-label','Вікно');
+  document.removeEventListener('keydown',_modalKeys);document.addEventListener('keydown',_modalKeys);
+  (m.querySelector(_FOCUSABLE)||m).focus({preventScroll:true});
+}
+function closeModal(){
+  document.getElementById('mbox').innerHTML='';document.removeEventListener('keydown',_modalKeys);
+  const p=_modalPrev;_modalPrev=null;if(p&&p.isConnected&&typeof p.focus==='function')p.focus({preventScroll:true});
+}
 
 /* ── STARS ── */
-function buildStars(cur){return Array.from({length:10},(_,i)=>`<span class="star${cur>i?' on':''}" data-act="pStar" data-args="${A((i+1))}" onmouseover="hStar(${i+1})" onmouseout="oStar()">★</span>`).join('');}
-function pStar(n){document.getElementById('eR').value=n;document.querySelectorAll('#starsBox .star').forEach((s,i)=>s.classList.toggle('on',i<n));}
+/* a radio group: one tab stop (the chosen star, or the first), arrows change the grade, Home/Delete clear it */
+function buildStars(cur){
+  const sel=Math.max(0,Math.min(10,Math.round(+cur)||0));
+  return Array.from({length:10},(_,i)=>`<span class="star${sel>i?' on':''}" role="radio" aria-checked="${sel===i+1}" aria-label="${i+1} з 10" tabindex="${(sel?sel===i+1:i===0)?0:-1}" data-act="pStar" data-args="${A((i+1))}" data-n="${i+1}">★</span>`).join('');
+}
+function pStar(n){
+  document.getElementById('eR').value=n;
+  document.querySelectorAll('#starsBox .star').forEach((s,i)=>{s.classList.toggle('on',i<n);s.setAttribute('aria-checked',String(i+1===n));s.tabIndex=(n?i+1===n:i===0)?0:-1;});
+}
+document.addEventListener('keydown',e=>{
+  const s=e.target.closest?.('#starsBox .star');if(!s)return;
+  const cur=parseInt(document.getElementById('eR')?.value)||0;let n=null;
+  if(e.key==='ArrowRight'||e.key==='ArrowUp')n=Math.min(10,cur+1);
+  else if(e.key==='ArrowLeft'||e.key==='ArrowDown')n=Math.max(1,cur-1);
+  else if(e.key==='Home')n=1;else if(e.key==='End')n=10;
+  else if(e.key==='Delete'||e.key==='Backspace')n=0;
+  else if(e.key==='Enter'||e.key===' ')n=+s.dataset.n;
+  if(n===null)return;
+  e.preventDefault();pStar(n);oStar();
+  (document.querySelector(`#starsBox .star[data-n="${n||1}"]`))?.focus();
+});
+/* hover preview without inline handlers */
+document.addEventListener('mouseover',e=>{const s=e.target.closest?.('#starsBox .star');if(s)hStar(+s.dataset.n);});
+document.addEventListener('mouseout',e=>{if(e.target.closest?.('#starsBox')&&!e.relatedTarget?.closest?.('#starsBox'))oStar();});
 function hStar(n){document.querySelectorAll('#starsBox .star').forEach((s,i)=>s.style.color=i<n?'var(--gold)':'rgba(255,255,255,.08)');}
 function oStar(){const c=parseInt(document.getElementById('eR')?.value)||0;document.querySelectorAll('#starsBox .star').forEach((s,i)=>s.style.color=i<c?'var(--gold)':'rgba(255,255,255,.08)');}
 

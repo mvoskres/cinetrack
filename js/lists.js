@@ -64,6 +64,7 @@ async function _tmdbSearch(q){
   }).join('')+people.map(p=>`<div class="sug-item" data-act="_sugPerson" data-args="${A(p.id,p.name,p.profile_path||'')}">
       <img class="sug-img round" src="${_tsImg(p.profile_path,'w92')}" loading="lazy" onerror="this.src=BLANK">
       <div class="sug-info"><div class="sug-title">${esc(p.name)}</div><div class="sug-meta">${p.known_for_department==='Directing'?'Режисер':'Актор'} · фільмографія</div></div></div>`).join('');
+  _sugSync('searchInput','suggestions');
   return true;
 }
 function _sugOpen(mt,id){hideSug();document.getElementById('searchInput').value='';openTitleTmdb(mt,id);}
@@ -96,9 +97,41 @@ async function _omdbSearch(q){
         <div class="sug-info"><div class="sug-title">${esc(m.Title)}</div><div class="sug-meta"><span class="sug-year">${esc(m.Year)}</span> · ${tl(m.Type)}</div></div>
         ${b}</div>`;
     }).join('');
+    _sugSync('searchInput','suggestions');
   }catch(e){hideSug();console.warn('Search error:',e);}
 }
-function hideSug(){document.getElementById('suggestions').classList.add('hidden');document.querySelector('.search-wrap').classList.remove('loading');}
+function hideSug(){document.getElementById('suggestions').classList.add('hidden');document.querySelector('.search-wrap').classList.remove('loading');_sugSync('searchInput','suggestions');}
+/* ── SUGGESTIONS: ARIA + keyboard ──
+   The box is a listbox, hits are options, the input is a combobox: ↑/↓ move through the hits (aria-activedescendant),
+   Enter picks the active one, Esc closes. The mouse never takes focus from the input, so it no longer blurs
+   (and hides the list) in the middle of a click. */
+function _sugSync(inpId,boxId){
+  const inp=document.getElementById(inpId),box=document.getElementById(boxId);if(!inp||!box)return;
+  const items=[...box.querySelectorAll('.sug-item')];
+  items.forEach((el,i)=>{el.setAttribute('role','option');el.id=`${boxId}-o${i}`;el.setAttribute('aria-selected','false');});
+  inp.setAttribute('aria-expanded',String(items.length>0&&!box.classList.contains('hidden')));inp.removeAttribute('aria-activedescendant');
+}
+function _sugMove(inp,box,d){
+  const items=[...box.querySelectorAll('.sug-item')];if(!items.length)return;
+  let k=items.findIndex(x=>x.classList.contains('active'));
+  k=k<0?(d>0?0:items.length-1):(k+d+items.length)%items.length;
+  items.forEach((x,i)=>{x.classList.toggle('active',i===k);x.setAttribute('aria-selected',String(i===k));});
+  inp.setAttribute('aria-activedescendant',items[k].id);items[k].scrollIntoView({block:'nearest'});
+}
+document.addEventListener('keydown',e=>{
+  const boxId={searchInput:'suggestions',personSearchInput:'personSuggestions'}[e.target?.id];if(!boxId)return;
+  const box=document.getElementById(boxId);if(!box||box.classList.contains('hidden'))return;
+  if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();_sugMove(e.target,box,e.key==='ArrowDown'?1:-1);}
+  else if(e.key==='Enter'){const a=box.querySelector('.sug-item.active');if(a){e.preventDefault();a.click();}}
+  else if(e.key==='Escape'){box.classList.add('hidden');_sugSync(e.target.id,boxId);}
+});
+document.addEventListener('mousedown',e=>{if(e.target.closest?.('.suggestions'))e.preventDefault();}); /* keep focus in the input */
+/* focus leaving a field that has data-blur (+data-blur-box): run its function, unless focus went into its own list */
+document.addEventListener('focusout',e=>{
+  const el=e.target.closest?.('[data-blur]');if(!el)return;
+  const box=document.getElementById(el.dataset.blurBox||'');if(box&&e.relatedTarget&&box.contains(e.relatedTarget))return;
+  if(typeof window[el.dataset.blur]==='function')window[el.dataset.blur]();
+});
 
 /* ── PICK MOVIE ── */
 async function pickMovie(imdbID){
@@ -324,7 +357,7 @@ function editW(id){
     <img class="modal-poster" src="${imgSrc(it.poster)}" loading="lazy" onerror="this.src=BLANK" alt="">
     <h2 class="modal-title">${esc(it.title)}</h2>
     <div class="modal-sub" style="margin-bottom:1.1rem">${esc(it.year||'')} · ${tl(it.type)}</div>
-    <div class="form-g"><label class="form-lbl">Категорія</label>
+    <div class="form-g"><label class="form-lbl" for="eC">Категорія</label>
       <select class="form-sel" id="eC">
         <option value="movie"   ${(it.customCategory||it.type)==='movie'   ?'selected':''}>Фільм</option>
         <option value="series"  ${(it.customCategory||it.type)==='series'  ?'selected':''}>Серіал</option>
@@ -332,10 +365,10 @@ function editW(id){
         <option value="cartoon" ${(it.customCategory||it.type)==='cartoon' ?'selected':''}>Мульт</option>
         <option value="other"   ${(it.customCategory||it.type)==='other'   ?'selected':''}>Інше</option>
       </select></div>
-    <div class="form-g"><label class="form-lbl">Моя оцінка</label>
-      <div class="stars" id="starsBox">${buildStars(it.rating||0)}</div>
+    <div class="form-g"><label class="form-lbl" id="starsLbl">Моя оцінка</label>
+      <div class="stars" id="starsBox" role="radiogroup" aria-labelledby="starsLbl">${buildStars(it.rating||0)}</div>
       <input type="hidden" id="eR" value="${+it.rating||0}"></div>
-    <div class="form-g"><label class="form-lbl">Коментар</label>
+    <div class="form-g"><label class="form-lbl" for="eCm">Коментар</label>
       <textarea class="form-ta" id="eCm" rows="3" placeholder="Враження…">${esc(it.comment||'')}</textarea></div>
     <div class="modal-btns">
       <button class="m-btn g" data-act="saveEditW" data-args="${A((id))}">Зберегти</button>

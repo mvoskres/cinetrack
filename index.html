@@ -67,8 +67,8 @@
       <div class="topbar-title" id="topbarTitle">Переглянуте</div>
       <div class="search-wrap">
         <span class="search-icon"><svg class="i" aria-hidden="true"><use href="#i-search"/></svg></span>
-        <input id="searchInput" class="search-input" placeholder="Фільм, серіал або актор…" oninput="handleSearch()" onblur="setTimeout(hideSug,200)" aria-label="Додати фільм або серіал"><kbd class="search-kbd">/</kbd>
-        <div id="suggestions" class="suggestions hidden"></div>
+        <input id="searchInput" class="search-input" placeholder="Фільм, серіал або актор…" oninput="handleSearch()" data-blur="hideSug" data-blur-box="suggestions" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="suggestions" aria-label="Додати фільм або серіал" autocomplete="off"><kbd class="search-kbd">/</kbd>
+        <div id="suggestions" class="suggestions hidden" role="listbox" aria-label="Знайдені назви"></div>
       </div>
     </header>
 
@@ -150,8 +150,8 @@
           <div><div class="section-eyebrow">Фільмографія</div><h1 class="section-title">Актори й режисери</h1></div>
           <div class="search-wrap" style="max-width:20rem;position:relative">
             <span class="search-icon"><svg class="i" aria-hidden="true"><use href="#i-search"/></svg></span>
-            <input id="personSearchInput" class="search-input" placeholder="Знайти людину…" oninput="handlePersonSearch()" onblur="setTimeout(hidePersonSug,200)">
-            <div id="personSuggestions" class="suggestions hidden"></div>
+            <input id="personSearchInput" class="search-input" placeholder="Знайти людину…" oninput="handlePersonSearch()" data-blur="hidePersonSug" data-blur-box="personSuggestions" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="personSuggestions" aria-label="Знайти актора чи режисера" autocomplete="off">
+            <div id="personSuggestions" class="suggestions hidden" role="listbox" aria-label="Знайдені люди"></div>
           </div>
         </div>
         <div id="peopleTracked" class="people-tracked"></div>
@@ -185,7 +185,7 @@
     </div><!-- /content -->
   </div><!-- /main -->
 </div><!-- /shell -->
-<div id="titleSheet" class="ts-bg hidden" onclick="if(event.target===this)closeTitle()"><aside class="ts" role="dialog" aria-modal="true" aria-label="Деталі тайтлу"><div id="tsBody"></div></aside></div>
+<div id="titleSheet" class="ts-bg hidden" onclick="if(event.target===this)closeTitle()"><aside class="ts" role="dialog" aria-modal="true" aria-label="Деталі тайтлу" tabindex="-1"><div id="tsBody"></div></aside></div>
 <div id="mbox"></div>
 <nav class="tabbar" aria-label="Розділи"><button data-tab="watched" class="active" onclick="goTab('watched',document.getElementById('ni-watched'))"><svg class="i" aria-hidden="true"><use href="#i-film"/></svg>Переглянуте</button><button data-tab="watching" onclick="goTab('watching',document.getElementById('ni-watching'))"><svg class="i" aria-hidden="true"><use href="#i-play"/></svg>Дивлюсь</button><button data-tab="planned" onclick="goTab('planned',document.getElementById('ni-planned'))"><svg class="i" aria-hidden="true"><use href="#i-bookmark"/></svg>Планую</button><button data-tab="collections" onclick="goTab('collections',document.getElementById('ni-collections'))"><svg class="i" aria-hidden="true"><use href="#i-stack"/></svg>Франшизи</button><button onclick="document.querySelector('.mobile-ham')?.click()"><svg class="i" aria-hidden="true"><use href="#i-dots"/></svg>Ще</button></nav>
 <script src="js/core.js"></script>

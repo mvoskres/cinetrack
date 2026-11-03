@@ -44,7 +44,7 @@ function _stKeyRow(id,name,key,save,url,opt,bad,hint){
       <a href="${url}" target="_blank" rel="noopener" class="st-link">отримати ключ →</a></div>
     ${bad?'<p class="st-hint" style="color:var(--rose)">TMDB недоступний з цієї мережі, спробуй VPN</p>':!has&&hint?`<p class="st-hint">${hint}</p>`:''}
     <div class="st-ed" id="${id}Ed"${has?' style="display:none"':''}>
-      <input class="api-inp" id="${id}K" type="text" placeholder="Вставте ключ…" onkeydown="if(event.key==='Enter')${save}()">
+      <input class="api-inp" id="${id}K" type="text" placeholder="Вставте ключ…" aria-label="Ключ ${name}" onkeydown="if(event.key==='Enter')${save}()">
       <button class="st-save-btn" onclick="${save}()">Зберегти</button></div>
     <div id="${id}Msg" class="st-msg"></div></div>`;
 }

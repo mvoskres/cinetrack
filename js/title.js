@@ -31,6 +31,7 @@ function _tsOwned(imdbID){
 async function _tsOpen(ref,push){
   const bg=document.getElementById('titleSheet');
   if(push){if(bg.classList.contains('hidden'))_tsStack=[];_tsStack.push(ref);}
+  if(bg.classList.contains('hidden'))_tsPrev=document.activeElement; /* closeTitle puts focus back there */
   bg.classList.remove('hidden');document.body.style.overflow='hidden';
   const body=document.getElementById('tsBody');
   body.innerHTML=`${_tsTopBar()}<div class="spinner">Завантажую деталі…</div>`;
@@ -41,10 +42,15 @@ async function _tsOpen(ref,push){
   if(!data){body.innerHTML=`${_tsTopBar()}<div class="empty"><span class="empty-icon">${ic('alert')}</span><div class="empty-txt">Не вдалося завантажити деталі. Перевір з'єднання або ключі в Налаштуваннях</div></div>`;return;}
   _tsCur={ref,data};
   _tsRender();
+  if(!bg.contains(document.activeElement))bg.querySelector('.ts')?.focus({preventScroll:true}); /* focus inside the sheet, Tab then walks its buttons */
   const w=data.mt==='tv'&&data.id&&_tsOwned(data.imdbID)?.list==='watching'?_tsOwned(data.imdbID).item:null;
   if(w&&data.seasons.some(s=>s.n===w.season))_tsSeason(w.season);
 }
-function closeTitle(){document.getElementById('titleSheet').classList.add('hidden');document.body.style.overflow='';_tsStack=[];_tsCur=null;_refreshVisibleTab();}
+let _tsPrev=null;
+function closeTitle(){
+  document.getElementById('titleSheet').classList.add('hidden');document.body.style.overflow='';_tsStack=[];_tsCur=null;_refreshVisibleTab();
+  const p=_tsPrev;_tsPrev=null;if(p&&p.isConnected&&typeof p.focus==='function')p.focus({preventScroll:true});
+}
 /* a status changed in the sheet must show on the tab underneath without leaving it */
 function _refreshVisibleTab(){
   const vis=id=>!document.getElementById('tab-'+id)?.classList.contains('hidden');

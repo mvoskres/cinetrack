@@ -85,7 +85,7 @@ function addTag(id){
   const it=findItem(id);if(!it)return;
   modal(`<h2 class="modal-title" style="margin-bottom:.6rem">Новий тег</h2>
     <div class="modal-sub" style="margin-bottom:1rem">${esc(it.title)}</div>
-    <div class="form-g"><label class="form-lbl">Назва тегу</label>
+    <div class="form-g"><label class="form-lbl" for="tagInp">Назва тегу</label>
       <input class="api-inp" id="tagInp" type="text" placeholder="наприклад: улюблене, передивитись…" autofocus
         onkeydown="if(event.key==='Enter')saveTag(${+id})">
       <div id="tagErr" style="font-size:.7rem;color:var(--rose);min-height:.85rem;margin-top:.25rem"></div>
@@ -133,7 +133,7 @@ function editUrl(id){
   const hasUrl=!!it.streamUrl;
   modal(`<h2 class="modal-title" style="margin-bottom:.6rem">Посилання для перегляду</h2>
     <div class="modal-sub" style="margin-bottom:1rem">${esc(it.title)}</div>
-    <div class="form-g"><label class="form-lbl">URL для перегляду</label>
+    <div class="form-g"><label class="form-lbl" for="urlInp">URL для перегляду</label>
       <input class="api-inp" id="urlInp" type="url" placeholder="https://…" value="${esc(it.streamUrl||'')}" autofocus
         onkeydown="if(event.key==='Enter')saveUrl(${+id})">
       <div id="urlErr" style="font-size:.7rem;color:var(--rose);min-height:.85rem;margin-top:.25rem"></div>

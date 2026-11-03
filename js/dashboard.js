@@ -4,14 +4,14 @@ function mvToW(id){
   modal(`
     <h2 class="modal-title" style="margin-bottom:.3rem">Переглянуто</h2>
     <div class="modal-sub" style="margin-bottom:1rem">${esc(it.title)}</div>
-    <div class="form-g"><label class="form-lbl">Категорія</label>
+    <div class="form-g"><label class="form-lbl" for="mC">Категорія</label>
       <select class="form-sel" id="mC">
         ${Object.entries(CAT).map(([v,l])=>`<option value="${v}"${(it.customCategory||it.type)===v?' selected':''}>${l}</option>`).join('')}
       </select></div>
-    <div class="form-g"><label class="form-lbl">Моя оцінка</label>
-      <div class="stars" id="starsBox">${buildStars(0)}</div>
+    <div class="form-g"><label class="form-lbl" id="starsLbl">Моя оцінка</label>
+      <div class="stars" id="starsBox" role="radiogroup" aria-labelledby="starsLbl">${buildStars(0)}</div>
       <input type="hidden" id="eR" value="0"></div>
-    <div class="form-g"><label class="form-lbl">Враження</label>
+    <div class="form-g"><label class="form-lbl" for="eCm">Враження</label>
       <textarea class="form-ta" id="eCm" rows="3" placeholder="Що сподобалось?"></textarea></div>
     <div class="modal-btns">
       <button class="m-btn g" data-act="confirmMv" data-args="${A((id))}">Перенести в переглянуте</button>
