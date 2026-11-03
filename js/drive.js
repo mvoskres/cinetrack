@@ -174,14 +174,14 @@ function _gdOffer(d,found){
   _gdPend=d;
   const n=k=>Array.isArray(d[k])?d[k].length:0,t=d.exportedAt?_gdFmt(Date.parse(d.exportedAt)):'невідомої дати';
   modal(`<h2 class="modal-title">Бекап на Google Drive</h2>
-    <p style="font-size:.8rem;color:var(--text-2);line-height:1.55;margin:.4rem 0 1rem">${found?'Знайдено бекап':'Бекап'} від <strong style="color:var(--text)">${t}</strong> (${n('watched')} переглянуто, ${n('watching')} дивлюсь, ${n('planned')} заплановано). ${_gdHasData()?'Дані об\'єднаються з тими, що вже є тут: нічого не буде втрачено.':'Тут даних ще немає.'} Підтягнути?</p>
+    <p style="font-size:.8rem;color:var(--text-2);line-height:1.55;margin:.4rem 0 1rem">${found?'Знайдено бекап':'Бекап'} від <strong style="color:var(--text)">${t}</strong> (${n('watched')} переглянуто, ${n('watching')} дивлюсь, ${n('planned')} заплановано). ${_gdHasData()?'Дані об\'єднаються з тими, що вже є тут: твої записи лишаються, а чого не взято (дублі, суперечності) буде в звіті.':'Тут даних ще немає.'} Підтягнути?</p>
     <div style="display:flex;gap:.5rem"><button class="m-btn g" onclick="gdApplyPending()">Підтягнути</button><button class="m-btn can" onclick="_gdPend=null;closeModal()">Ні</button></div>`);
 }
 function gdApplyPending(){
   const d=_gdPend;_gdPend=null;closeModal();if(!d)return;
   try{const r=_applyBackup(d);_lsSet('ct_gd_seen',String(Date.now()));
     /* what was just pulled is already on Drive: don't count it as an unsaved change */
-    const at=Date.parse(d.exportedAt)||Date.now();if(at>(+localStorage.getItem('ct_gd_last')||0))_lsSet('ct_gd_last',String(at));_lsSet('ct_gd_fp',_gdFp());_gdNotice(false);toast(`Підтягнуто: ${r.aw} переглянуто, ${r.awn} дивлюсь, ${r.apl} заплановано`,'ok',4200);runMaintenance();}
+    const at=Date.parse(d.exportedAt)||Date.now();if(at>(+localStorage.getItem('ct_gd_last')||0))_lsSet('ct_gd_last',String(at));_lsSet('ct_gd_fp',_gdFp());_gdNotice(false);const L=_backupReport(r);toast(r.skip||r.rejected.length?L.join('. '):`Підтягнуто: ${r.aw} переглянуто, ${r.awn} дивлюсь, ${r.apl} заплановано`,r.rejected.length?'':'ok',r.skip||r.rejected.length?12000:4200);runMaintenance();}
   catch(e){toast('Не вдалося підтягнути: '+(e.message||'помилка'),'err',5000);}
 }
 async function gdRestoreList(){

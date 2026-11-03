@@ -370,20 +370,23 @@ function _applyBackup(data){
   /* Phase 1: parse and validate everything into temp variables. Nothing live is touched until the whole
      file has been read without a throw, so a broken file can't leave a half-merged state. */
   const arr=v=>Array.isArray(v)?v:[];
-  const rejected=[]; /* {list,title,reason}: what was not taken, so the report can say it */
-  let aw=0,awn=0,apl=0,skip=0;
-  /* A title already in ANY local list is skipped: merging per-list used to
-     put the same film into watched and planned at once (the main source of
-     cross-list duplicates). The local state wins. */
-  const have=new Set([...watched,...watching,...planned].map(x=>x.imdbID));
+  const rejected=[]; /* {list,title,reason}: records that could not be made valid */
+  const skipped=[]; /* {list,title,why:'dup'|'pair',other}: valid records that were not taken, so the report can say it */
+  let aw=0,awn=0,apl=0;
+  /* Dedup is per list: a title may legitimately sit in Переглянуте and Дивлюсь at once (a rewatch, see addWn).
+     The only pair that contradicts itself is Планую + Переглянуте; of those the local/earlier one stays.
+     Lists are taken watched -> watching -> planned, so a planned record is checked against all watched ones. */
+  const inList={watched:new Set(watched.map(x=>x.imdbID)),watching:new Set(watching.map(x=>x.imdbID)),planned:new Set(planned.map(x=>x.imdbID))};
+  const PAIR={watched:'planned',planned:'watched'};
   const usedIds=new Set([...watched,...watching,...planned].map(x=>x.id));
   let idSeq=Date.now();
   const take=(src,list,inc)=>{const out=[];arr(src).forEach(raw=>{
     const r=_normItem(raw,list);
     if(r.bad){rejected.push({list,title:_s(raw&&raw.title,80)||'(без назви)',reason:r.bad});return;}
     const it=r.item;
-    if(have.has(it.imdbID)){skip++;return;}
-    have.add(it.imdbID);
+    if(inList[list].has(it.imdbID)){skipped.push({list,title:it.title,why:'dup'});return;}
+    if(PAIR[list]&&inList[PAIR[list]].has(it.imdbID)){skipped.push({list,title:it.title,why:'pair',other:PAIR[list]});return;}
+    inList[list].add(it.imdbID);
     if(it.id===null||usedIds.has(it.id)){while(usedIds.has(idSeq))idSeq--;it.id=idSeq--;} /* a file without ids, or an id taken here already */
     usedIds.add(it.id);out.push(it);inc();});return out;};
   const nW=take(data.watched,'watched',()=>aw++),nWn=take(data.watching,'watching',()=>awn++),nPl=take(data.planned,'planned',()=>apl++);
@@ -426,12 +429,17 @@ function _applyBackup(data){
   _recs=null;try{localStorage.removeItem('ct_recs');}catch(e){}
   save();['watched','watching','planned'].forEach(buildBar);
   rWatched();rWatching(true);rPlanned();rDash();updateStats();renderPeopleTab();
-  return{aw,awn,apl,skip,apeople,rejected,cacheDropped:cs.n,keys:{api:setApi,tmdb:setTmdb}};
+  return{aw,awn,apl,skip:skipped.length,skipped,apeople,rejected,cacheDropped:cs.n,keys:{api:setApi,tmdb:setTmdb}};
 }
 /* one honest sentence block for the import report (file import and Drive both use it) */
 function _backupReport(r){
   const L=[`Імпортовано: ${r.aw} переглянуто, ${r.awn} дивлюсь, ${r.apl} заплановано${r.apeople?`, ${r.apeople} людей у стеженні`:''}`];
-  if(r.skip)L.push(`Пропущено ${r.skip}: ці тайтли вже є у твоїх списках, лишилась твоя версія`);
+  const dup=r.skipped.filter(x=>x.why==='dup'),pair=r.skipped.filter(x=>x.why==='pair');
+  if(dup.length)L.push(`Пропущено ${dup.length}: вже є в тому ж списку, лишилась твоя версія`);
+  if(pair.length){
+    const ex=pair.slice(0,4).map(x=>`«${x.title}»: у файлі ${LIST_L[x.list]}, але вже є в «${LIST_L[x.other]}»`).join('; ');
+    L.push(`Не взято ${pair.length}, бо суперечить твоїм спискам (Планую і Переглянуте разом): ${ex}${pair.length>4?'…':''}`);
+  }
   if(r.rejected.length){
     const ex=r.rejected.slice(0,4).map(x=>`«${x.title}» (${x.reason})`).join(', ');
     L.push(`Відкинуто ${r.rejected.length} пошкоджених записів: ${ex}${r.rejected.length>4?'…':''}`);
