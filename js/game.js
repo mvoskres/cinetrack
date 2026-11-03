@@ -4,7 +4,7 @@
    wrong answer; best streak is saved permanently (and travels with
    backups, like everything else). Reuses tmdbFetch (already has its
    own cache/rate-limit handling) — no separate network layer needed. */
-let _gameBackdropCache=JSON.parse(localStorage.getItem('ct_gamebackdrops')||'{}'); /* imdbID -> {backdrops:[paths],ts} | {none:true,ts} */
+let _gameBackdropCache=_lsJSON('ct_gamebackdrops',{}); /* imdbID -> {backdrops:[paths],ts} | {none:true,ts} */
 function _gameCacheSave(){_lsSet('ct_gamebackdrops',JSON.stringify(_gameBackdropCache));}
 /* at most 12 frames per title: The Green Mile alone had 124 paths, ~1.1M chars across the whole list */
 const GAME_FRAMES=12;

@@ -331,7 +331,7 @@ function save(){
   updateStats();
   return !failed;
 }
-function saveAll(){save();['watched','watching','planned'].forEach(buildBar);}
+function saveAll(){const ok=save();['watched','watching','planned'].forEach(buildBar);return ok;}
 function updateStats(){
   document.getElementById('nb-watched').textContent=watched.length;
   document.getElementById('nb-watching').textContent=watching.length;

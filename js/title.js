@@ -11,7 +11,7 @@ function _tsFresh(c){
   if(Date.now()-c.ts>=(live?864e5:TS_TTL))return false;
   return !(c.nextEp?.date&&c.nextEp.date<_todayISO());
 }
-let _tsCache={};try{_tsCache=JSON.parse(localStorage.getItem('ct_titlecache')||'{}');}catch(e){}
+let _tsCache=_lsJSON('ct_titlecache',{});
 function _tsSave(){
   const ks=Object.keys(_tsCache);
   if(ks.length>TS_MAX)ks.sort((a,b)=>_tsCache[a].ts-_tsCache[b].ts).slice(0,ks.length-TS_MAX).forEach(k=>delete _tsCache[k]);

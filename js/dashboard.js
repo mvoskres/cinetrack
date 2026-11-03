@@ -41,12 +41,12 @@ async function plToWn(id){
   let ok=false;
   try{ok=await addWn(it.imdbID);}catch(e){toast('Не вдалося перенести: немає зв\'язку з OMDb','err');}
   if(!ok)return;
-  saveAll();rPlanned();
-  _mvUndo(snap,'planned',origIdx,()=>{
-    watching=watching.filter(x=>x.imdbID!==snap.imdbID);
-    planned.splice(origIdx,0,snap);
-    saveAll();rWatching();rPlanned();rDash();
-  },`«${snap.title}» → Дивлюсь`);
+  const revert=()=>{watching=watching.filter(x=>x.imdbID!==snap.imdbID);planned.splice(Math.min(origIdx,planned.length),0,snap);};
+  if(!saveAll()){ /* nothing reached the disk: undo in memory too, and no «Скасувати» for something that is not saved */
+    revert();rWatching();rPlanned();rDash();updateStats();
+    toast(`Не вдалося перенести «${snap.title}»: сховище браузера не прийняло запис. Змін немає`,'err',6000);return;}
+  rPlanned();
+  _mvUndo(snap,'planned',origIdx,()=>{revert();saveAll();rWatching();rPlanned();rDash();},`«${snap.title}» → Дивлюсь`);
 }
 async function plToW(id){
   const it=planned.find(i=>i.id===id);if(!it)return;
@@ -61,12 +61,12 @@ async function plToW(id){
     planned=planned.filter(i=>i.id!==id);ok=true;} /* already watched: just drop the planned duplicate */
   else try{ok=await addW(it.imdbID);}catch(e){toast('Не вдалося перенести: немає зв\'язку з OMDb','err');}
   if(!ok)return;
-  saveAll();rPlanned();
-  _mvUndo(snap,'planned',origIdx,()=>{
-    if(!wasWatched)watched=watched.filter(x=>x.imdbID!==snap.imdbID);
-    planned.splice(origIdx,0,snap);
-    saveAll();rWatched();rPlanned();rDash();
-  },`«${snap.title}» → Переглянуто`);
+  const revert=()=>{if(!wasWatched)watched=watched.filter(x=>x.imdbID!==snap.imdbID);planned.splice(Math.min(origIdx,planned.length),0,snap);};
+  if(!saveAll()){
+    revert();rWatched();rPlanned();rDash();updateStats();
+    toast(`Не вдалося перенести «${snap.title}»: сховище браузера не прийняло запис. Змін немає`,'err',6000);return;}
+  rPlanned();
+  _mvUndo(snap,'planned',origIdx,()=>{revert();saveAll();rWatched();rPlanned();rDash();},`«${snap.title}» → Переглянуто`);
 }
 
 /* ── DASHBOARD ── */

@@ -9,7 +9,7 @@
 const RECS_TTL=24*60*60*1000;
 const SHELF_N=6; /* cards shown per shelf before "Показати всі" */
 let _recs=null;          /* {ts, seedRot, shelves:[{id,title,why,items:[...]}]} */
-try{_recs=JSON.parse(localStorage.getItem('ct_recs')||'null');}catch(e){_recs=null;}
+_recs=_lsJSON('ct_recs',null);
 let _recView='picks', _recType='all', _recBusy=false, _recGenreState=null;
 const _recOpen=new Set(); /* shelves expanded past SHELF_N */
 function _recsSave(){if(_recs)_lsSet('ct_recs',JSON.stringify(_recs));}

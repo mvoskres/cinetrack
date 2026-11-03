@@ -2,8 +2,8 @@
    PEOPLE (актори/режисери) — track a person, see their filmography
    cross-referenced against your lists via title+year matching (no
    extra API calls needed for matching itself). */
-let _trackedPeople=JSON.parse(localStorage.getItem('ct_trackedpeople')||'[]');
-let _personCache=JSON.parse(localStorage.getItem('ct_personcache')||'{}');
+let _trackedPeople=_lsJSON('ct_trackedpeople',[]);
+let _personCache=_lsJSON('ct_personcache',{});
 const PERSON_TTL=7*24*60*60*1000; /* 7 days — filmographies change rarely */
 function _peopleSave(){_lsSet('ct_trackedpeople',JSON.stringify(_trackedPeople));}
 function _personCacheSave(){_lsSet('ct_personcache',JSON.stringify(_personCache));}
@@ -108,7 +108,7 @@ function _creditType(genreIds,mediaType,lang){
 const CREDIT_TYPE_LABEL={movie:'Фільм',tv:'Серіал',anime:'Аніме',cartoon:'Мультфільм',doc:'Документальний',talk:'Шоу'};
 
 /* Remembers credits where TMDB has no IMDb id at all, so "Додати" isn't offered again */
-let _unresolvable=JSON.parse(localStorage.getItem('ct_unresolvable')||'{}'); /* 'mediaType:tmdbId' -> true */
+let _unresolvable=_lsJSON('ct_unresolvable',{}); /* 'mediaType:tmdbId' -> true */
 function _unresolvableSave(){_lsSet('ct_unresolvable',JSON.stringify(_unresolvable));}
 
 /* noise = shows/docs, or no poster / almost no votes: hidden unless asked for */

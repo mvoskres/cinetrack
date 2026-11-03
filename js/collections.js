@@ -2,8 +2,8 @@
    COLLECTIONS (франшизи) — groups owned movies by TMDB collection,
    shows missing parts with quick-add. All lookups cached permanently
    in localStorage (collection membership & rosters barely change). */
-let _collCache=JSON.parse(localStorage.getItem('ct_collcache')||'{}');       /* imdbID -> {collId,collName,collPoster} | {none:true} */
-let _collDetails=JSON.parse(localStorage.getItem('ct_colldetails')||'{}');   /* collId -> {name,poster,parts:[...]} */
+let _collCache=_lsJSON('ct_collcache',{});       /* imdbID -> {collId,collName,collPoster} | {none:true} */
+let _collDetails=_lsJSON('ct_colldetails',{});   /* collId -> {name,poster,parts:[...]} */
 function _collCacheSave(){_lsSet('ct_collcache',JSON.stringify(_collCache));}
 function _collDetailsSave(){_lsSet('ct_colldetails',JSON.stringify(_collDetails));}
 /* Older versions cached network failures as 'not in a franchise' forever — drop those so they get re-checked */
@@ -116,7 +116,7 @@ function _ownedMovieMap(){
 /* "Skipped" = titles the person deliberately decided not to watch (e.g. a
    franchise entry with a 2/10 rating). Counted as "done" for completion
    purposes, but never added to the watched list itself. */
-let _skippedParts=JSON.parse(localStorage.getItem('ct_skipped')||'{}'); /* imdbID -> {ts} */
+let _skippedParts=_lsJSON('ct_skipped',{}); /* imdbID -> {ts} */
 function _skippedSave(){_lsSet('ct_skipped',JSON.stringify(_skippedParts));}
 
 let _collGroupsCache=null; /* precomputed list, built once by loadCollections(), reused by renderCollections() */

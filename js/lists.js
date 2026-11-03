@@ -103,7 +103,14 @@ function hideSug(){document.getElementById('suggestions').classList.add('hidden'
 /* ── PICK MOVIE ── */
 async function pickMovie(imdbID){
   hideSug();document.getElementById('searchInput').value='';
-  let m=_pendingMap[imdbID];if(!m){m=await aFetch(`i=${imdbID}&plot=short`);_pmSet(imdbID,m);}
+  let m=_pendingMap[imdbID];
+  if(!m){
+    try{
+      m=await aFetch(`i=${imdbID}&plot=short`);
+      if(!m||m.Response==='False')throw new Error(m?.Error||'немає даних');
+      _pmSet(imdbID,m);
+    }catch(e){toast(_omdbErr(e),'err',4200);return;}
+  }
   const inW=!!watched.find(x=>x.imdbID===imdbID),inWn=!!watching.find(x=>x.imdbID===imdbID),inPl=!!planned.find(x=>x.imdbID===imdbID);
   modal(`
     <img class="modal-poster" src="${imgSrc(m.Poster)}" onerror="this.style.display='none'" alt="">
@@ -246,7 +253,16 @@ document.addEventListener('input',e=>_dispatch(e,'data-input'));
 document.addEventListener('change',e=>_dispatch(e,'data-change'));
 function _pickDo(kind,imdbID){
   if(kind==='info'){closeModal();openTitle(imdbID);return;}
-  ({w:addW,wn:addWn,pl:addPl})[kind](imdbID).then(closeModal);
+  ({w:addW,wn:addWn,pl:addPl})[kind](imdbID).then(closeModal).catch(e=>toast(_omdbErr(e),'err',4200)); /* the modal stays open: the title can be tried again */
+}
+/* one wording for an OMDb call that threw or answered with an error */
+function _omdbErr(e){
+  const s=e&&e.status;
+  if(s===401||s===403)return 'OMDb не відповів: ключ не діє або вичерпано денний ліміт запитів';
+  if(s===429)return 'OMDb: забагато запитів, спробуй за хвилину';
+  if(e&&e.name==='AbortError')return 'OMDb не відповів вчасно, спробуй ще раз';
+  if(e&&/^HTTP|Failed to fetch|NetworkError/i.test(e.message||''))return 'Немає зв\'язку з OMDb';
+  return 'OMDb: '+((e&&e.message)||'помилка');
 }
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMenu();});
 window.addEventListener('scroll',e=>{if(!e.target.closest?.('.ct-menu'))closeMenu();},{passive:true,capture:true});
