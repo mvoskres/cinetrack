@@ -165,6 +165,7 @@ function buildBar(t){
   if(cur&&!counts[cur]){f.cats=[];cur='';} /* its last title left the list: don't leave an invisible filter on an empty-looking list */
   const cats=Object.keys(CAT).filter(c=>counts[c]);
   el.innerHTML=`
+    ${viewSeg(t)}
     ${cats.length>1?`<div class="cat-seg" role="group" aria-label="Категорія">
       <button class="cat-chip${cur?'':' on'}" data-act="setCat" data-args="${A(`${t}`,'')}">Усі<span class="num">${list.length}</span></button>
       ${cats.map(c=>`<button class="cat-chip${cur===c?' on':''}" data-act="setCat" data-args="${A(`${t}`,`${c}`)}">${catLabel(c)}<span class="num">${counts[c]}</span></button>`).join('')}</div>`:''}

@@ -15,6 +15,22 @@ function _gameBestSave(){_lsSet('ct_game_highscore',String(_gameBestScore));_lsS
 const GAME_ROUND=10;
 let _game={mode:'streak',filter:'all',pool:[],q:0,score:0,streak:0,recent:[],log:[],answered:true,current:null,next:null};
 
+/* Ukrainian titles for the options: one TMDB /find call per title (it returns the localized title), kept for good.
+   '' = TMDB has no title for it; the original title is used then */
+let _gameUk=_lsJSON('ct_game_uk',{});
+async function _gameUkName(item){
+  if(!Object.hasOwn(_gameUk,item.imdbID)){
+    try{
+      const d=await tmdbFetch(`/find/${item.imdbID}?external_source=imdb_id&language=uk-UA`);
+      if(!d)return item.title; /* network or key problem: ask again next time */
+      const m=d.movie_results?.[0],t=d.tv_results?.[0];
+      const r=item.type==='series'?(t||m):(m||t);
+      _gameUk[item.imdbID]=((r&&(r.title||r.name))||'').trim();
+      _lsSet('ct_game_uk',JSON.stringify(_gameUk));
+    }catch(e){return item.title;}
+  }
+  return _gameUk[item.imdbID]||item.title;
+}
 function _gameEligible(){return watched.filter(i=>i.imdbID&&i.title&&(i.type==='movie'||i.type==='series'));}
 function _gameKind(i){const c=i.customCategory||i.type;return c==='anime'||c==='cartoon'?'anim':i.type==='series'?'series':'movie';}
 
@@ -99,7 +115,14 @@ async function _gamePick(){
     const cand=src[Math.floor(Math.random()*src.length)];
     if(tried.has(cand.imdbID))continue;tried.add(cand.imdbID);
     const url=await _gameGetBackdrop(cand);
-    if(url){await new Promise(r=>{const im=new Image();im.onload=im.onerror=r;im.src=url;});return{item:cand,url};}
+    if(url){
+      const items=[cand,..._gameDistractors(cand)];
+      const [,names]=await Promise.all([new Promise(r=>{const im=new Image();im.onload=im.onerror=r;im.src=url;}),Promise.all(items.map(_gameUkName))]);
+      const opts=items.map((it,k)=>({id:it.imdbID,name:names[k]}));
+      /* two options that read the same in Ukrainian would be unanswerable: fall back to the originals for those */
+      opts.forEach((o,k)=>{if(opts.some((p,j)=>j!==k&&p.name===o.name))o.name=items[k].title;});
+      return{item:cand,url,name:opts[0].name,opts};
+    }
   }
   return null;
 }
@@ -111,7 +134,9 @@ function _gameDistractors(item){
   const ranked=_gameEligible().filter(p=>p.title!==item.title&&p.imdbID!==item.imdbID&&!(coll&&_collCache[p.imdbID]?.collId===coll))
     .map(p=>({p,s:(_gameKind(p)===kind?4:0)+(Math.abs((parseInt(p.year)||0)-y)<=8?2:0)+((p.genre||'').split(',').some(x=>g.has(x.trim()))?1:0)+Math.random()*1.5}))
     .sort((a,b)=>b.s-a.s).slice(0,14);
-  return [...new Set(_gameShuffle(ranked).map(r=>r.p.title))].slice(0,3);
+  const seen=new Set(),out=[];
+  for(const r of _gameShuffle(ranked)){if(seen.has(r.p.title))continue;seen.add(r.p.title);out.push(r.p);if(out.length===3)break;}
+  return out;
 }
 function _gameShuffle(arr){const a=arr.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 
@@ -131,27 +156,28 @@ async function gameNextQuestion(){
   _game.current=pick;
   _game.recent.push(pick.item.imdbID);if(_game.recent.length>Math.min(10,_game.pool.length-1))_game.recent.shift();
   document.getElementById('gameShotWrap').innerHTML=`<img src="${esc(pick.url)}" alt="Кадр, який треба впізнати">`;
-  const opts=_gameShuffle([pick.item.title,..._gameDistractors(pick.item)]);
+  const opts=_gameShuffle(pick.opts);
   const box=document.getElementById('gameOpts');box.innerHTML='';
-  opts.forEach((t,k)=>{const b=document.createElement('button');b.className='game-opt';b.dataset.title=t;
-    b.innerHTML=`<kbd>${k+1}</kbd><span></span>`;b.querySelector('span').textContent=t;b.onclick=()=>_gameAnswer(b);box.appendChild(b);});
+  opts.forEach((o,k)=>{const b=document.createElement('button');b.className='game-opt';b.dataset.id=o.id;
+    b.innerHTML=`<kbd>${k+1}</kbd><span></span>`;b.querySelector('span').textContent=o.name;b.onclick=()=>_gameAnswer(b);box.appendChild(b);});
   _game.answered=false;
   _game.next=_gamePick(); /* the next frame loads while you think */
 }
 
 function _gameAnswer(btn){
   if(_game.answered)return;_game.answered=true;
-  const item=_game.current.item,ok=btn.dataset.title===item.title;
-  document.querySelectorAll('#gameOpts .game-opt').forEach(b=>{b.disabled=true;if(b.dataset.title===item.title)b.classList.add('right');});
+  const item=_game.current.item,name=_game.current.name||item.title,ok=btn.dataset.id===item.imdbID;
+  document.querySelectorAll('#gameOpts .game-opt').forEach(b=>{b.disabled=true;if(b.dataset.id===item.imdbID)b.classList.add('right');});
   if(!ok)btn.classList.add('wrong');
-  _game.log.push({item,ok});
+  _game.log.push({item,ok,name});
+  const orig=name!==item.title?` <small class="game-orig">(${esc(item.title)})</small>`:'';
   if(ok){_game.score++;_game.streak++;}
   if(_game.mode==='streak'&&_game.streak>_gameBestScore){_gameBestScore=_game.streak;_gameBestSave();}
   _gameHud();
   const last=_game.mode==='round'?_game.q>=GAME_ROUND:!ok;
   document.getElementById('gameReveal').innerHTML=`
     <img src="${esc(ps(item.poster)||BLANK)}" alt="" data-fb>
-    <div class="game-reveal-txt"><div><b>${ok?'Так!':'Ні.'}</b> Це <a href="${imdbHref(item)}" target="_blank" rel="noopener">${esc(item.title)}</a></div>
+    <div class="game-reveal-txt"><div><b>${ok?'Так!':'Ні.'}</b> Це <a href="${imdbHref(item)}" target="_blank" rel="noopener">${esc(name)}</a>${orig}</div>
       <span>${esc(item.year||'')} · ${catLabel(item.customCategory||item.type)}${item.imdbRating?` · IMDb ${esc(item.imdbRating)}`:''}</span></div>
     <button class="btn primary" id="gameNextBtn" data-act="${last?'gameEnd':'gameNextQuestion'}">${last?'Підсумок':'Далі'} <kbd>Enter</kbd></button>`;
   document.getElementById('gameNextBtn').focus({preventScroll:true});
@@ -171,7 +197,7 @@ function gameEnd(noMoreImages){
     <div class="game-over-ic">${ic(noMoreImages?'frame':record?'trophy':_game.score?'check':'film')}</div>
     <div class="game-over-title">${head}</div>
     <div class="game-over-sub">${sub}</div>
-    ${log.length?`<ol class="game-log">${log.map(l=>`<li class="${l.ok?'ok':'bad'}">${ic(l.ok?'check':'minus')}<a href="${imdbHref(l.item)}" target="_blank" rel="noopener">${esc(l.item.title)}</a><span class="num">${esc(l.item.year||'')}</span></li>`).join('')}</ol>`:''}
+    ${log.length?`<ol class="game-log">${log.map(l=>`<li class="${l.ok?'ok':'bad'}">${ic(l.ok?'check':'minus')}<a href="${imdbHref(l.item)}" target="_blank" rel="noopener">${esc(l.name||l.item.title)}</a><span class="num">${esc(l.item.year||'')}</span></li>`).join('')}</ol>`:''}
     <div class="game-over-btns">
       <button class="btn primary" id="gameAgainBtn" data-act="startGame">${ic('refresh')}Ще раз <kbd>Enter</kbd></button>
       <button class="btn" data-act="closeGameModal">Закрити</button>

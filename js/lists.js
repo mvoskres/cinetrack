@@ -221,10 +221,53 @@ const _gridShown={watched:GRID_PAGE,planned:GRID_PAGE};
 const _gridState={};
 let _gridObs=null;
 function _gridRender(t,g,list,cardFn){
+  let v=t in VIEW_LISTS?viewOf(t):'grid';
+  if(v==='shelves'&&F[t].cats.length)v='grid'; /* one category chosen = one shelf: the grid shows it better */
+  if(t in VIEW_LISTS)g.className=v==='grid'?'grid':`lv-${v}`;
+  if(v==='shelves'){g.innerHTML=_shelvesHtml(t,list,cardFn);return;}
+  if(v==='list')cardFn=i=>myRow(t,i);
   _gridState[t]={g,list,cardFn};
   const n=Math.min(_gridShown[t],list.length);
-  g.innerHTML=list.slice(0,n).map(cardFn).join('');
+  g.innerHTML=(v==='list'?_rowHead(t):'')+list.slice(0,n).map(cardFn).join('');
   _gridSentinel(t,n);
+}
+
+/* ── VIEWS: grid / list / shelves for Переглянуте and Планую (remembered per list) ── */
+const VIEW_LISTS={watched:1,planned:1};
+const VIEWS=[['grid','Сітка'],['list','Список'],['shelves','Полиці']];
+let _views=_lsJSON('ct_views',{});
+function viewOf(t){const v=_views[t];return VIEWS.some(([k])=>k===v)?v:'grid';}
+function setView(t,v){_views[t]=v;_lsSet('ct_views',JSON.stringify(_views));buildBar(t);rerender(t);}
+function viewSeg(t){
+  if(!(t in VIEW_LISTS))return '';
+  const cur=viewOf(t);
+  return `<div class="seg view-seg" role="group" aria-label="Вигляд">${VIEWS.map(([k,l])=>`<button class="seg-b${cur===k?' on':''}" aria-pressed="${cur===k}" data-act="setView" data-args="${A(`${t}`,`${k}`)}">${l}</button>`).join('')}</div>`;
+}
+/* list: one compact row per title, every action of the card is still here (title opens the details, ⋯ the menu) */
+function _rowHead(t){return `<div class="lrow lrow-h" aria-hidden="true"><span></span><span>Назва</span><span>Рік</span><span>Категорія</span><span>Жанр</span><span>IMDb</span><span>${t==='watched'?'Моя':''}</span><span></span></div>`;}
+function myRow(list,i){
+  const c=i.customCategory||i.type;
+  return `<div class="lrow">
+    <a class="lrow-art" href="${imdbHref(i)}" target="_blank" rel="noopener" tabindex="-1" data-act="_tsClick" data-args="${A('$ev',`${i.imdbID}`)}"><img src="${posterSrc(i.poster)}" data-pf="${esc(i.imdbID)}" alt="" loading="lazy"></a>
+    <div class="lrow-t"><a href="${imdbHref(i)}" target="_blank" rel="noopener" data-act="_tsClick" data-args="${A('$ev',`${i.imdbID}`)}">${esc(i.title)}</a>
+      ${i.comment?`<div class="pc-note" title="${esc(i.comment)}">${esc(i.comment)}</div>`:''}${_tagsHtml(i)}</div>
+    <span class="lrow-y num">${esc(i.year||'')}</span>
+    <span class="lrow-c">${catLabel(c)}</span>
+    <span class="lrow-g">${esc((i.genre||'').split(',').slice(0,2).map(s=>s.trim()).join(', '))}</span>
+    <span class="lrow-i num">${i.imdbRating?esc(i.imdbRating):'—'}</span>
+    <span class="lrow-my num">${i.rating?`${ic('star')}${esc(i.rating)}`:''}</span>
+    <button class="lrow-more" data-act="cardMenu" data-args="${A('$ev',`${list}`,(i.id))}" aria-label="Дії: ${esc(i.title)}">${ic('dots')}</button>
+  </div>`;
+}
+/* shelves: one row of posters per category, newest first by the chosen sort; «Усі» opens the whole category */
+const VSHELF_N=20;
+const VSHELF_L={movie:'Фільми',series:'Серіали',anime:'Аніме',cartoon:'Мульти',other:'Інше'};
+function _shelvesHtml(t,list,cardFn){
+  const by={};list.forEach(i=>{const c=Object.hasOwn(VSHELF_L,i.customCategory||i.type)?(i.customCategory||i.type):'other';(by[c]??=[]).push(i);});
+  return Object.keys(VSHELF_L).filter(c=>by[c]).map(c=>`<section class="shelf">
+    <div class="shelf-h"><h2>${VSHELF_L[c]}</h2><span class="num">${by[c].length}</span>
+      ${by[c].length>VSHELF_N?`<button class="shelf-all" data-act="setCat" data-args="${A(`${t}`,`${c}`)}">Усі ${by[c].length}</button>`:''}</div>
+    <div class="shelf-row">${by[c].slice(0,VSHELF_N).map(cardFn).join('')}</div></section>`).join('');
 }
 function _gridSentinel(t,n){
   const st=_gridState[t];if(n>=st.list.length)return;
@@ -338,7 +381,7 @@ function rWatched(){
   const list=applyF(watched,'watched');
   const cnt=document.getElementById('wCount');
   if(cnt)cnt.textContent=list.length!==watched.length?`${list.length} з ${watched.length} записів`:'';
-  if(!list.length){g.innerHTML=watched.length?`<div class="empty"><span class="empty-icon">${ic('search')}</span><div class="empty-txt">Нічого не знайдено за фільтром</div></div>`:`<div class="empty"><span class="empty-icon">${ic('film')}</span><div class="empty-txt">Тут з'являтимуться переглянуті фільми та серіали</div><button class="w-btn gold empty-act" data-act="openIO" data-args="[&quot;stCsv&quot;]">${ic('upload')}Імпортувати з IMDb / Letterboxd</button></div>`;return;}
+  if(!list.length){g.className='grid';g.innerHTML=watched.length?`<div class="empty"><span class="empty-icon">${ic('search')}</span><div class="empty-txt">Нічого не знайдено за фільтром</div></div>`:`<div class="empty"><span class="empty-icon">${ic('film')}</span><div class="empty-txt">Тут з'являтимуться переглянуті фільми та серіали</div><button class="w-btn gold empty-act" data-act="openIO" data-args="[&quot;stCsv&quot;]">${ic('upload')}Імпортувати з IMDb / Letterboxd</button></div>`;return;}
   _gridRender('watched',g,list,i=>myCard('watched',i));
 }
 
@@ -346,7 +389,7 @@ function rWatched(){
 function rPlanned(){
   const g=document.getElementById('plGrid');
   const list=applyF(planned,'planned');
-  if(!list.length){g.innerHTML=planned.length?`<div class="empty"><span class="empty-icon">${ic('search')}</span><div class="empty-txt">Нічого не знайдено</div></div>`:`<div class="empty"><span class="empty-icon">${ic('bookmark')}</span><div class="empty-txt">Черга для перегляду порожня</div></div>`;return;}
+  if(!list.length){g.className='grid';g.innerHTML=planned.length?`<div class="empty"><span class="empty-icon">${ic('search')}</span><div class="empty-txt">Нічого не знайдено</div></div>`:`<div class="empty"><span class="empty-icon">${ic('bookmark')}</span><div class="empty-txt">Черга для перегляду порожня</div></div>`;return;}
   _gridRender('planned',g,list,i=>myCard('planned',i));
 }
 

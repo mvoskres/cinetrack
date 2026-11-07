@@ -1296,3 +1296,38 @@ kbd{display:inline-block;font:500 .7rem var(--mono);border:1px solid var(--borde
 .ts::before{content:'';display:block;position:sticky;top:0;z-index:4;height:2px;margin-bottom:-2px;background:linear-gradient(90deg,var(--gold) 0%,var(--gold-2) 60%,transparent 100%);}
 .game-modal{position:relative;}
 .game-modal::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;z-index:2;pointer-events:none;background:linear-gradient(90deg,var(--gold) 0%,var(--gold-2) 60%,transparent 100%);}
+
+/* ── views: list / shelves (Переглянуте, Планую); the grid keeps .grid ── */
+.lv-list{display:flex;flex-direction:column;}
+.lrow{display:grid;grid-template-columns:40px minmax(0,1fr) 84px 78px minmax(0,150px) 52px 52px 36px;gap:.9rem;align-items:center;padding:.45rem .5rem;border-bottom:1px solid var(--line);font-size:.86rem;color:var(--text-2);}
+.lrow:hover{background:var(--ink-2);}
+.lrow-h{font-size:.74rem;color:var(--muted);padding:.3rem .5rem;border-bottom-color:var(--border-2);}
+.lrow-h:hover{background:none;}
+.lrow-art{display:block;width:40px;aspect-ratio:2/3;border-radius:4px;overflow:hidden;background:var(--ink-3);}
+.lrow-art img{width:100%;height:100%;object-fit:cover;display:block;}
+.lrow-t{min-width:0;}
+.lrow-t>a{color:var(--text);font-weight:600;font-size:.95rem;text-decoration:none;}
+.lrow-t>a:hover{text-decoration:underline;}
+.lrow-t .card-utags{margin-top:3px;}
+.lrow-g{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);}
+.lrow-i,.lrow-my{text-align:right;}
+.lrow-my{color:var(--gold);display:inline-flex;gap:3px;align-items:center;justify-content:flex-end;}
+.lrow-my svg.i{width:13px;height:13px;}
+.lrow-more{width:36px;height:36px;display:grid;place-items:center;border:0;background:none;color:var(--muted);border-radius:8px;cursor:pointer;}
+.lrow-more:hover{background:var(--ink-3);color:var(--text);}
+.lv-shelves{display:flex;flex-direction:column;gap:1.6rem;}
+.shelf-h{display:flex;align-items:baseline;gap:.6rem;margin-bottom:.7rem;}
+.shelf-h h2{font:600 1.15rem var(--serif);margin:0;}
+.shelf-h .num{color:var(--muted);font-size:.85rem;}
+.shelf-all{margin-left:auto;border:0;background:none;color:var(--gold);font:500 .85rem var(--sans);cursor:pointer;min-height:36px;}
+.shelf-all:hover{text-decoration:underline;}
+.shelf-row{display:grid;grid-auto-flow:column;grid-auto-columns:140px;gap:.8rem;overflow-x:auto;padding-bottom:.4rem;scroll-snap-type:x proximity;}
+.shelf-row>.pc{scroll-snap-align:start;min-width:0;}
+.game-orig{color:var(--muted);font-size:.85em;font-weight:400;}
+@media (max-width:899px){
+  .lrow{grid-template-columns:36px minmax(0,1fr) 62px 34px 36px;gap:.5rem;}
+  .lrow .lrow-c,.lrow .lrow-g,.lrow-h .lrow-c,.lrow-h span:nth-child(4),.lrow-h span:nth-child(5),.lrow .lrow-my,.lrow-h span:nth-child(7){display:none;}
+  .lrow-y{font-size:.78rem;}
+  .shelf-row{grid-auto-columns:110px;}
+  .view-seg{order:-2;}
+}
