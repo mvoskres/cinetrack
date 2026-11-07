@@ -73,6 +73,7 @@ function toast(msg,type='',dur=3400){
   const txt=document.createElement('span');txt.textContent=String(msg).replace(_LEAD_GLYPH,'');
   el.innerHTML=ic(type==='ok'?'check':type==='err'?'alert':'info');el.appendChild(txt);
   el.setAttribute('role','status');el.setAttribute('aria-live','polite');
+  el.title='Натисни, щоб закрити';el.addEventListener('click',()=>{clearTimeout(_tTimer);el.remove();});
   document.body.appendChild(el);_tTimer=setTimeout(()=>el.remove(),dur);
 }
 

@@ -481,7 +481,8 @@ function _snapshotToast(){
   const lbl=document.createElement('span');lbl.textContent='Дані замінено, знімок попереднього стану збережено';
   const btn=document.createElement('button');btn.className='t-undo';btn.innerHTML=ic('undo')+'Повернути';
   btn.onclick=()=>{el.remove();snapshotRestore();};
-  el.append(lbl,btn);document.body.appendChild(el);setTimeout(()=>el.remove(),12000);
+  lbl.addEventListener('click',()=>el.remove());lbl.style.cursor='pointer';lbl.title='Натисни, щоб закрити';
+  el.append(lbl,btn);document.body.appendChild(el);setTimeout(()=>el.remove(),8000);
 }
 /* one honest sentence block for the import report (file import and Drive both use it) */
 function _backupReport(r){

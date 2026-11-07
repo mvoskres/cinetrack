@@ -197,7 +197,7 @@ function gdApplyPending(mode){
   const d=_gdPend;_gdPend=null;closeModal();if(!d)return;
   try{const r=_restoreBackup(d,mode);_lsSet('ct_gd_seen',String(Date.now()));
     /* what was just pulled is already on Drive: don't count it as an unsaved change */
-    const at=Date.parse(d.exportedAt)||Date.now();if(at>(+localStorage.getItem('ct_gd_last')||0))_lsSet('ct_gd_last',String(at));_lsSet('ct_gd_fp',_gdFp());_lsSet('ct_gd_count',String(_gdCount()));localStorage.removeItem('ct_gd_warn');_gdNotice(false);const L=_backupReport(r);if(r.replaced){_snapshotToast();runMaintenance();return;}toast(r.skip||r.rejected.length?L.join('. '):`Підтягнуто: ${r.aw} переглянуто, ${r.awn} дивлюсь, ${r.apl} заплановано`,r.rejected.length?'':'ok',r.skip||r.rejected.length?12000:4200);runMaintenance();}
+    const at=Date.parse(d.exportedAt)||Date.now();if(at>(+localStorage.getItem('ct_gd_last')||0))_lsSet('ct_gd_last',String(at));_lsSet('ct_gd_fp',_gdFp());_lsSet('ct_gd_count',String(_gdCount()));localStorage.removeItem('ct_gd_warn');_gdNotice(false);const L=_backupReport(r);if(r.replaced){_snapshotToast();runMaintenance();return;}toast(r.skip||r.rejected.length?L.join('. '):`Підтягнуто: ${r.aw} переглянуто, ${r.awn} дивлюсь, ${r.apl} заплановано`,r.rejected.length?'':'ok',r.rejected.length?8000:r.skip?5000:4200);runMaintenance();} /* skipped duplicates are normal after a merge, not a reason to keep the report up */
   catch(e){toast('Не вдалося підтягнути: '+(e.message||'помилка'),'err',5000);}
 }
 async function gdRestoreList(){

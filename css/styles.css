@@ -1331,3 +1331,5 @@ kbd{display:inline-block;font:500 .7rem var(--mono);border:1px solid var(--borde
   .shelf-row{grid-auto-columns:110px;}
   .view-seg{order:-2;}
 }
+/* toasts close on tap (the report after a Drive pull used to stay up 12 s with no way to dismiss it) */
+.toast{pointer-events:auto;cursor:pointer;}
