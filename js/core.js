@@ -79,6 +79,29 @@ function _storageChars(){let n=0;for(let i=0;i<localStorage.length;i++){const k=
 
 /* ── STATE ── */
 let API=localStorage.getItem('ct_apikey')||'';
+/* ── ACCENT colour: one choice drives every --gold* token (kept per device, ct_accent) ── */
+const ACCENTS=[['#e3a54a','Бурштин'],['#e8735a','Корал'],['#e0607e','Малина'],['#b07ce8','Бузок'],['#5b9cf0','Небо'],['#3fbfa8','Бірюза'],['#8cc152','Лайм'],['#d9d9d9','Срібло']];
+function _hexRgb(h){const m=/^#([0-9a-f]{6})$/i.exec(h||'');if(!m)return null;const n=parseInt(m[1],16);return[n>>16&255,n>>8&255,n&255];}
+function applyAccent(h){
+  const c=_hexRgb(h)||_hexRgb(ACCENTS[0][0]),[r,g,b]=c,st=document.documentElement.style;
+  const mix=(t,k)=>Math.round(t+(255-t)*k),lum=(.2126*r+.7152*g+.0722*b)/255;
+  st.setProperty('--gold',`rgb(${r},${g},${b})`);
+  st.setProperty('--gold-2',`rgb(${mix(r,.25)},${mix(g,.25)},${mix(b,.25)})`);
+  st.setProperty('--gold-ink',lum>.5?'#15120c':'#ffffff'); /* text on the accent stays readable */
+  st.setProperty('--gold-d',`rgba(${r},${g},${b},.13)`);
+  st.setProperty('--gold-b',`rgba(${r},${g},${b},.32)`);
+  st.setProperty('--gold-glow',`rgba(${r},${g},${b},.07)`);
+}
+function accentNow(){const v=localStorage.getItem('ct_accent');return _hexRgb(v)?v.toLowerCase():ACCENTS[0][0];}
+function setAccent(h){if(!_hexRgb(h))return;_lsSet('ct_accent',h.toLowerCase());applyAccent(h);if(document.getElementById('stAccent'))document.getElementById('stAccent').outerHTML=_stAccentHtml();}
+function _stAccentHtml(){
+  const cur=accentNow(),custom=!ACCENTS.some(([h])=>h===cur);
+  return `<div class="st-row" id="stAccent"><div class="st-row-head"><span class="st-lbl">Акцентний колір</span></div>
+    <div class="acc-sw" role="group" aria-label="Акцентний колір">${ACCENTS.map(([h,n])=>`<button class="acc-b${h===cur?' on':''}" style="--c:${h}" data-act="setAccent" data-args="${A(h)}" title="${n}" aria-label="${n}" aria-pressed="${h===cur}"></button>`).join('')}
+      <label class="acc-b acc-own${custom?' on':''}" style="--c:${cur}" title="Свій колір"><input type="color" value="${cur}" data-change="setAccent" data-args="[&quot;$value&quot;]" aria-label="Свій колір"><span>${ic('plus')}</span></label></div></div>`;
+}
+applyAccent(accentNow());
+
 let watched =_lsJSON('ct_watched',[]);
 let watching=_lsJSON('ct_watching',[]);
 let hidden  =_lsJSON('ct_hidden',[]);
