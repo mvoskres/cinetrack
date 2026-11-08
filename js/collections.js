@@ -322,24 +322,23 @@ function _collLink(p,inner,cls=''){
   if(!link)return `<span class="${cls}">${inner}</span>`;
   return `<a class="${cls}" href="${esc(link)}" target="_blank" rel="noopener" ${p.id?`data-act="_tsClickT" data-args="${A('$ev','movie',p.id)}"`:`data-act="_tsClick" data-args="${A('$ev',p.imdbID)}"`}>${inner}</a>`;
 }
+/* every part is a poster; its state is a label on it (no more empty numbered slots) */
+const _COLL_LBL={wn:'Дивлюсь',pl:'Заплановано',skip:'Пропущено',miss:'Не переглянуто'};
 function _collCell(p,k,ownedMap,extra){
   const owned=p.imdbID?ownedMap[p.imdbID]:null,out=_partOut(p);
   const skipped=out&&p.imdbID&&!owned&&_skippedParts[p.imdbID];
   const st=!out?'up':owned?owned.status:skipped?'skip':'miss';
   const img=_tsImg(p.poster,'w185')||(owned?ps(owned.item.poster):'');
-  const num=String(k+1).padStart(2,'0');
-  let pic;
-  if(st==='ok'||st==='wn'||st==='pl'){
-    pic=_collLink(p,`<img src="${esc(img||BLANK)}" alt="" loading="lazy" data-fb>${st!=='ok'?`<i class="fa-bd ${st}" title="${_COLL_ST[st]}">${ic(st==='wn'?'play':'bookmark')}</i>`:''}`,`fa-pc ${st}`);
-  }else if(st==='up'){
-    pic=_collLink(p,`<b>${num}</b><span>${p.date?new Date(p.date+'T00:00:00').toLocaleDateString('uk-UA',{day:'numeric',month:'short',year:'numeric'}):'анонс'}</span>`,'fa-slot up');
-  }else{
-    const btn=p.imdbID?`<button class="fa-add ${st}" data-act="collAddMissing" data-args="${A(`${p.imdbID}`,`${_collMetaEnc(p)}`)}" title="${st==='skip'?'Пропущено, натисни щоб змінити':'Додати'}" aria-label="${st==='skip'?'Пропущено':'Додати'}: ${esc(p.title)}">${ic(st==='skip'?'ban':'plus')}</button>`:'';
-    pic=`<div class="fa-slot ${st}">${_collLink(p,`<b>${num}</b>`,'fa-slot-in')}${btn}</div>`;
-  }
+  const art=img?`<img src="${esc(img)}" alt="" loading="lazy" data-fb>`:`<span class="fa-noimg">${esc(p.title)}</span>`;
+  const lbl=st==='up'?`Вийде ${p.date?new Date(p.date+'T00:00:00').toLocaleDateString('uk-UA',{day:'numeric',month:'short',year:'numeric'}):'згодом'}`:_COLL_LBL[st]||'';
+  /* missing and skipped parts: the label is the button that opens the status picker */
+  const act=(st==='miss'||st==='skip')&&p.imdbID;
+  const tag=lbl?(act?`<button class="fa-lbl ${st}" data-act="collAddMissing" data-args="${A(`${p.imdbID}`,`${_collMetaEnc(p)}`)}" aria-label="${lbl}: ${esc(p.title)}. Змінити">${lbl}</button>`
+    :`<span class="fa-lbl ${st}">${lbl}</span>`):'';
   const ir=owned?.item.imdbRating||p.imdbRating;
   const meta=[p.year?esc(p.year):'',ir?`IMDb ${esc(ir)}`:p.vote?`TMDB ${esc(p.vote)}`:''].filter(Boolean).join(' · ');
-  return `<div class="fa-cell ${st}${extra?' extra':''}">${pic}<div class="fa-cap">${_collLink(p,esc(p.title),'fa-t')}<span>${meta}</span></div></div>`;
+  return `<div class="fa-cell ${st}${extra?' extra':''}"><div class="fa-art">${_collLink(p,art,`fa-pc ${st}`)}${st==='ok'?`<i class="fa-ok" title="Переглянуто">${ic('check')}</i>`:''}${tag}</div>
+    <div class="fa-cap">${_collLink(p,esc(p.title),'fa-t')}<span>${meta}</span></div></div>`;
 }
 function _collCardHtml(c,ownedMap){
   const complete=c.total>0&&c.owned>=c.total;

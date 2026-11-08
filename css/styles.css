@@ -1588,3 +1588,26 @@ a.fa-t:hover{color:var(--gold);}
   .fa-slots{grid-template-columns:repeat(3,minmax(0,1fr));gap:.9rem .6rem;}
   .fa-slot b{font-size:1.6rem;}
 }
+
+/* franchises 1.9.1: every part is a poster with a state label */
+.fa-art{position:relative;}
+.fa-pc{display:block;}
+.fa-noimg{display:flex;align-items:center;justify-content:center;height:100%;padding:.5rem;text-align:center;font-size:.72rem;color:var(--muted);}
+.fa-pc.miss img{filter:grayscale(1) brightness(.42);}
+.fa-pc.skip img{filter:grayscale(1) brightness(.3);}
+.fa-pc.up img{filter:grayscale(.6) brightness(.38);}
+.fa-pc.wn img,.fa-pc.pl img{filter:brightness(.62);}
+.fa-pc.up{outline:1.5px dashed var(--muted);outline-offset:-1.5px;}
+.fa-ok{position:absolute;top:.4rem;right:.4rem;width:22px;height:22px;border-radius:11px;background:var(--ok);color:#0b2414;display:flex;align-items:center;justify-content:center;font-style:normal;pointer-events:none;}
+.fa-ok .i{width:13px;height:13px;}
+.fa-lbl{position:absolute;left:.4rem;right:.4rem;bottom:.4rem;display:flex;align-items:center;justify-content:center;gap:.25rem;min-height:26px;padding:.2rem .4rem;border-radius:7px;border:0;font:700 .7rem/1.15 var(--sans);text-align:center;letter-spacing:.01em;backdrop-filter:blur(3px);}
+.fa-lbl .i{width:13px;height:13px;flex:none;}
+button.fa-lbl{cursor:pointer;transition:transform .15s,filter .15s;}
+button.fa-lbl:hover{transform:translateY(-1px);filter:brightness(1.1);}
+.fa-lbl.miss{background:var(--gold);color:var(--gold-ink);}
+.fa-lbl.skip{background:rgba(60,66,78,.92);color:#e6e9ee;}
+.fa-lbl.pl{background:rgba(70,82,100,.92);color:#fff;}
+.fa-lbl.wn{background:var(--jade-2);color:#06231d;}
+.fa-lbl.up{background:rgba(0,0,0,.72);color:var(--text);font-weight:600;}
+.fa-cell.skip .fa-t{text-decoration:line-through;text-decoration-color:var(--muted);}
+@media(max-width:640px){.fa-lbl{font-size:.64rem;min-height:24px;left:.3rem;right:.3rem;bottom:.3rem;}}
