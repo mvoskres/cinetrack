@@ -53,6 +53,29 @@ function _sxSave(){
     _lsSet('ct_stats_tmdb',JSON.stringify(_sxT));_lsSet('ct_stats_people',JSON.stringify(_sxP));
   },800);
 }
+/* backup restore: only well-formed rows; what is already here wins */
+function _sxRestore(t,p){
+  let n=0;const okIds=a=>Array.isArray(a)&&a.length<=10&&a.every(x=>Number.isInteger(x)&&x>0&&x<1e9);
+  if(t&&typeof t==='object'&&!Array.isArray(t))for(const k in t){
+    if(!/^tt\d{5,10}$/.test(k)||k in _sxT)continue;
+    const r=t[k];
+    if(r===0){_sxT[k]=0;n++;continue;}
+    if(Array.isArray(r)&&r.length===6&&(r[0]==='m'||r[0]==='t')&&[1,2,3].every(j=>Number.isInteger(r[j])&&r[j]>=0&&r[j]<1e8)&&okIds(r[4])&&okIds(r[5])){_sxT[k]=r;n++;}
+  }
+  if(p&&typeof p==='object'&&!Array.isArray(p))for(const id in p){
+    const v=p[id];
+    if(!/^\d{1,9}$/.test(id)||_sxP[id]||!Array.isArray(v)||typeof v[0]!=='string'||v[0].length>120||typeof v[1]!=='string'||(v[1]&&!/^\/[\w.-]{1,80}$/.test(v[1])))continue;
+    _sxP[id]=[v[0],v[1]];n++;
+  }
+  if(n){_sxSig='';_sxSave();}
+}
+/* the page is rebuilt only when something it shows has changed */
+let _sxSig='';
+function _sxSignature(){
+  let h=5381;const s=watched.map(i=>i.imdbID+(i.imdbRating||'')+(i.runtime||'')+(i.customCategory||'')+(i.genre||'').length).join('|');
+  for(let k=0;k<s.length;k++)h=(h*33^s.charCodeAt(k))>>>0;
+  return [h,watched.length,watching.length,planned.length,Object.keys(_sxT).length,Object.keys(_sxP).length,Object.keys(_collCache).length,Object.keys(_collDetails).length,_trackedPeople.length,Object.keys(_personCache).length].join(':');
+}
 function _sxTodo(){return watched.filter(i=>/^tt\d+$/.test(i.imdbID||'')&&!(i.imdbID in _sxT)&&(i.type==='movie'||i.type==='series'));}
 async function _sxFetchOne(i){
   const f=await tmdbFindIds(i.imdbID);
@@ -89,6 +112,9 @@ async function _sxFill(){
 
 function renderStats(){
   const el=document.getElementById('statsContent');if(!el)return;
+  const sig=_sxSignature();
+  if(sig===_sxSig&&el.firstElementChild&&!el.querySelector('.spinner')){if(_sxTodo().length&&!_sxRun)setTimeout(_sxFill,300);return;}
+  _sxSig=sig;
   const nf=n=>Number(n).toLocaleString('uk-UA');
   const total=watched.length;
   if(!total){el.innerHTML=`<p class="sx-sub">Тут з'явиться твій кінопортрет, щойно в «Переглянутому» будуть тайтли.</p>`;return;}

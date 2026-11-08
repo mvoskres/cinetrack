@@ -164,7 +164,8 @@ function _buildBackup(incK){
     trackedPeople:_trackedPeople,
     collCache:_collCache,collDetails:_collDetails,skippedParts:_skippedParts,unresolvable:_unresolvable,
     gameBestScore:_gameBest.frame.streak,gameRoundBest:_gameBest.frame.round,gameActorBest:_gameBest.actor.streak,gameActorRound:_gameBest.actor.round,gameQuoteBest:_gameBest.quote.streak,gameQuoteRound:_gameBest.quote.round,gameBackdropCache:_gameBackdropCache,
-    personCache:_personCache,resolveCache:_resolveCache,tmdbFind:_findCache}; /* no apiCache: it expires in 24h anyway */
+    personCache:_personCache,resolveCache:_resolveCache,tmdbFind:_findCache,
+    statsTmdb:_sxT,statsPeople:_sxP}; /* no apiCache: it expires in 24h anyway */
 }
 async function doExport(){
   const btn=document.querySelector('[data-act="doExport"] small'),orig=btn?.textContent; /* the row's grey line doubles as progress */
@@ -429,6 +430,7 @@ function _applyBackup(data){
     _gameBestSave(t);
   }
   if(nGame){Object.assign(_gameBackdropCache,nGame);_gameCacheSave();}
+  _sxRestore(data.statsTmdb,data.statsPeople); /* stats: collected cast/series data, so a new device does not collect it again */
   /* data.apiCache is deliberately ignored: 24 h of someone else's answers, and the biggest thing in the file */
   if(nDet){Object.assign(_collDetails,nDet);_collDetailsSave();}
   if(pcIn){Object.assign(_personCache,nPerson);_personCacheSave();}
@@ -527,6 +529,7 @@ function doImport(e,mode){
 
 /* ── VERSION and CHANGELOG: newest first; bump APP_VERSION and add an entry with every change pushed to the site ── */
 const CHANGELOG=[
+  {v:'1.8.1',d:'08.11.2026',n:['Зібрані для статистики актори, режисери й серії тепер у бекапі (файл і Drive): на новому пристрої не збираються вдруге','Статистика не перемальовується, якщо нічого не змінилось']},
   {v:'1.8',d:'08.11.2026',n:['Статистика в новому дизайні: стіна постерів і велика цифра часу, шість коротких фактів замість тексту, рекорди з підписами на постерах, обличчя з лічильником, десятиліття стовпчиками з постерів, жанри хмарою слів']},
   {v:'1.7',d:'08.11.2026',n:['Нова статистика: кінопортрет словами, час перед екраном разом із серіалами, рекорди й десятиліття постерами','Кого ти бачив найчастіше: актори, режисери й автори серіалів (дані збираються у фоні, поки сторінка відкрита)','Твої знахідки: високий IMDb при малій кількості голосів','Що далі: улюблений жанр, франшизи за крок до повної','Жанри й країни українською, довгі списки згорнуті']},
   {v:'1.6.1',d:'08.11.2026',n:['«Впізнай цитату»: лише українські цитати, тайтли без українського гасла пропускаються']},
