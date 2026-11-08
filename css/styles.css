@@ -1678,3 +1678,52 @@ button.fa-lbl:hover{transform:translateY(-1px);filter:brightness(1.1);}
   .gx-mode{padding:.8rem .85rem;}
   .gx-mode b{font-size:1.02rem;}
 }
+
+/* ── people «Кар'єра» (1.12): faces, portrait hero, filmography by decades ── */
+.pk-faces{display:flex;gap:1.1rem;overflow-x:auto;padding:.2rem .1rem .6rem;scrollbar-width:none;}
+.pk-face{flex:none;width:92px;display:flex;flex-direction:column;align-items:center;gap:.4rem;background:none;border:0;padding:0;color:var(--text);font:inherit;cursor:pointer;opacity:.62;transition:opacity .15s;}
+.pk-face:hover,.pk-face.active{opacity:1;}
+.pk-face img,.pk-face>span{width:72px;height:72px;border-radius:50%;object-fit:cover;background:var(--ink-3);border:3px solid transparent;}
+.pk-face.active img{border-color:var(--gold);}
+.pk-face b{font:600 .76rem/1.2 var(--sans);text-align:center;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.pk-add>span{display:flex;align-items:center;justify-content:center;border:2px dashed var(--line);color:var(--muted);}
+.pk-add>span .i{width:24px;height:24px;}
+.pk-hero{position:relative;border-radius:22px;overflow:hidden;min-height:330px;display:flex;align-items:flex-end;background:#090a0d;isolation:isolate;border:1px solid var(--line);margin:.6rem 0 1.4rem;}
+.pk-photo{position:absolute;right:4%;top:0;height:100%;width:auto;aspect-ratio:2/3;object-fit:cover;z-index:-2;-webkit-mask:linear-gradient(90deg,transparent,#000 45%);mask:linear-gradient(90deg,transparent,#000 45%);}
+.pk-hero::after{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(70% 90% at 0% 100%,var(--gold-d),transparent 60%);}
+.pk-in{padding:1.9rem 2.1rem;max-width:min(560px,60%);display:flex;flex-direction:column;}
+.pk-k{font:700 .76rem var(--sans);color:var(--gold);letter-spacing:.02em;}
+.pk-name{font:800 clamp(2.2rem,1.5rem + 2.4vw,3.4rem)/.95 var(--serif);letter-spacing:-.03em;margin:.5rem 0 1.1rem;}
+.pk-big{font-size:.84rem;color:var(--text-2);}
+.pk-big b{display:inline-block;font:800 clamp(3rem,2.2rem + 2.5vw,4.5rem)/.9 var(--serif);color:var(--gold);letter-spacing:-.04em;margin-right:.4rem;}
+.pk-big .of{font:700 1.6rem var(--serif);color:var(--muted);}
+.pk-big .tx{display:block;margin-top:.35rem;}
+.pk-bar{height:6px;border-radius:3px;background:rgba(255,255,255,.1);margin-top:.9rem;max-width:360px;overflow:hidden;}
+.pk-bar i{display:block;height:100%;background:var(--gold);transition:width .3s;}
+.pk-btn{align-self:flex-start;margin-top:1rem;display:inline-flex;align-items:center;gap:.4rem;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.05);color:var(--text-2);border-radius:10px;padding:.5rem .8rem;font:600 .82rem var(--sans);cursor:pointer;}
+.pk-btn.on{background:var(--gold);border-color:var(--gold);color:var(--gold-ink);}
+.pk-panel{display:flex;flex-wrap:wrap;gap:.6rem 1rem;align-items:center;margin:-.6rem 0 1.4rem;}
+.pk-panel[hidden]{display:none;}
+.pk-dec{display:grid;grid-template-columns:150px minmax(0,1fr);gap:1.1rem;padding:1.1rem 0;border-top:1px solid var(--line);}
+.pk-dh b{display:block;font:800 1.6rem/1 var(--serif);}
+.pk-dh span{font-size:.76rem;color:var(--muted);}
+.pk-dh i{display:block;font-style:normal;font-size:.8rem;color:var(--gold);font-weight:700;margin-top:.35rem;}
+.pk-strip{display:grid;grid-auto-flow:column;grid-auto-columns:132px;gap:.8rem;overflow-x:auto;padding-bottom:.4rem;scroll-snap-type:x proximity;scrollbar-width:thin;scrollbar-color:var(--line) transparent;}
+.pk-cell{scroll-snap-align:start;}
+.fa-cap em{font-style:normal;font-size:.72rem;color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.fa-lbl.mute{background:rgba(40,44,52,.92);color:var(--muted);font-weight:600;}
+button.fa-lbl.up{cursor:pointer;}
+.fa-pc.mute img{filter:grayscale(1) brightness(.4);}
+@media(max-width:760px){
+  .pk-hero{min-height:420px;}
+  .pk-photo{right:0;width:100%;height:62%;aspect-ratio:auto;object-position:50% 22%;-webkit-mask:linear-gradient(0deg,transparent,#000 50%);mask:linear-gradient(0deg,transparent,#000 50%);}
+  .pk-in{padding:1.2rem 1.1rem;max-width:none;}
+  .pk-dec{grid-template-columns:1fr;gap:.6rem;padding:.9rem 0;}
+  .pk-dh{display:flex;align-items:baseline;gap:.6rem;}
+  .pk-dh b{font-size:1.3rem;}.pk-dh i{margin:0;}
+  .pk-strip{grid-auto-columns:108px;gap:.55rem;}
+}
+
+/* the faces reuse .person-chip for the active marker only: drop the old pill look */
+.pk-face.person-chip,.pk-face.person-chip.active{display:flex;flex-direction:column;align-items:center;gap:.4rem;border:0;background:none;border-radius:0;padding:0;color:var(--text);font:inherit;}
+.pk-face.person-chip img{width:72px;height:72px;}

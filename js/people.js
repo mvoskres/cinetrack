@@ -62,6 +62,7 @@ function removeTrackedPerson(id){
   renderPeopleTab();
 }
 
+function _pkFocusSearch(){const i=document.getElementById('personSearchInput');if(i){i.focus();i.scrollIntoView({block:'center',behavior:'smooth'});}}
 let _personLast=null; /* reopen the person you looked at last */
 let _personPreview=null; /* {id,name,profile} opened from a title, not followed */
 function followPerson(id){
@@ -77,10 +78,11 @@ function renderPeopleTab(){
     const detail=document.getElementById('personDetail');if(detail)detail.innerHTML='';
     return;
   }
-  box.innerHTML=!_trackedPeople.length?'':`<div class="people-chips">${_trackedPeople.map(p=>`
-    <button class="person-chip" data-pid="${esc(p.id)}" data-act="openPerson" data-args="${A((p.id))}">
-      <img src="${_tsImg(p.profile,'w92')||BLANK}" alt="" data-fb>${esc(p.name)}
-    </button>`).join('')}</div>`;
+  box.innerHTML=`<div class="pk-faces">${_trackedPeople.map(p=>`
+    <button class="pk-face person-chip" data-pid="${esc(p.id)}" data-act="openPerson" data-args="${A((p.id))}">
+      <img src="${_tsImg(p.profile,'w185')||BLANK}" alt="" data-fb><b>${esc(p.name)}</b>
+    </button>`).join('')}
+    <button class="pk-face pk-add" data-act="_pkFocusSearch"><span>${ic('plus')}</span><b>Додати</b></button></div>`;
   const detail=document.getElementById('personDetail');
   const cur=+detail?.dataset.pid;
   const known=id=>_trackedPeople.some(t=>t.id===id)||_personPreview?.id===id;
@@ -92,7 +94,8 @@ function renderPeopleTab(){
 
 /* ── PEOPLE: filter/sort/pagination state ── */
 let _personGroupsCache=null; /* {personId, all:[...normalized credits]} */
-const PERSON_FILTER_DEFAULT={q:'',ownership:'missing',type:'all',role:'all',showMinor:false,sort:'popular'};
+const PERSON_FILTER_DEFAULT={q:'',ownership:'all',type:'all',role:'all',showMinor:false,sort:'year-asc'};
+let _personPanOpen=false;
 let _personFilter={...PERSON_FILTER_DEFAULT};
 let _personShown=24;
 const PERSON_PAGE_SIZE=24;
@@ -171,17 +174,19 @@ async function openPerson(id){
   const all=_personAllCredits(credits);
   _personGroupsCache={personId:id,all};
   const prof=_tsImg(person?.profile,'w185')||BLANK;
-  detail.innerHTML=`<div class="person-head">
-      <img class="person-photo" src="${prof}" alt="" data-fb>
-      <div class="person-info">
-        <h2 class="person-name">${esc(person?.name||'')}</h2>
-        <div class="person-stats" id="personStats"></div>
-        <div class="tr-bar"><i id="personBarFill" style="width:0"></i></div>
+  const big=_tsImg(person?.profile,'h632');
+  detail.innerHTML=`<section class="pk-hero">${big?`<img class="pk-photo" src="${esc(big)}" alt="" data-fb>`:''}
+      <div class="pk-in">
+        <div class="pk-k">Фільмографія · ${tracked?'стежиш':'не стежиш'}</div>
+        <h2 class="pk-name">${esc(person?.name||'')}</h2>
+        <div class="pk-big" id="personStats"></div>
+        <div class="pk-bar"><i id="personBarFill" style="width:0"></i></div>
+        ${tracked?`<button class="pk-btn" data-act="removeTrackedPerson" data-args="${A((id))}">${ic('trash')}Не стежити</button>`
+          :`<button class="pk-btn on" data-act="followPerson" data-args="${A((id))}">${ic('plus')}Стежити</button>`}
       </div>
-      ${tracked?`<button class="flt-pill person-remove" data-act="removeTrackedPerson" data-args="${A((id))}">${ic('trash')}Не стежити</button>`
-        :`<button class="flt-pill" data-act="followPerson" data-args="${A((id))}">${ic('plus')}Стежити</button>`}
-    </div>
-    <div class="filter-row" id="personBar"></div>
+    </section>
+    <div class="fa-bar pk-bar-row" id="personBar"></div>
+    <div class="pk-panel" id="personPanel"${_personPanOpen?'':' hidden'}></div>
     <div id="personList"></div>`;
   buildPersonBar();
   renderPersonList();
@@ -196,25 +201,31 @@ function buildPersonBar(){
   const el=document.getElementById('personBar');if(!el||!_personGroupsCache)return;
   const f=_personFilter,own=_personOwnedFns(),pool=_personPool();
   const withOwned=pool.map(c=>({...c,owned:own(c)}));
-  const cntO={missing:withOwned.filter(c=>!c.owned).length,owned:withOwned.filter(c=>c.owned).length,all:withOwned.length};
+  const cntO={all:withOwned.length,missing:withOwned.filter(c=>!c.owned).length,owned:withOwned.filter(c=>c.owned).length};
   const tCnt={};pool.forEach(c=>{const t=c.type==='anime'||c.type==='cartoon'?'anim':c.type;tCnt[t]=(tCnt[t]||0)+1;});
   const leads=pool.filter(c=>c.lead).length,dirs=pool.filter(c=>c.roles.has('directing')).length;
   const minor=(_personGroupsCache.all.length-_personGroupsCache.all.filter(c=>!_creditMinor(c)).length);
-  const chips=(arr,cur,fn)=>arr.map(([k,l,n])=>`<button class="cat-chip${cur===k?' on':''}" data-act="${fn}" data-args="${A(k)}">${l}${n!=null?`<span class="num">${n}</span>`:''}</button>`).join('');
+  const nf=(f.type!=='all'?1:0)+(f.role!=='all'?1:0)+(f.showMinor?1:0);
   el.innerHTML=`
-    <div class="cat-seg" role="group" aria-label="Наявність">${chips([['missing','Чого бракує',cntO.missing],['owned','Є в списках',cntO.owned],['all','Усе',cntO.all]],f.ownership,'personSetOwnership')}</div>
-    <div class="local-search-wrap"><span class="local-search-icon">${ic('search')}</span>
-      <input class="local-search" type="text" placeholder="Пошук у фільмографії…" aria-label="Пошук у фільмографії" value="${esc(f.q)}" data-input="personListSearch" data-args="[&quot;$value&quot;]">
-    </div>
-    <select class="sort-sel" aria-label="Сортування" data-change="personSetSort" data-args="[&quot;$value&quot;]">
-      ${[['popular','Найвідоміші'],['year-desc','Спочатку нові'],['year-asc','Спочатку старі'],['rating-desc','За рейтингом'],['name-asc','А→Я']].map(([v,l])=>`<option value="${v}"${f.sort===v?' selected':''}>${l}</option>`).join('')}
-    </select>
-    <div class="person-sub">
-      <div class="cat-seg" role="group" aria-label="Тип">${chips([['all','Усі типи',null],...[['movie','Фільми'],['tv','Серіали'],['anim','Анімація'],['doc','Документальні'],['talk','Шоу']].filter(([k])=>tCnt[k]).map(([k,l])=>[k,l,tCnt[k]])],f.type,'personSetType')}</div>
-      <div class="cat-seg" role="group" aria-label="Роль">${chips([['all','Усі ролі',null],...(leads?[['lead','Головні ролі',leads]]:[]),...(dirs?[['directing','Режисура',dirs]]:[])],f.role,'personSetRole')}</div>
-      ${minor?`<button class="link-btn" data-act="personToggleMinor">${f.showMinor?'Сховати шоу й дрібні появи':`Показати шоу й дрібні появи (${minor})`}</button>`:''}
+    <div class="fa-tabs" role="group" aria-label="Що показати">${[['all','кар\'єра'],['missing','чого бракує'],['owned','є в списках']]
+      .map(([k,l])=>`<button class="fa-tab${f.ownership===k?' on':''}" aria-pressed="${f.ownership===k}" data-act="personSetOwnership" data-args="${A(k)}"><b class="num">${cntO[k]}</b><span>${l}</span></button>`).join('')}</div>
+    <div class="fa-tools">
+      <div class="local-search-wrap"><span class="local-search-icon">${ic('search')}</span>
+        <input class="local-search" type="text" placeholder="Пошук у фільмографії…" aria-label="Пошук у фільмографії" value="${esc(f.q)}" data-input="personListSearch" data-args="[&quot;$value&quot;]">
+      </div>
+      <button class="flt-pill${nf?' has-n':''}${_personPanOpen?' active':''}" data-act="personTogglePan">${ic('filter')}Тип, роль${nf?` <span class="flt-n">${nf}</span>`:''}</button>
+      <select class="sort-sel" aria-label="Порядок у десятилітті" data-change="personSetSort" data-args="[&quot;$value&quot;]">
+        ${[['year-asc','За роком'],['popular','Найвідоміші'],['rating-desc','За рейтингом'],['name-asc','А→Я']].map(([v,l])=>`<option value="${v}"${f.sort===v?' selected':''}>${l}</option>`).join('')}
+      </select>
     </div>`;
+  const chips=(arr,cur,fn)=>arr.map(([k,l,n])=>`<button class="cat-chip${cur===k?' on':''}" data-act="${fn}" data-args="${A(k)}">${l}${n!=null?`<span class="num">${n}</span>`:''}</button>`).join('');
+  const pan=document.getElementById('personPanel');
+  if(pan){pan.hidden=!_personPanOpen;pan.innerHTML=`
+    <div class="cat-seg" role="group" aria-label="Тип">${chips([['all','Усі типи',null],...[['movie','Фільми'],['tv','Серіали'],['anim','Анімація'],['doc','Документальні'],['talk','Шоу']].filter(([k])=>tCnt[k]).map(([k,l])=>[k,l,tCnt[k]])],f.type,'personSetType')}</div>
+    <div class="cat-seg" role="group" aria-label="Роль">${chips([['all','Усі ролі',null],...(leads?[['lead','Головні ролі',leads]]:[]),...(dirs?[['directing','Режисура',dirs]]:[])],f.role,'personSetRole')}</div>
+    ${minor?`<button class="link-btn" data-act="personToggleMinor">${f.showMinor?'Сховати шоу й дрібні появи':`Показати шоу й дрібні появи (${minor})`}</button>`:''}`;}
 }
+function personTogglePan(){_personPanOpen=!_personPanOpen;buildPersonBar();}
 function personSetType(v){_personFilter.type=v;_personShown=PERSON_PAGE_SIZE;buildPersonBar();renderPersonList();}
 function personSetRole(v){_personFilter.role=v;_personShown=PERSON_PAGE_SIZE;buildPersonBar();renderPersonList();}
 function personMore(){_personShown+=PERSON_PAGE_SIZE;renderPersonList();}
@@ -242,7 +253,7 @@ function renderPersonList(){
   const notable=_personGroupsCache.all.filter(c=>!_creditMinor(c)&&c.date&&c.date<=_todayISO()).map(c=>({...c,owned:own(c)}));
   const seen=notable.filter(c=>c.owned?.status==='ok').length,listed=notable.filter(c=>c.owned&&c.owned.status!=='ok').length;
   const stats=document.getElementById('personStats');
-  if(stats)stats.innerHTML=`Переглянуто <b class="num">${seen}</b> з <span class="num">${notable.length}</span> помітних${listed?` · ще <span class="num">${listed}</span> у твоїх списках`:''}`;
+  if(stats)stats.innerHTML=`<b class="num">${seen}</b><span class="of num">з ${notable.length}</span><span class="tx">переглянуто з помітного${listed?` · ще ${listed} у твоїх списках`:''}</span>`;
   const bar=document.getElementById('personBarFill');if(bar)bar.style.width=(notable.length?Math.round(seen/notable.length*100):0)+'%';
 
   let items=_personPool().map(c=>({...c,owned:own(c)}));
@@ -266,45 +277,44 @@ function renderPersonList(){
     listEl.innerHTML=`<div class="empty"><span class="empty-icon">${ic(f.ownership==='missing'?'check':'search')}</span><div class="empty-txt">${f.ownership==='missing'&&!f.q?'Усе помітне з цієї фільмографії вже є у твоїх списках':'Нічого не знайдено за цим фільтром'}</div></div>`;
     return;
   }
-  const shown=items.slice(0,_personShown);
-  listEl.innerHTML=`<div class="person-grid">${shown.map(c=>_personCardHtml(c)).join('')}</div>
-    ${shown.length<items.length?`<div style="text-align:center;margin-top:1.1rem">
-      <button class="rec-btn m" data-act="personMore">Показати ще (${items.length-shown.length})</button>
-    </div>`:''}`;
+  /* career by decades, oldest first; the sort only orders titles inside a decade */
+  const dec=new Map();
+  items.slice().sort((a,b)=>(a.date||'9999').localeCompare(b.date||'9999')).forEach(c=>{
+    const y=parseInt(c.year)||0,k=y?`${Math.floor(y/10)*10}-ті`:'Анонси';
+    if(!dec.has(k))dec.set(k,[]);dec.get(k).push(c);
+  });
+  listEl.innerHTML=[...dec].map(([k,l])=>{
+    l.sort(sorters[f.sort]||sorters['year-asc']);
+    const s=l.filter(c=>c.owned?.status==='ok').length;
+    return `<section class="pk-dec"><div class="pk-dh"><b>${k}</b><span>${l.length} ${l.length%10===1&&l.length%100!==11?'тайтл':l.length%10>=2&&l.length%10<=4&&(l.length%100<12||l.length%100>14)?'тайтли':'тайтлів'}</span>${s?`<i>${s} переглянуто</i>`:''}</div>
+      <div class="pk-strip">${l.map(c=>_personCardHtml(c)).join('')}</div></section>`;
+  }).join('');
 }
 
 function _personCardHtml(c){
-  let status='';
   const ck=`${c.mediaType}:${c.id}`;
   const out=c.date&&c.date<=_todayISO();
+  const meta=uriSafe(JSON.stringify({title:c.title,year:c.year,poster:c.poster?`https://image.tmdb.org/t/p/w342${c.poster}`:'',rating:c.rating?c.rating.toFixed(1):''}));
+  const knownImdb=c.owned?c.owned.item.imdbID:_resolveCache[ck]?.imdbID;
+  const addBtn=(cls,txt)=>`<button class="fa-lbl ${cls}" data-act="personAddMissing" data-args="${A((c.id),`${c.mediaType}`,`${meta}`,'$el')}" aria-label="${esc(txt)}: ${esc(c.title)}">${txt}</button>`;
+  let st,tag='';
   if(c.owned){
-    const m={ok:['ok','check','Переглянуто'],wn:['wn','play','Дивлюсь'],pl:['pl','bookmark','Заплановано']}[c.owned.status];
-    status=`<span class="chip-s ${m[0]}">${ic(m[1])}${m[2]}</span>`;
-  }else if(c.type==='talk'){
-    status=`<span class="chip-s mute">Не відстежується</span>`;
-  }else if(_unresolvable[ck]){
-    status=`<span class="chip-s mute">Немає на IMDb</span>`;
-  }else{
-    const meta=uriSafe(JSON.stringify({title:c.title,year:c.year,poster:c.poster?`https://image.tmdb.org/t/p/w342${c.poster}`:'',rating:c.rating?c.rating.toFixed(1):''}));
-    const knownImdb=_resolveCache[ck]?.imdbID;
-    status=knownImdb&&_skippedParts[knownImdb]
-      ?`<button class="pc-act muted" data-act="personAddMissing" data-args="${A((c.id),`${c.mediaType}`,`${meta}`,'$el')}">Пропущено</button>`
-      :`<button class="pc-act" data-act="personAddMissing" data-args="${A((c.id),`${c.mediaType}`,`${meta}`,'$el')}">${out?'Додати':'Запланувати'}</button>`;
-  }
-  const knownImdbForLink=c.owned?c.owned.item.imdbID:_resolveCache[ck]?.imdbID;
-  const link=knownImdbForLink?`https://www.imdb.com/title/${knownImdbForLink}/`:`https://www.themoviedb.org/${c.mediaType==='tv'?'tv':'movie'}/${c.id}`;
-  const posterUrl=_tsImg(c.poster,'w342')||BLANK;
+    st=c.owned.status;
+    tag=st==='ok'?`<i class="fa-ok" title="Переглянуто">${ic('check')}</i>`:`<span class="fa-lbl ${st}">${st==='wn'?'Дивлюсь':'Заплановано'}</span>`;
+  }else if(c.type==='talk'){st='mute';tag=`<span class="fa-lbl mute">Не відстежується</span>`;}
+  else if(_unresolvable[ck]){st='mute';tag=`<span class="fa-lbl mute">Немає на IMDb</span>`;}
+  else if(knownImdb&&_skippedParts[knownImdb]){st='skip';tag=addBtn('skip','Пропущено');}
+  else if(!out){st='up';tag=addBtn('up',c.date?'Вийде '+new Date(c.date+'T00:00:00').toLocaleDateString('uk-UA',{day:'numeric',month:'short',year:'numeric'}):'Анонс');}
+  else{st='miss';tag=addBtn('miss','Додати');}
+  const link=knownImdb?`https://www.imdb.com/title/${knownImdb}/`:`https://www.themoviedb.org/${c.mediaType==='tv'?'tv':'movie'}/${c.id}`;
+  const img=_tsImg(c.poster,'w342');
+  const art=img?`<img src="${esc(img)}" data-fb loading="lazy" alt="">`:`<span class="fa-noimg">${esc(c.title)}</span>`;
+  const open=`href="${esc(link)}" target="_blank" rel="noopener" data-act="_tsClickT" data-args="${A('$ev',`${c.mediaType}`,(c.id))}"`;
   const roleLbl=c.roles.has('directing')&&c.roles.has('acting')?'Режисер і актор':c.roles.has('directing')?'Режисер':c.lead?'Головна роль':'Роль';
   const role=roleLbl+(c.characters.length?' · '+c.characters.join(', '):'');
-  const score=!out?`<span class="fc-up">${c.date?'вийде '+new Date(c.date+'T00:00:00').toLocaleDateString('uk-UA',{day:'numeric',month:'short',year:'numeric'}):'анонс'}</span>`
-    :c.rating&&c.voteCount>=10?`<span class="imdb">TMDB <span class="num">${c.rating.toFixed(1)}</span></span>`:'';
-  return `<article class="pc">
-    <div class="pc-art"><a href="${esc(link)}" target="_blank" rel="noopener" tabindex="-1" data-act="_tsClickT" data-args="${A('$ev',`${c.mediaType}`,(c.id))}"><img src="${esc(posterUrl)}" data-fb loading="lazy" alt=""></a></div>
-    <div class="pc-t" title="${esc(c.title)}"><a href="${esc(link)}" target="_blank" rel="noopener" data-act="_tsClickT" data-args="${A('$ev',`${c.mediaType}`,(c.id))}">${esc(c.title)}</a></div>
-    <div class="pc-m">${c.year?`<span class="num">${esc(c.year)}</span>`:''}<span>${CREDIT_TYPE_LABEL[c.type]||''}</span>${score}</div>
-    <div class="pc-note" title="${esc(role)}">${esc(role)}</div>
-    <div class="pc-status">${status}</div>
-  </article>`;
+  const m=[c.year?esc(c.year):'',CREDIT_TYPE_LABEL[c.type]&&c.type!=='movie'?CREDIT_TYPE_LABEL[c.type]:'',out&&c.rating&&c.voteCount>=10?`TMDB ${c.rating.toFixed(1)}`:''].filter(Boolean).join(' · ');
+  return `<div class="fa-cell pk-cell ${st}"><div class="fa-art"><a class="fa-pc ${st}" ${open} tabindex="-1">${art}</a>${tag}</div>
+    <div class="fa-cap"><a class="fa-t" ${open}>${esc(c.title)}</a><span>${m}</span><em title="${esc(role)}">${esc(role)}</em></div></div>`;
 }
 
 async function personAddMissing(tmdbId,mediaType,metaEnc,btn){
