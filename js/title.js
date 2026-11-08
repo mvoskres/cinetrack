@@ -141,13 +141,35 @@ function _tsActions(d){
     const it=own.item,lbl={watched:['ok','check','Переглянуто'],watching:['wn','play','Дивлюсь'],planned:['pl','bookmark','Заплановано']}[own.list];
     const extra=own.list==='watching'&&it.type==='series'?` · ${_epLabel(it)}`:own.list==='watched'&&it.rating?` · твоя оцінка ${it.rating}/10`:'';
     const main=own.list==='watched'?`<button class="btn" data-act="editW" data-args="${A((it.id))}">${ic('star')}Оцінка і коментар</button>`
-      :own.list==='planned'?`<button class="btn primary" data-act="plToW" data-args="${A((it.id))}">${ic('check')}Переглянуто</button><button class="btn" data-act="plToWn" data-args="${A((it.id))}">${ic('play')}Почати дивитись</button>`
+      :own.list==='planned'?`<button class="btn" data-act="plToW" data-args="${A((it.id))}">${ic('check')}Переглянуто</button><button class="btn" data-act="plToWn" data-args="${A((it.id))}">${ic('play')}Почати дивитись</button>${_tsSkipBtn(d)}`
       :`<button class="btn primary" data-act="mvToW" data-args="${A((it.id))}">${ic('check')}Переглянуто повністю</button>`;
     return `<span class="chip-s ${lbl[0]}">${ic(lbl[1])}${lbl[2]}${extra}</span>${main}
       <button class="icon-btn" data-act="cardMenu" data-args="${A('$ev',`${own.list}`,(it.id))}" aria-label="Ще дії">${ic('dots')}</button>`;
   }
   if(!d.imdbID)return `<span class="chip-s mute">Немає на IMDb, тож додати не вийде</span>`;
-  return ['watched','watching','planned'].map((l,k)=>`<button class="btn${k===0?' primary':''}" data-act="_tsAdd" data-args="${A(`${l}`)}">${ic(['check','play','bookmark'][k])}${['Переглянуто','Дивлюсь','Запланувати'][k]}</button>`).join('');
+  /* nothing is chosen yet: all choices look the same, none of them «on» */
+  return ['watched','watching','planned'].map((l,k)=>`<button class="btn" data-act="_tsAdd" data-args="${A(`${l}`)}">${ic(['check','play','bookmark'][k])}${['Переглянуто','Дивлюсь','Запланувати'][k]}</button>`).join('')+_tsSkipBtn(d);
+}
+/* «не буду дивитись»: only for a part of a franchise — that is where it counts (a skipped part completes the franchise) */
+function _tsInFranchise(id){
+  if(!id)return false;
+  const c=_collCache[id];if(c&&!c.none&&c.collId)return true;
+  for(const k in _collDetails)if(_collDetails[k]?.parts?.some(p=>p.imdbID===id))return true;
+  return false;
+}
+function _tsSkipBtn(d){
+  if(!_tsInFranchise(d.imdbID))return '';
+  return _skippedParts[d.imdbID]
+    ?`<span class="chip-s mute">${ic('ban')}Пропущено у франшизі</span><button class="btn" data-act="_tsSkip" data-args="${A(false)}">${ic('undo')}Скасувати</button>`
+    :`<button class="btn" data-act="_tsSkip" data-args="${A(true)}">${ic('ban')}Пропустити</button>`;
+}
+function _tsSkip(on){
+  const id=_tsCur?.data?.imdbID;if(!id)return;
+  if(on)_skippedParts[id]={ts:Date.now()};else delete _skippedParts[id];
+  _skippedSave();
+  toast(on?'Пропущено: франшиза рахує цю частину як закриту':'Позначку «пропущено» знято');
+  _tsRefreshActions();
+  if(_collGroupsCache){buildCollBar();renderCollections(true);}
 }
 async function _tsAdd(list){
   const d=_tsCur?.data;if(!d?.imdbID)return;
