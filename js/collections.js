@@ -326,13 +326,14 @@ function _collLink(p,inner,cls=''){
 const _COLL_LBL={wn:'Дивлюсь',pl:'Заплановано',skip:'Пропущено',miss:'Не переглянуто'};
 function _collCell(p,k,ownedMap,extra){
   const owned=p.imdbID?ownedMap[p.imdbID]:null,out=_partOut(p);
-  const skipped=out&&p.imdbID&&!owned&&_skippedParts[p.imdbID];
-  const st=!out?'up':owned?owned.status:skipped?'skip':'miss';
+  /* «не буду дивитись» wins over «Планую»: it is counted as collected, so it must look collected too */
+  const skipped=out&&p.imdbID&&owned?.status!=='ok'&&owned?.status!=='wn'&&_skippedParts[p.imdbID];
+  const st=!out?'up':skipped?'skip':owned?owned.status:'miss';
   const img=_tsImg(p.poster,'w185')||(owned?ps(owned.item.poster):'');
   const art=img?`<img src="${esc(img)}" alt="" loading="lazy" data-fb>`:`<span class="fa-noimg">${esc(p.title)}</span>`;
   const lbl=st==='up'?`Вийде ${p.date?new Date(p.date+'T00:00:00').toLocaleDateString('uk-UA',{day:'numeric',month:'short',year:'numeric'}):'згодом'}`:_COLL_LBL[st]||'';
   /* missing and skipped parts: the label is the button that opens the status picker */
-  const act=(st==='miss'||st==='skip')&&p.imdbID;
+  const act=st!=='ok'&&st!=='up'&&p.imdbID; /* every label but «вийде» opens the status picker */
   const tag=lbl?(act?`<button class="fa-lbl ${st}" data-act="collAddMissing" data-args="${A(`${p.imdbID}`,`${_collMetaEnc(p)}`)}" aria-label="${lbl}: ${esc(p.title)}. Змінити">${lbl}</button>`
     :`<span class="fa-lbl ${st}">${lbl}</span>`):'';
   const ir=owned?.item.imdbRating||p.imdbRating;
