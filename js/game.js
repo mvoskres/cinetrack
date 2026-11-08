@@ -41,34 +41,66 @@ async function _gameUkName(item){
 function _gameEligible(){return watched.filter(i=>i.imdbID&&i.title&&(i.type==='movie'||i.type==='series')&&(_game.type!=='actor'||_gameKind(i)!=='anim'));} /* animation: voice actors only */
 function _gameKind(i){const c=i.customCategory||i.type;return c==='anime'||c==='cartoon'?'anim':i.type==='series'?'series':'movie';}
 
+/* ── start screen «Великий екран»: game picked by picture tiles, one big screen with the game's own visual ── */
+let _gxPics=null,_gxFetching=false;
+function _gxVisuals(){
+  if(_gxPics)return _gxPics;
+  const elig=new Set(_gameEligible().map(i=>i.imdbID));
+  const frames=Object.entries(_gameBackdropCache).filter(([k,v])=>elig.has(k)&&v.backdrops?.length).map(([,v])=>v.backdrops[0]);
+  const faces=[...Object.values(typeof _sxP==='object'?_sxP:{}).map(v=>v[1]),...Object.values(_gameCast).flatMap(v=>(v.top||[]).slice(0,1).map(a=>a[3]))]
+    .filter(p=>typeof p==='string'&&/^\/[\w.-]+$/.test(p));
+  const quotes=Object.values(_gameTag).map(v=>v.t).filter(t=>t&&t.length<=110);
+  const any=a=>a.length?a[Math.floor(Math.random()*a.length)]:'';
+  const f4=[];for(let k=0;k<12&&f4.length<4&&faces.length;k++){const f=any(faces);if(!f4.includes(f))f4.push(f);}
+  _gxPics={frame:any(frames),frame2:any(frames),faces:f4,quote:any(quotes)};
+  /* nothing cached yet (first visit): fetch one frame for the screen, then redraw once */
+  if(!_gxPics.frame&&!_gxFetching&&TMDB_KEY&&!_tmdbBlocked){
+    const pool=_gameEligible().filter(i=>i.type==='movie');
+    if(pool.length){_gxFetching=true;_gameGetBackdrop(pool[Math.floor(Math.random()*pool.length)]).then(u=>{if(u){_gxPics=null;loadGameTab();}}).catch(()=>{});}
+  }
+  return _gxPics;
+}
+const GX_SCREEN={
+  frame:{q:'Що це за фільм?',d:'Кадр без тексту з того, що ти переглянув, і чотири схожі назви.'},
+  actor:{q:'Де грало це обличчя?',d:'Фото з головних ролей у переглянутому. Обери, де саме.'},
+  quote:{q:'Звідки ця цитата?',d:'Гасло з афіші переглянутого тайтлу, назву в ньому приховано.'},
+};
 function loadGameTab(){
   const el=document.getElementById('gameStart');if(!el)return;
   const all=_gameEligible(),cnt={all:all.length,movie:0,series:0,anim:0};all.forEach(i=>cnt[_gameKind(i)]++);
   if(_game.filter!=='all'&&cnt[_game.filter]<4)_game.filter='all';
-  const n=cnt[_game.filter];
-  const T=GAME_TYPES[_game.type];
+  const n=cnt[_game.filter],T=GAME_TYPES[_game.type],S=GX_SCREEN[_game.type],V=_gxVisuals(),b=_gb();
   const h=document.querySelector('#tab-game .section-title'),sb=document.querySelector('#tab-game .recs-sub');
-  if(h)h.textContent=`Впізнай ${T.what}`;if(sb)sb.textContent=T.sub;
+  if(h)h.textContent='Впізнай';if(sb)sb.textContent='';
   const blocked=!TMDB_KEY||_tmdbBlocked?'Потрібен TMDB API-ключ у налаштуваннях, щоб підтягувати кадри й фото.':n<4?`Для гри потрібно щонайменше 4 переглянуті тайтли, а тут ${n}.`:'';
+  const img=(p,w)=>_tsImg(p,w);
+  const thumb={
+    frame:V.frame2||V.frame?`<img src="${esc(img(V.frame2||V.frame,'w300'))}" alt="">`:`<span class="gx-th-ic">${ic('frame')}</span>`,
+    actor:V.faces.length?`<span class="gx-th-f">${V.faces.map(f=>`<img src="${esc(img(f,'w185'))}" alt="">`).join('')}</span>`:`<span class="gx-th-ic">${ic('person')}</span>`,
+    quote:'<span class="gx-th-q">«»</span>',
+  };
+  const tdesc={frame:'назви фільм за кадром',actor:'де грало це обличчя',quote:'звідки це гасло'};
+  let bg='',peek='';
+  if(_game.type==='frame'&&V.frame){const u=esc(img(V.frame,'w780'));bg=`<img class="gx-bg" src="${u}" alt="">`;peek=`<div class="gx-peek"><img src="${u}" alt=""><i>?</i></div>`;}
+  else if(_game.type==='actor'&&V.faces.length){const u=esc(img(V.faces[0],'h632'));bg=`<img class="gx-bg" src="${u}" alt="">`;peek=`<div class="gx-peek gx-peek-p"><img src="${u}" alt=""><i>?</i></div>`;}
+  else if(_game.type==='quote'){peek=`<div class="gx-peek gx-peek-q"><p>${esc(V.quote||'Її хоробрість змінить світ!')}</p></div>`;}
   el.innerHTML=`
-    <div class="seg game-type" role="group" aria-label="Гра">${Object.entries(GAME_TYPES).map(([k,v])=>`<button class="seg-b${_game.type===k?' on':''}" aria-pressed="${_game.type===k}" data-act="setGameType" data-args="${A(`${k}`)}">${v.name}</button>`).join('')}</div>
-    <div class="cat-seg game-filter" role="group" aria-label="З чого брати кадри">${[['all','Усе'],['movie','Фільми'],['series','Серіали'],['anim','Анімація']].filter(([k])=>k==='all'||cnt[k]>=4)
+    <div class="gx-types" role="group" aria-label="Гра">${Object.entries(GAME_TYPES).map(([k,v])=>`<button class="gx-t${_game.type===k?' on':''}" aria-pressed="${_game.type===k}" data-act="setGameType" data-args="${A(`${k}`)}">
+      <span class="gx-th">${thumb[k]}</span><span class="gx-t-tx"><b>${v.name}</b><span>${tdesc[k]}</span></span></button>`).join('')}</div>
+    <section class="gx-screen gx-${_game.type}">${bg}${peek}
+      <div class="gx-in">
+        <div class="gx-k">Впізнай ${T.what}</div>
+        <h2 class="gx-q">${S.q}</h2>
+        <p class="gx-d">${S.d}</p>
+        ${blocked?`<div class="recs-note">${ic('info')}<span>${blocked}</span></div>`:''}
+        <div class="gx-modes">
+          <button class="gx-mode p" data-act="startGame" data-args="[&quot;streak&quot;]" ${blocked?'disabled':''}><b>Серія</b><span>до першої помилки · рекорд <span class="num">${b.streak}</span></span></button>
+          <button class="gx-mode" data-act="startGame" data-args="[&quot;round&quot;]" ${blocked?'disabled':''}><b>Раунд з ${GAME_ROUND}</b><span>найкраще <span class="num">${b.round}</span> з ${GAME_ROUND}</span></button>
+        </div>
+      </div>
+    </section>
+    <div class="cat-seg game-filter" role="group" aria-label="З чого брати">${[['all','Усе'],['movie','Фільми'],['series','Серіали'],['anim','Анімація']].filter(([k])=>k==='all'||cnt[k]>=4)
       .map(([k,l])=>`<button class="cat-chip${_game.filter===k?' on':''}" data-act="setGameFilter" data-args="${A(`${k}`)}">${l}<span class="num">${cnt[k]}</span></button>`).join('')}</div>
-    ${blocked?`<div class="recs-note">${ic('info')}<span>${blocked}</span></div>`:''}
-    <div class="game-modes">
-      <button class="game-mode" data-act="startGame" data-args="[&quot;streak&quot;]" ${blocked?'disabled':''}>
-        <span class="game-mode-ic">${ic('spark')}</span>
-        <span class="game-mode-name">Серія</span>
-        <span class="game-mode-desc">${T.many} йдуть, доки не помилишся</span>
-        <span class="game-mode-best">Рекорд: <b class="num">${_gb().streak}</b> поспіль</span>
-      </button>
-      <button class="game-mode" data-act="startGame" data-args="[&quot;round&quot;]" ${blocked?'disabled':''}>
-        <span class="game-mode-ic">${ic('frame')}</span>
-        <span class="game-mode-name">Раунд з ${GAME_ROUND} ${T.unit}</span>
-        <span class="game-mode-desc">Помилки не зупиняють гру, рахунок у кінці</span>
-        <span class="game-mode-best">Найкраще: <b class="num">${_gb().round}</b> з ${GAME_ROUND}</span>
-      </button>
-    </div>
     <p class="game-keys">Клавіші: <kbd>1</kbd>–<kbd>4</kbd> відповідь · <kbd>Enter</kbd> далі · <kbd>Esc</kbd> вийти</p>`;
 }
 function setGameFilter(k){_game.filter=k;loadGameTab();}
