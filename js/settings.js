@@ -67,6 +67,7 @@ function clearCaches(){
   const before=_storageChars();
   Object.keys(_apiCache).forEach(k=>delete _apiCache[k]);_cacheFlush();
   Object.keys(_gameBackdropCache).forEach(k=>delete _gameBackdropCache[k]);localStorage.removeItem('ct_gamebackdrops');
+  Object.keys(_gameCast).forEach(k=>delete _gameCast[k]);localStorage.removeItem('ct_game_cast');
   Object.keys(_personCache).forEach(k=>delete _personCache[k]);localStorage.removeItem('ct_personcache');
   Object.keys(_tsCache).forEach(k=>delete _tsCache[k]);localStorage.removeItem('ct_titlecache');
   const freed=before-_storageChars();
@@ -160,7 +161,7 @@ function _buildBackup(incK){
     watched,watching,planned,hidden,
     trackedPeople:_trackedPeople,
     collCache:_collCache,collDetails:_collDetails,skippedParts:_skippedParts,unresolvable:_unresolvable,
-    gameBestScore:_gameBestScore,gameRoundBest:_gameRoundBest,gameBackdropCache:_gameBackdropCache,
+    gameBestScore:_gameBest.frame.streak,gameRoundBest:_gameBest.frame.round,gameActorBest:_gameBest.actor.streak,gameActorRound:_gameBest.actor.round,gameBackdropCache:_gameBackdropCache,
     personCache:_personCache,resolveCache:_resolveCache,tmdbFind:_findCache}; /* no apiCache: it expires in 24h anyway */
 }
 async function doExport(){
@@ -419,9 +420,12 @@ function _applyBackup(data){
   if(nColl){Object.assign(_collCache,nColl);_collCacheSave();}
   if(nSkip){Object.assign(_skippedParts,nSkip);_skippedSave();}
   if(nUnres){Object.assign(_unresolvable,nUnres);_unresolvableSave();}
-  const gb=_i(data.gameBestScore,0,1e6),gr=_i(data.gameRoundBest,0,1e6);
-  if(gb!==null&&gb>_gameBestScore){_gameBestScore=gb;_gameBestSave();}
-  if(gr!==null&&gr>_gameRoundBest){_gameRoundBest=gr;_gameBestSave();}
+  for(const [t,ks,kr] of [['frame','gameBestScore','gameRoundBest'],['actor','gameActorBest','gameActorRound']]){
+    const gb=_i(data[ks],0,1e6),gr=_i(data[kr],0,1e6),b=_gameBest[t];
+    if(gb!==null&&gb>b.streak)b.streak=gb;
+    if(gr!==null&&gr>b.round)b.round=gr;
+    _gameBestSave(t);
+  }
   if(nGame){Object.assign(_gameBackdropCache,nGame);_gameCacheSave();}
   /* data.apiCache is deliberately ignored: 24 h of someone else's answers, and the biggest thing in the file */
   if(nDet){Object.assign(_collDetails,nDet);_collDetailsSave();}
@@ -521,6 +525,7 @@ function doImport(e,mode){
 
 /* ── VERSION and CHANGELOG: newest first; bump APP_VERSION and add an entry with every change pushed to the site ── */
 const CHANGELOG=[
+  {v:'1.5',d:'08.11.2026',n:['Нова гра «Впізнай актора»: фото актора з головних ролей у переглянутому, треба вгадати, де він грав. Перемикач «Кадр / Актор» на вкладці гри, окремі рекорди']},
   {v:'1.4',d:'08.11.2026',n:['Вигляд за замовчуванням для Переглянутого й Планую: Налаштування → «Вигляд за замовчуванням» (сітка, список або полиці); перемикач над списком діє до наступного відкриття','Номер версії та історія змін у Налаштуваннях']},
   {v:'1.3',d:'07.11.2026',n:['Перемикач вигляду для Переглянутого й Планую: сітка, список, полиці за категоріями','Гра «Впізнай кадр»: українські назви, оригінал у дужках','Звіт після «Підтягнути» з Drive коротший; сповіщення закриваються дотиком']},
   {v:'1.2',d:'03.11.2026',n:['Безпека: перевірка бекапів при відновленні, захист від шкідливих даних','Відновлення: без дублів, повторні перегляди зберігаються, звіт про пропущене','Дві відкриті вкладки більше не перезаписують одна одну','Drive: 10 копій, захист від зменшеного автобекапу, відновлення із заміною та знімком','Доступність: клавіатура, підказки, зірки оцінки','Дрібні виправлення: сезони, ліміти API, постери, гра']},

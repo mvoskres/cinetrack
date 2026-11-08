@@ -14,7 +14,7 @@ function _gdOn(){return localStorage.getItem('ct_gd_on')==='1';}
 function _gdHasData(){return !!(watched.length||watching.length||planned.length);}
 function _gdFmt(ms){return new Date(ms).toLocaleString('uk-UA',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});}
 /* cheap fingerprint of the user's own data only: caches change constantly and would make every check look "changed" */
-function _gdFp(){const s=JSON.stringify([watched,watching,planned,hidden,_trackedPeople,_gameBestScore,_gameRoundBest]);let h=5381;for(let i=0;i<s.length;i++)h=(h*33^s.charCodeAt(i))>>>0;return h.toString(36)+'.'+s.length;}
+function _gdFp(){const s=JSON.stringify([watched,watching,planned,hidden,_trackedPeople,_gameBest]);let h=5381;for(let i=0;i<s.length;i++)h=(h*33^s.charCodeAt(i))>>>0;return h.toString(36)+'.'+s.length;}
 function _gdLoadLib(){
   return _gdLibP||(_gdLibP=new Promise((res,rej)=>{
     const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';s.async=true;
