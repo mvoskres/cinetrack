@@ -381,7 +381,7 @@ async function _tsCollLoad(d){
 function _tsCollHtml(d,det){
   const parts=(det?.parts||[]).slice().sort((a,b)=>(a.date||'9999').localeCompare(b.date||'9999'));
   if(parts.length<2)return '';
-  const name=(det.name||d.collection.name||'').replace(/ Collection$/,'');
+  const name=_collName(det,d.collection.name);
   const own=_ownedMovieMap(),ST={ok:'переглянуто',wn:'дивлюсь',pl:'заплановано'};
   const mine=Object.values(_collCache).some(x=>x.collId===d.collection.id); /* the Franchises tab lists it */
   const n=parts.length,a=n%10,b=n%100,films=a===1&&b!==11?'фільм':a>=2&&a<=4&&(b<12||b>14)?'фільми':'фільмів';

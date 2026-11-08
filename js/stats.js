@@ -192,7 +192,7 @@ function renderStats(){
   const franchises=[...fIds].map(id=>{
     const det=_collDetails[id];if(!det?.parts?.length)return null;
     const cc=_collCounts({list:det.parts},fOwned);
-    return{name:(det.name||'').replace(/ Collection$/,''),owned:cc.owned,total:cc.total};
+    return{name:_collName(det),owned:cc.owned,total:cc.total};
   }).filter(Boolean);
   const oneLeft=franchises.filter(f=>f.total>1&&f.owned>0&&f.total-f.owned===1).sort((a,b)=>b.total-a.total);
   const fullF=franchises.filter(f=>f.total>1&&f.owned>=f.total).length;

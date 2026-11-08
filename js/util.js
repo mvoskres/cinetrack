@@ -207,6 +207,11 @@ function blank(){return"data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/200
 
 /* ── TMDB API ── */
 /* Map OMDb genre names to TMDB genre IDs for discover endpoint */
+/* a Ukrainian title is used only when TMDB really translated it: an untranslated entry repeats the original
+   (Chinese, Japanese…) and then the English title reads better */
+function _ukTitle(loc,orig,en){loc=(loc||'').trim();return loc&&loc!==orig&&loc!==en?loc:'';}
+/* «Термінатор | Колекція», «Terminator Collection» → «Термінатор» */
+function _collName(det,fallback){return String(det?.uname||det?.name||fallback||'').replace(/\s*[|(]\s*Колекці[яї]\)?\s*$/i,'').replace(/ Collection$/,'');}
 const TMDB_GENRES={
   Action:28,Adventure:12,Animation:16,Comedy:35,Crime:80,
   Documentary:99,Drama:18,Family:10751,Fantasy:14,History:36,

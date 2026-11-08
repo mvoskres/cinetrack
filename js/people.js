@@ -121,6 +121,25 @@ const _creditMinor=c=>c.type==='talk'||c.type==='doc'||!c.poster||c.voteCount<10
 
 /* one card per title: acting and directing the same film used to show twice.
    Shared by the person tab and the stats, so "помітних" counts agree */
+/* Ukrainian titles for every followed person whose cache predates 1.14 (used by the recommendations' people shelf) */
+let _personUkBusy=false;
+async function _personUkFillAll(){
+  if(_personUkBusy||!TMDB_KEY||_tmdbBlocked)return false;
+  const todo=_trackedPeople.filter(p=>_personCache[p.id]&&!_personCache[p.id].ut);if(!todo.length)return false;
+  _personUkBusy=true;let any=false;
+  await Promise.all(todo.map(async p=>{try{const uk=await tmdbFetch(`/person/${p.id}/combined_credits?language=uk-UA`,8000);
+    if(uk){_personCache[p.id].ut=_personUk(uk,null);any=true;}}catch(e){}}));
+  if(any)_personCacheSave();
+  _personUkBusy=false;return any;
+}
+/* {'movie:13':'Форрест Гамп'} — only titles TMDB really translated */
+function _personUk(uk,en){
+  const out={},enT={};
+  if(en)[...(en.cast||[]),...(en.crew||[])].forEach(c=>{enT[(c.media_type==='tv'?'tv':'movie')+':'+c.id]=c.title||c.name;});
+  [...(uk?.cast||[]),...(uk?.crew||[])].forEach(c=>{const k=(c.media_type==='tv'?'tv':'movie')+':'+c.id;
+    const t=_ukTitle(c.title||c.name,c.original_title||c.original_name,enT[k]);if(t)out[k]=t;});
+  return out;
+}
 function _personAllCredits(credits){
   const byKey=new Map();
   const add=(c,role)=>{
@@ -129,7 +148,7 @@ function _personAllCredits(credits){
     let it=byKey.get(k);
     if(!it){
       const date=c.release_date||c.first_air_date||'';
-      it={id:c.id,mediaType:mt,title:c.title||c.name||'',year:date.slice(0,4),date,characters:[],roles:new Set(),lead:false,
+      it={id:c.id,mediaType:mt,title:c.title||c.name||'',ut:credits.ut?.[k]||'',year:date.slice(0,4),date,characters:[],roles:new Set(),lead:false,
         poster:c.poster_path||null,rating:typeof c.vote_average==='number'?c.vote_average:0,voteCount:c.vote_count||0,
         type:_creditType(c.genre_ids||[],c.media_type,c.original_language)};
       byKey.set(k,it);
@@ -161,8 +180,8 @@ async function openPerson(id){
   const stale=!credits||Date.now()-credits.ts>PERSON_TTL||(credits.cast||[]).length&&!(credits.cast||[]).some(c=>'order' in c||'episode_count' in c);
   if(stale){
     try{
-      const r=await tmdbFetch(`/person/${id}/combined_credits`,8000,true);
-      credits={cast:_slimCredits(r.cast),crew:_slimCredits(r.crew),ts:Date.now()};
+      const [r,uk]=await Promise.all([tmdbFetch(`/person/${id}/combined_credits`,8000,true),tmdbFetch(`/person/${id}/combined_credits?language=uk-UA`,8000,true).catch(()=>null)]);
+      credits={cast:_slimCredits(r.cast),crew:_slimCredits(r.crew),ut:_personUk(uk,r),ts:Date.now()};
       _personCache[id]=credits;_personCacheSave();
     }catch(e){
       if(detail.dataset.pid!==String(id))return; /* another person was opened meanwhile */
@@ -171,6 +190,13 @@ async function openPerson(id){
     if(detail.dataset.pid!==String(id))return; /* a slow answer must not paint over the person now on screen (the cache is already filled) */
   }
 
+  /* caches from before 1.14: fetch the Ukrainian titles once, then redraw */
+  if(!credits.ut&&TMDB_KEY&&!_tmdbBlocked){
+    tmdbFetch(`/person/${id}/combined_credits?language=uk-UA`,8000).then(uk=>{
+      if(!uk)return;credits.ut=_personUk(uk,null);_personCacheSave();
+      if(detail.dataset.pid===String(id)&&_personGroupsCache?.personId===id){_personGroupsCache.all=_personAllCredits(credits);buildPersonBar();renderPersonList();}
+    }).catch(()=>{});
+  }
   const all=_personAllCredits(credits);
   _personGroupsCache={personId:id,all};
   const prof=_tsImg(person?.profile,'w185')||BLANK;
@@ -260,7 +286,7 @@ function renderPersonList(){
   const bar=document.getElementById('personBarFill');if(bar)bar.style.width=(notable.length?Math.round(seen/notable.length*100):0)+'%';
 
   let items=_personPool().map(c=>({...c,owned:own(c)}));
-  if(f.q){const q=f.q.toLowerCase();items=items.filter(c=>c.title.toLowerCase().includes(q));}
+  if(f.q){const q=f.q.toLowerCase();items=items.filter(c=>c.title.toLowerCase().includes(q)||(c.ut||'').toLowerCase().includes(q));}
   if(f.type!=='all')items=items.filter(c=>f.type==='anim'?(c.type==='anime'||c.type==='cartoon'):c.type===f.type);
   if(f.role==='lead')items=items.filter(c=>c.lead);
   if(f.role==='directing')items=items.filter(c=>c.roles.has('directing'));
@@ -295,11 +321,12 @@ function renderPersonList(){
 }
 
 function _personCardHtml(c){
+  const tt=c.ut||c.title;
   const ck=`${c.mediaType}:${c.id}`;
   const out=c.date&&c.date<=_todayISO();
-  const meta=uriSafe(JSON.stringify({title:c.title,year:c.year,poster:c.poster?`https://image.tmdb.org/t/p/w342${c.poster}`:'',rating:c.rating?c.rating.toFixed(1):''}));
+  const meta=uriSafe(JSON.stringify({title:c.ut||c.title,year:c.year,poster:c.poster?`https://image.tmdb.org/t/p/w342${c.poster}`:'',rating:c.rating?c.rating.toFixed(1):''}));
   const knownImdb=c.owned?c.owned.item.imdbID:_resolveCache[ck]?.imdbID;
-  const addBtn=(cls,txt)=>`<button class="fa-lbl ${cls}" data-act="personAddMissing" data-args="${A((c.id),`${c.mediaType}`,`${meta}`,'$el')}" aria-label="${esc(txt)}: ${esc(c.title)}">${txt}</button>`;
+  const addBtn=(cls,txt)=>`<button class="fa-lbl ${cls}" data-act="personAddMissing" data-args="${A((c.id),`${c.mediaType}`,`${meta}`,'$el')}" aria-label="${esc(txt)}: ${esc(tt)}">${txt}</button>`;
   let st,tag='';
   if(c.owned){
     st=c.owned.status;
@@ -311,13 +338,13 @@ function _personCardHtml(c){
   else{st='miss';tag=addBtn('miss','Додати');}
   const link=knownImdb?`https://www.imdb.com/title/${knownImdb}/`:`https://www.themoviedb.org/${c.mediaType==='tv'?'tv':'movie'}/${c.id}`;
   const img=_tsImg(c.poster,'w342');
-  const art=img?`<img src="${esc(img)}" data-fb loading="lazy" alt="">`:`<span class="fa-noimg">${esc(c.title)}</span>`;
+  const art=img?`<img src="${esc(img)}" data-fb loading="lazy" alt="">`:`<span class="fa-noimg">${esc(tt)}</span>`;
   const open=`href="${esc(link)}" target="_blank" rel="noopener" data-act="_tsClickT" data-args="${A('$ev',`${c.mediaType}`,(c.id))}"`;
   const roleLbl=c.roles.has('directing')&&c.roles.has('acting')?'Режисер і актор':c.roles.has('directing')?'Режисер':c.lead?'Головна роль':'Роль';
   const role=roleLbl+(c.characters.length?' · '+c.characters.join(', '):'');
   const m=[c.year?esc(c.year):'',CREDIT_TYPE_LABEL[c.type]&&c.type!=='movie'?CREDIT_TYPE_LABEL[c.type]:'',out&&c.rating&&c.voteCount>=10?`TMDB ${c.rating.toFixed(1)}`:''].filter(Boolean).join(' · ');
   return `<div class="fa-cell pk-cell ${st}"><div class="fa-art"><a class="fa-pc ${st}" ${open} tabindex="-1">${art}</a>${tag}</div>
-    <div class="fa-cap"><a class="fa-t" ${open}>${esc(c.title)}</a><span>${m}</span><em title="${esc(role)}">${esc(role)}</em></div></div>`;
+    <div class="fa-cap"><a class="fa-t" ${open}>${esc(tt)}</a><span>${m}</span><em title="${esc(role)}">${esc(role)}</em></div></div>`;
 }
 
 async function personAddMissing(tmdbId,mediaType,metaEnc,btn){

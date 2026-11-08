@@ -30,14 +30,33 @@ function _partOut(p){return p.id===null||(!!p.date&&p.date<=_todayISO());}
 /* Ratings come from the /collection response itself (TMDB score); the old
    per-part OMDb lookup cost 263 requests of the 1000/day quota on a full scan. */
 async function _fetchCollection(id){
-  const d=await tmdbFetch(`/collection/${id}`);
+  const [d,uk]=await Promise.all([tmdbFetch(`/collection/${id}`),tmdbFetch(`/collection/${id}?language=uk-UA`).catch(()=>null)]);
   const old={};(_collDetails[id]?.parts||[]).forEach(p=>{old[p.id]=p;});
-  _collDetails[id]={name:d.name,poster:d.poster_path,ts:Date.now(),
-    parts:(d.parts||[]).filter(p=>p.title).map(p=>({id:p.id,title:p.title,year:(p.release_date||'').slice(0,4),date:p.release_date||'',
+  const ukp={};(uk?.parts||[]).forEach(p=>{ukp[p.id]=p;});
+  _collDetails[id]={name:d.name,uname:uk?_ukTitle(uk.name,'',d.name):'',uk:uk?1:0,poster:d.poster_path,ts:Date.now(),
+    parts:(d.parts||[]).filter(p=>p.title).map(p=>({id:p.id,title:p.title,ut:_ukTitle(ukp[p.id]?.title,p.original_title,p.title),year:(p.release_date||'').slice(0,4),date:p.release_date||'',
       poster:p.poster_path||null,vote:typeof p.vote_average==='number'&&p.vote_count>=20?Math.round(p.vote_average*10)/10:null,
       imdbID:old[p.id]?.imdbID,imdbRating:old[p.id]?.imdbRating}))};
 }
 /* refetch: announced parts every 14 days (dates move, sequels appear), the rest every 60; old caches had no part posters */
+/* caches from before 1.14 have English titles only: one Ukrainian request per franchise, once, in the background */
+let _collUkBusy=false;
+async function _collUkFill(){
+  if(_collUkBusy||!TMDB_KEY||_tmdbBlocked)return false;
+  const ids=Object.keys(_collDetails).filter(id=>_collDetails[id]&&!_collDetails[id].uk);if(!ids.length)return false;
+  _collUkBusy=true;let any=false,fails=0;
+  for(let i=0;i<ids.length&&fails<5;i+=4){
+    await Promise.all(ids.slice(i,i+4).map(async id=>{
+      try{const uk=await tmdbFetch(`/collection/${id}?language=uk-UA`);const det=_collDetails[id];if(!uk||!det)return;
+        const ukp={};(uk.parts||[]).forEach(p=>{ukp[p.id]=p;});
+        det.uname=_ukTitle(uk.name,'',det.name);
+        (det.parts||[]).forEach(p=>{const u=ukp[p.id];if(u)p.ut=_ukTitle(u.title,u.original_title,p.title);});
+        det.uk=1;any=true;fails=0;}catch(e){fails++;}
+    }));
+  }
+  if(any)_collDetailsSave();
+  _collUkBusy=false;return any;
+}
 function _collStale(det){
   if(!det)return true;
   const parts=det.parts||[];
@@ -181,6 +200,7 @@ async function loadCollections(force){
   _collOrderLocked=null;
   renderCollections();
   _collBackgroundRefresh(force);
+  _collUkFill().then(any=>{if(any&&_collCtx){_collGroupsCache=_buildCollGroups(_collCtx.groups,_collCtx.collIds);renderCollections(true);}});
 }
 /* flat, render-ready list; filters/sorts/paging never touch the network */
 function _buildCollGroups(groups,collIds){
@@ -188,7 +208,7 @@ function _buildCollGroups(groups,collIds){
     const grp=groups[id],det=_collDetails[id];
     const parts=(det?.parts||[]).slice().sort((a,b)=>(a.date||'9999').localeCompare(b.date||'9999'));
     const list=parts.length?parts:grp.owned.map(o=>({title:o.title,year:String(o.year||'').slice(0,4),id:null,imdbID:o.imdbID,imdbRating:o.imdbRating,poster:null}));
-    return{id,name:(det?.name||grp.collName||'').replace(/ Collection$/,''),poster:grp.collPoster||det?.poster||parts.find(p=>p.poster)?.poster,list, /* some collections have no poster of their own */
+    return{id,name:_collName(det,grp.collName),en:(det?.name||grp.collName||'').replace(/ Collection$/,''),poster:grp.collPoster||det?.poster||parts.find(p=>p.poster)?.poster,list, /* some collections have no poster of their own */
       types:[...new Set(grp.owned.map(o=>o.customCategory||o.type).filter(Boolean))],
       genres:[...new Set(grp.owned.flatMap(o=>(o.genre||'').split(',').map(s=>s.trim()).filter(Boolean)))]};
   });
@@ -285,7 +305,7 @@ function renderCollections(preserveOrder){
   }else{
     list=_collGroupsCache.map(withCounts);
     const f=_collFilter;
-    if(f.q){const q=f.q.toLowerCase();list=list.filter(c=>c.name.toLowerCase().includes(q));}
+    if(f.q){const q=f.q.toLowerCase();list=list.filter(c=>c.name.toLowerCase().includes(q)||(c.en||'').toLowerCase().includes(q));}
     if(f.status==='incomplete')list=list.filter(c=>c.total>0&&c.owned<c.total);
     if(f.status==='complete')list=list.filter(c=>c.total>0&&c.owned>=c.total);
     if(f.status==='upcoming')list=list.filter(c=>c.upcoming>0);
@@ -330,16 +350,17 @@ function _collCell(p,k,ownedMap,extra){
   const skipped=out&&p.imdbID&&owned?.status!=='ok'&&owned?.status!=='wn'&&_skippedParts[p.imdbID];
   const st=!out?'up':skipped?'skip':owned?owned.status:'miss';
   const img=_tsImg(p.poster,'w185')||(owned?ps(owned.item.poster):'');
-  const art=img?`<img src="${esc(img)}" alt="" loading="lazy" data-fb>`:`<span class="fa-noimg">${esc(p.title)}</span>`;
+  const tt=p.ut||p.title;
+  const art=img?`<img src="${esc(img)}" alt="" loading="lazy" data-fb>`:`<span class="fa-noimg">${esc(tt)}</span>`;
   const lbl=st==='up'?`Вийде ${p.date?new Date(p.date+'T00:00:00').toLocaleDateString('uk-UA',{day:'numeric',month:'short',year:'numeric'}):'згодом'}`:_COLL_LBL[st]||'';
   /* missing and skipped parts: the label is the button that opens the status picker */
   const act=st!=='ok'&&st!=='up'&&p.imdbID; /* every label but «вийде» opens the status picker */
-  const tag=lbl?(act?`<button class="fa-lbl ${st}" data-act="collAddMissing" data-args="${A(`${p.imdbID}`,`${_collMetaEnc(p)}`)}" aria-label="${lbl}: ${esc(p.title)}. Змінити">${lbl}</button>`
+  const tag=lbl?(act?`<button class="fa-lbl ${st}" data-act="collAddMissing" data-args="${A(`${p.imdbID}`,`${_collMetaEnc(p)}`)}" aria-label="${lbl}: ${esc(tt)}. Змінити">${lbl}</button>`
     :`<span class="fa-lbl ${st}">${lbl}</span>`):'';
   const ir=owned?.item.imdbRating||p.imdbRating;
   const meta=[p.year?esc(p.year):'',ir?`IMDb ${esc(ir)}`:p.vote?`TMDB ${esc(p.vote)}`:''].filter(Boolean).join(' · ');
   return `<div class="fa-cell ${st}${extra?' extra':''}"><div class="fa-art">${_collLink(p,art,`fa-pc ${st}`)}${st==='ok'?`<i class="fa-ok" title="Переглянуто">${ic('check')}</i>`:''}${tag}</div>
-    <div class="fa-cap">${_collLink(p,esc(p.title),'fa-t')}<span>${meta}</span></div></div>`;
+    <div class="fa-cap">${_collLink(p,esc(tt),'fa-t')}<span>${meta}</span></div></div>`;
 }
 function _collCardHtml(c,ownedMap){
   const complete=c.total>0&&c.owned>=c.total;

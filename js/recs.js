@@ -139,9 +139,9 @@ function _shelfFranchises(known){
     const idx=parts.findIndex(p=>p.imdbID&&!own[p.imdbID]&&!_skippedParts[p.imdbID]&&p.date&&p.date<=today&&!(parseFloat(p.imdbRating||p.vote)<6));
     if(idx<0)return;
     const p=parts[idx];
-    const it={k:'movie:'+p.id,id:p.id,mt:'movie',title:p.title,year:p.year,date:p.date,poster:p.poster||det.poster||null,
+    const it={k:'movie:'+p.id,id:p.id,mt:'movie',title:p.ut||p.title,ot:p.ut?p.title:'',year:p.year,date:p.date,poster:p.poster||det.poster||null,
       rating:p.vote||0,imdbRating:p.imdbRating||'',votes:0,anim:false,lang:'',imdbID:p.imdbID,
-      note:`${(det.name||'').replace(/ Collection$/,'')} · частина ${idx+1} з ${parts.length}`};
+      note:`${_collName(det)} · частина ${idx+1} з ${parts.length}`};
     if(!known.has(it))items.push(it);
   });
   return {id:'franchise',title:'Наступне у твоїх франшизах',why:'Перша непереглянута частина франшиз, які ти вже почав',items:items.slice(0,18)};
@@ -153,6 +153,7 @@ function _shelfPeople(known){
     [...(c.cast||[]).map(x=>({...x,_r:'acting'})),...(c.crew||[]).filter(x=>x.job==='Director').map(x=>({...x,_r:'directing'}))].forEach(x=>{
       if((x.genre_ids||[]).some(g=>g===99||g===10767||g===10763||g===10764))return; /* docs, talk shows */
       const it=_recItem(x,x.media_type==='tv'?'tv':'movie',`${p.name} · ${x._r==='acting'?'грає':'режисер'}`);
+      const ut=c.ut?.[it.k];if(ut&&ut!==it.title){it.ot=it.ot||it.title;it.title=ut;}
       if(_recOk(it,150,6.3)&&!known.has(it))items.push(it);
     });
   });
@@ -308,6 +309,7 @@ async function buildRecs(manual){
 
 /* entry point from the tab */
 function openRecs(){
+  _personUkFillAll().then(any=>{if(any&&_recs){const sh=_shelfPeople(_recKnown());const k=_recs.shelves.findIndex(x=>x.id==='people');if(k>=0&&sh.items.length){_recs.shelves[k]=sh;_recsSave();renderRecs();}}});
   _recView=_recView==='genre'?'picks':_recView;
   if(!_recs||_recs.v!==REC_V||Date.now()-(_recs.ts||0)>(_recs.partial?RECS_RETRY:RECS_TTL))buildRecs();
   else _recFillIds().then(n=>{if(n)renderRecs();}); /* titles added elsewhere since: their ids, then re-filter */
