@@ -152,7 +152,7 @@ function renderStats(){
   const recs=[
     [by(movies,(a,b)=>b.runtime-a.runtime),'Найдовший фільм',i=>`${i.runtime} хв`],
     [by(movies.filter(i=>i.runtime>=40),(a,b)=>a.runtime-b.runtime),'Найкоротший повний метр',i=>`${i.runtime} хв`],
-    [longS?.i,'Найдовший серіал',()=>`${nf(longS.eps)} ${sxPl(longS.eps,['серія','серії','серій'])} · ${nf(Math.round(longS.m/60))} год`],
+    [longS?.i,'Найдовший серіал',()=>`${nf(longS.eps)} ${sxPl(longS.eps,['серія','серії','серій'])}`],
     [by(withYear,(a,b)=>yOf(a)-yOf(b)),'Найстаріший',i=>esc(i.year)],
     [by(withYear,(a,b)=>yOf(b)-yOf(a)),'Найновіший',i=>esc(i.year)],
     [by(rated,(a,b)=>parseFloat(b.imdbRating)-parseFloat(a.imdbRating)),'Найвищий IMDb',i=>`IMDb ${esc(i.imdbRating)}`],
@@ -184,81 +184,90 @@ function renderStats(){
   const plannedOf=g=>planned.filter(i=>(i.genre||'').split(',').some(x=>x.trim()===g)).length;
   const next=[];
   if(bestGenre){const g=bestGenre[0],p=plannedOf(g);
-    next.push({t:`Найвище ти оцінюєш ${sxGenrePl(g)}: середній IMDb ${gAvg(g).toFixed(1)}`,s:p?`У «Планую» їх ${nf(p)}`:'У «Планую» таких поки немає',a:['goTab','recs'],b:'Рекомендації'});}
+    next.push({t:`Більше ${sxGenrePl(g)}`,s:p?`Твій найвищий бал, ★ ${gAvg(g).toFixed(1)}. У «Планую» їх ${nf(p)}`:`Твій найвищий бал, ★ ${gAvg(g).toFixed(1)}, а в «Планую» жодної`,a:['goTab','recs'],b:'Рекомендації'});}
   if(oneLeft.length)next.push({t:`${oneLeft.length===1?'Одна франшиза':`${nf(oneLeft.length)} ${sxPl(oneLeft.length,['франшиза','франшизи','франшиз'])}`} за крок до повної`,s:oneLeft.slice(0,4).map(f=>`${esc(f.name)} (${f.owned} з ${f.total})`).join(', '),a:['goTab','collections'],b:'Франшизи'});
-  else if(!Object.keys(_collCache).length)next.push({t:'Франшизи ще не пораховані',s:'Відкрий вкладку, і тут з\'явиться, де лишилось подивитись одну частину',a:['goTab','collections'],b:'Франшизи'});
+  else if(!Object.keys(_collCache).length)next.push({t:'Порахувати франшизи',s:'Покажу, де лишилась одна частина',a:['goTab','collections'],b:'Франшизи'});
   if(watching.length)next.push({t:`Зараз дивишся ${nf(watching.length)} ${sxPl(watching.length,['тайтл','тайтли','тайтлів'])}`,s:watching.slice(0,3).map(i=>esc(i.title)).join(', '),a:['goTab','watching'],b:'Дивлюсь'});
 
-  /* ── portrait ── */
-  const g2=genres.slice(0,2).map(([g])=>sxGenrePl(g));
-  const topA=actors[0];
+  /* ── layout: «стрічка й афіша» — posters and big numbers carry the page, words stay short ── */
   const mv=catCount.movie||0,sr=catCount.series||0;
-  const portrait=[
-    `${nf(total)} ${sxPl(total,['переглянутий тайтл','переглянуті тайтли','переглянутих тайтлів'])}: ${nf(mv)} ${sxPl(mv,['фільм','фільми','фільмів'])}, ${nf(sr)} ${sxPl(sr,['серіал','серіали','серіалів'])}${anim?` і ${nf(anim)} анімації`:''}.`,
-    g2.length?`Найчастіше це ${g2.join(' та ')}${favDec?`, найбільше ${favDec===1960?'старого кіно, до 1970-х':`з ${favDec}-х`}`:''}.`:'',
-    bestGenre&&!g2.includes(sxGenrePl(bestGenre[0]))?`Найвище оцінюєш ${sxGenrePl(bestGenre[0])}.`:'',
-    countries.length?`Кіно з ${nf(countries.length)} ${sxPl(countries.length,['країни','країн','країн'])}, найбільше: ${countries.slice(0,3).map(c=>esc(c[0])).join(', ')}.`:'',
-    topA?`Найчастіше на екрані: ${esc(topA.name)}, ${nf(topA.c)} ${sxPl(topA.c,['тайтл','тайтли','тайтлів'])}.`:'',
-  ].filter(Boolean).join(' ');
+  const topA=actors[0],g1=genres[0];
+  const pc=(i,lbl,val)=>`<a class="sv-pc" href="${imdbHref(i)}" target="_blank" rel="noopener" data-act="_tsClick" data-args="${A('$ev',`${i.imdbID}`)}" title="${esc(i.title)}">
+    <img src="${posterSrc(i.poster)}" data-pf="${esc(i.imdbID)}" alt="" loading="lazy">
+    ${lbl?`<span class="sv-pc-lbl">${lbl}</span>`:''}<span class="sv-pc-foot"><span class="sv-pc-t">${esc(i.title)}</span>${val?`<b class="num">${val}</b>`:''}</span></a>`;
+  const face=p=>`<button class="sv-face" data-act="_tsPerson" data-args="${A(p.id,p.name,p.pic||'')}" title="${esc(p.name)}: ${nf(p.c)}">
+    <span class="sv-face-ph">${p.pic?`<img src="https://image.tmdb.org/t/p/w185${esc(p.pic)}" alt="" loading="lazy">`:`<i>${esc(p.name.slice(0,1))}</i>`}<b class="num">${nf(p.c)}</b></span>
+    <span class="sv-face-n">${esc(p.name)}</span></button>`;
 
-  /* ── pieces ── */
-  const poster=(i,lbl,val)=>`<a class="sx-pc" href="${imdbHref(i)}" target="_blank" rel="noopener" data-act="_tsClick" data-args="${A('$ev',`${i.imdbID}`)}" title="${esc(i.title)}">
-    ${lbl?`<span class="sx-pc-lbl">${lbl}</span>`:''}<img src="${posterSrc(i.poster)}" data-pf="${esc(i.imdbID)}" alt="" loading="lazy">
-    <span class="sx-pc-t">${esc(i.title)}</span>${val?`<span class="sx-pc-v num">${val}</span>`:''}</a>`;
-  const person=p=>`<button class="sx-person" data-act="_tsPerson" data-args="${A(p.id,p.name,p.pic||'')}">
-    ${p.pic?`<img src="https://image.tmdb.org/t/p/w185${esc(p.pic)}" alt="" loading="lazy">`:`<span class="sx-person-0">${esc(p.name.slice(0,1))}</span>`}
-    <span class="sx-person-n">${esc(p.name)}</span><span class="sx-person-c num">${nf(p.c)} ${sxPl(p.c,['тайтл','тайтли','тайтлів'])}</span></button>`;
-  const rows=(items,max,limit=5)=>{
-    const row=r=>`<div class="sx-row"><div class="sx-row-head"><span class="sx-row-lbl">${esc(r.lbl)}</span><span class="sx-row-val"><span class="num">${nf(r.n)}</span>${r.extra?`<small>${r.extra}</small>`:''}</span></div>
-      <div class="sx-bar"><i style="width:${Math.max(1,Math.min(100,Math.round(r.n/(r.max||max)*100)))}%"></i></div></div>`;
-    return `<div class="sx-rows">${items.slice(0,limit).map(row).join('')}</div>${items.length>limit?`<details class="sx-more"><summary>Усі ${nf(items.length)}</summary><div class="sx-rows">${items.slice(limit).map(row).join('')}</div></details>`:''}`;
-  };
-  const rMax=Math.max(...rb,1),meanPct=Math.max(0,Math.min(100,(parseFloat(avgRating)-1)/10*100));
+  /* hero wall: the best rated posters you watched */
+  const wall=rated.filter(i=>ps(i.poster)).sort((a,b)=>parseFloat(b.imdbRating)-parseFloat(a.imdbRating)).slice(0,36);
+  /* credits: six facts, value + two words */
+  const credits=[
+    [nf(total),sxPl(total,['тайтл','тайтли','тайтлів']),`${nf(mv)} фільм. · ${nf(sr)} сер. · ${nf(anim)} анім.`],
+    g1&&[sxGenre(g1[0]),'жанр №1',`${nf(g1[1])} тайтлів`],
+    favDec&&[favDec===1960?'класика':`${String(favDec).slice(2)}-ті`,'твоє десятиліття',`${nf(dec[favDec].length)} тайтлів`],
+    bestGenre&&[sxGenre(bestGenre[0]),'найвищий бал',`★ ${gAvg(bestGenre[0]).toFixed(1)}`],
+    countries.length&&[nf(countries.length),sxPl(countries.length,['країна','країни','країн']),countries.slice(0,2).map(c=>esc(c[0])).join(', ')],
+    topA&&[esc(topA.name),'найчастіше на екрані',`${nf(topA.c)} тайтлів`,topA],
+  ].filter(Boolean);
+  /* decades as columns built from posters */
+  const decAsc=decKeys.slice().sort((a,b)=>a-b),decMax=Math.max(...decAsc.map(d=>dec[d].length),1);
+  /* genres as a word cloud: size by count, gold when rated above your mean */
+  const gTop=genres.slice(0,16),gMax=gTop[0]?.[1]||1,mean=parseFloat(avgRating)||0;
+  const gCloud=gTop.slice().sort((a,b)=>sxGenre(a[0]).localeCompare(sxGenre(b[0]),'uk'));
+  const rMax=Math.max(...rb,1),meanPct=Math.max(0,Math.min(100,(mean-1)/10*100));
 
   el.innerHTML=`
-  <section class="sx-portrait">
-    <div class="sx-time"><span class="sx-time-n">${days>0?`${nf(days)} ${sxPl(days,['день','дні','днів'])}`:`${hrs} год`}</span>
-      <span class="sx-time-l">${days>0&&hrs?`і ${hrs} год `:''}перед екраном</span></div>
-    <p class="sx-story">${portrait}</p>
-    <p class="sx-split"><span><b class="num">${sxDur(movieMin)}</b> фільми</span><span><b class="num">${sxDur(seriesMin)}</b> серіали</span></p>
-    <p class="sx-note">Фільми за тривалістю${movies.length<mv?` (відома для ${nf(movies.length)})`:''}. Серіали так, ніби переглянуто всі серії${seriesKnown<seriesAll.length?` (пораховано ${nf(seriesKnown)} з ${nf(seriesAll.length)})`:''}${longS&&longS.m>seriesMin*.25?`; найбільше дає ${esc(longS.i.title)}, ${nf(longS.eps)} ${sxPl(longS.eps,['серія','серії','серій'])}`:''}. Середній IMDb переглянутого: <b class="num">${avgRating}</b>.</p>
-    ${collecting?`<p class="sx-prog" id="sxProg">Збираю акторів, режисерів і серії: ще ${nf(sxTodo)}</p>`:''}
+  <section class="sv-hero">
+    <div class="sv-wall" aria-hidden="true">${wall.map(i=>`<img src="${posterSrc(i.poster)}" data-pf="${esc(i.imdbID)}" alt="">`).join('')}</div>
+    <div class="sv-hero-in">
+      <div class="sv-big num">${nf(days)}</div>
+      <div class="sv-big-l">${sxPl(days,['день','дні','днів'])} перед екраном</div>
+      <div class="sv-split"><span><b class="num">${sxDur(movieMin)}</b>фільми</span><span><b class="num">${sxDur(seriesMin)}</b>серіали</span></div>
+      ${collecting?`<div class="sv-prog" id="sxProg">Збираю акторів і серії: ще ${nf(sxTodo)}</div>`:''}
+    </div>
   </section>
 
-  <section class="sx-sec"><h3 class="sx-h">Рекорди</h3>
-    <div class="sx-strip">${recs.map(([i,l,v])=>poster(i,l,v(i))).join('')}</div></section>
+  <section class="sv-credits" aria-label="Коротко">${credits.map(([v,l,s,p])=>`<div class="sv-cr">
+    ${p?.pic?`<img class="sv-cr-ph" src="https://image.tmdb.org/t/p/w185${esc(p.pic)}" alt="">`:''}
+    <div class="sv-cr-v">${v}</div><div class="sv-cr-l">${l}</div><div class="sv-cr-s">${s}</div></div>`).join('')}</section>
 
-  ${actors.length?`<section class="sx-sec"><h3 class="sx-h">Кого ти бачив найчастіше</h3>
-    <p class="sx-sub">Актори з головних ролей${directors.length?' · нижче режисери й автори серіалів':''}</p>
-    <div class="sx-strip sx-people">${actors.map(person).join('')}</div>
-    ${directors.length?`<div class="sx-strip sx-people sx-dirs">${directors.map(person).join('')}</div>`:''}</section>`:
-    collecting?`<section class="sx-sec"><h3 class="sx-h">Кого ти бачив найчастіше</h3><p class="sx-sub">З'явиться, щойно зберуться актори</p></section>`:''}
+  <section class="sv-sec"><h3 class="sv-h">Рекорди</h3>
+    <div class="sv-strip">${recs.map(([i,l,v])=>pc(i,l,v(i))).join('')}</div></section>
 
-  ${next.length?`<section class="sx-sec"><h3 class="sx-h">Що далі</h3><div class="sx-next">${next.map(n=>`<div class="sx-next-i"><b>${n.t}</b><span>${n.s}</span>
-    <button class="link-btn" data-act="${n.a[0]}" data-args="${A(n.a[1])}">${n.b} →</button></div>`).join('')}</div></section>`:''}
+  ${actors.length?`<section class="sv-sec"><h3 class="sv-h">Обличчя твого кіно</h3>
+    <div class="sv-strip sv-faces">${actors.map(face).join('')}</div>
+    ${directors.length?`<h4 class="sv-h4">За камерою</h4><div class="sv-strip sv-faces sv-faces-s">${directors.map(face).join('')}</div>`:''}</section>`:''}
 
-  ${finds.length>=3?`<section class="sx-sec"><h3 class="sx-h">Твої знахідки</h3>
-    <p class="sx-sub">Високий IMDb, але на TMDB за них голосувало менше 400 людей</p>
-    <div class="sx-strip">${finds.map(i=>poster(i,'',`IMDb ${esc(i.imdbRating)}`)).join('')}</div></section>`:''}
+  <section class="sv-sec"><h3 class="sv-h">Десятиліття</h3>
+    <div class="sv-decs">${decAsc.map(d=>{const top=dec[d].slice().sort((x,y)=>(parseFloat(y.imdbRating)||0)-(parseFloat(x.imdbRating)||0)).find(i=>ps(i.poster));
+      return `<div class="sv-dec" title="${decName(d)}: ${nf(dec[d].length)}"><span class="sv-dec-n num">${nf(dec[d].length)}</span>
+        ${top?`<img class="sv-dec-pc" src="${posterSrc(top.poster)}" data-pf="${esc(top.imdbID)}" alt="" loading="lazy" title="${esc(top.title)}">`:''}
+        <div class="sv-dec-bar" style="--r:${Math.max(.02,dec[d].length/decMax).toFixed(3)}"></div>
+        <span class="sv-dec-l">${d===1960?'&lt;70':String(d).slice(2)}</span></div>`;}).join('')}</div></section>
 
-  <section class="sx-sec"><h3 class="sx-h">За десятиліттями</h3>
-    <p class="sx-sub">Коли вийшло переглянуте · у кожному спершу найвище оцінене</p>
-    <div class="sx-decs">${decKeys.map(d=>{const l=dec[d],rr=l.filter(i=>parseFloat(i.imdbRating)>0);const a=rr.length?(rr.reduce((s,i)=>s+parseFloat(i.imdbRating),0)/rr.length).toFixed(1):'';
-      return `<div class="sx-dec"><div class="sx-dec-h"><b>${decName(d)}</b><span class="num">${nf(l.length)}</span>${a?`<small>IMDb ${a}</small>`:''}</div>
-      <div class="sx-strip sx-mini-strip">${l.slice().sort((x,y)=>(parseFloat(y.imdbRating)||0)-(parseFloat(x.imdbRating)||0)).slice(0,10).map(i=>poster(i,'','')).join('')}</div></div>`;}).join('')}</div></section>
+  <div class="sv-duo">
+    <section class="sv-sec"><h3 class="sv-h">Жанри</h3>
+      <div class="sv-cloud">${gCloud.map(([g,n])=>{const a=gAvg(g);return `<span class="sv-w${a>mean+.15?' hi':''}" style="font-size:${(.85+1.75*Math.sqrt(n/gMax)).toFixed(2)}rem" title="${esc(sxGenre(g))}: ${nf(n)}${a?`, IMDb ${a.toFixed(1)}`:''}">${esc(sxGenre(g))}</span>`;}).join('')}</div>
+      <p class="sv-cap"><i class="hi"></i> оцінюєш вище за свій середній ${avgRating}</p></section>
+    <section class="sv-sec"><h3 class="sv-h">Країни</h3>
+      <ol class="sv-countries">${countries.slice(0,5).map(([c,n],k)=>`<li><span class="num">${k+1}</span><b>${esc(c)}</b><em class="num">${nf(n)}</em></li>`).join('')}</ol>
+      ${countries.length>5?`<details class="sv-more"><summary>і ще ${nf(countries.length-5)}</summary><p>${countries.slice(5).map(([c,n])=>`${esc(c)} <span class="num">${n}</span>`).join(' · ')}</p></details>`:''}</section>
+  </div>
 
-  <div class="sx-grid">
-    <section class="stat-card"><h3 class="sx-h">Жанри</h3><p class="sx-sub">Тайтл може мати кілька · ★ середній IMDb</p>
-      ${rows(genres.map(([g,n])=>({lbl:sxGenre(g),n,extra:gAvg(g)?`★ ${gAvg(g).toFixed(1)}`:''})),genres[0]?.[1]||1)}</section>
-    <section class="stat-card"><h3 class="sx-h">Країни</h3><p class="sx-sub">${nf(countries.length)} ${sxPl(countries.length,['країна','країни','країн'])} · у фільму їх може бути кілька</p>
-      ${rows(countries.map(([c,n])=>({lbl:c,n})),countries[0]?.[1]||1)}</section>
-    <section class="stat-card"><h3 class="sx-h">Рейтинги IMDb</h3><p class="sx-sub">Скільки переглянутого в кожному діапазоні</p>
-      <div class="sx-cols" role="list" aria-label="Розподіл рейтингів IMDb"><div class="sx-mean${meanPct>62?' r':''}" style="left:${meanPct}%" aria-hidden="true"><span>середній ${avgRating}</span></div>
-      ${rb.map((n,k)=>{const tip=`IMDb ${k+1}${k<9?'–'+(k+1)+'.9':''}: ${nf(n)}`;return `<div class="sx-col" role="listitem" tabindex="0" data-tip="${tip}" aria-label="${tip}"><div class="sx-col-track"><div class="sx-col-bar" style="height:${Math.round(n/rMax*100)}%"></div></div><div class="sx-col-lbl">${k+1}</div></div>`;}).join('')}</div></section>
-    ${franchises.length||tracked.length?`<section class="stat-card">
-      ${franchises.length?`<h3 class="sx-h">Франшизи</h3><div class="sx-mini"><div><b>${nf(franchises.length)}</b><span>усього</span></div><div><b>${nf(fullF)}</b><span>повних</span></div><div><b>${nf(franchises.length-fullF)}</b><span>у процесі</span></div></div>`:''}
-      ${tracked.length?`<h3 class="sx-h"${franchises.length?' style="margin-top:.8rem"':''}>Люди, за якими стежиш</h3>${rows(tracked.map(p=>({lbl:p.name,n:p.m,max:p.t,extra:`з ${p.t}`})),1,6)}`:''}
-    </section>`:''}
-  </div>`;
+  ${finds.length>=3?`<section class="sv-sec"><h3 class="sv-h">Твої знахідки</h3><p class="sv-cap">Високий IMDb, мало хто бачив</p>
+    <div class="sv-strip">${finds.map(i=>pc(i,'',`IMDb ${esc(i.imdbRating)}`)).join('')}</div></section>`:''}
+
+  <div class="sv-duo">
+    <section class="sv-sec"><h3 class="sv-h">Оцінки IMDb</h3>
+      <div class="sv-hist" role="list" aria-label="Розподіл оцінок IMDb">${rb.map((n,k)=>`<div class="sv-hb${k+1===Math.floor(mean)?' on':''}" role="listitem" title="IMDb ${k+1}: ${nf(n)}"><i style="height:${Math.max(2,Math.round(n/rMax*100))}%"></i><span>${k+1}</span></div>`).join('')}
+        <div class="sv-mean" style="left:${meanPct}%"><span>${avgRating}</span></div></div></section>
+    ${next.length?`<section class="sv-sec"><h3 class="sv-h">Що далі</h3><div class="sv-next">${next.map(n=>`<button class="sv-nx" data-act="${n.a[0]}" data-args="${A(n.a[1])}"><b>${n.t}</b><span>${n.s}</span></button>`).join('')}</div></section>`:''}
+  </div>
+
+  ${franchises.length||tracked.length?`<div class="sv-duo">
+    ${franchises.length?`<section class="sv-sec"><h3 class="sv-h">Франшизи</h3><div class="sv-fr"><div><b class="num">${nf(franchises.length)}</b>усього</div><div><b class="num">${nf(fullF)}</b>повних</div><div><b class="num">${nf(franchises.length-fullF)}</b>у процесі</div></div></section>`:''}
+    ${tracked.length?`<section class="sv-sec"><h3 class="sv-h">Люди, за якими стежиш</h3><ol class="sv-countries">${tracked.map(p=>`<li><span></span><b>${esc(p.name)}</b><em class="num">${p.m} з ${p.t}</em></li>`).join('')}</ol></section>`:''}
+  </div>`:''}`;
   if(collecting&&!_sxRun)setTimeout(_sxFill,300);
 }
