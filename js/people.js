@@ -178,7 +178,7 @@ async function openPerson(id){
   /* poster wall behind the hero: the best-known titles of this filmography */
   const wall=all.filter(c=>c.poster&&!_creditMinor(c)).sort((a,b)=>b.voteCount-a.voteCount).slice(0,30)
     .map(c=>`<img src="${esc(_tsImg(c.poster,'w185'))}" alt="" loading="lazy">`).join('');
-  detail.innerHTML=`<section class="pk-hero">${wall?`<div class="pk-wall" aria-hidden="true">${wall}</div>`:''}${big?`<img class="pk-photo" src="${esc(big)}" alt="" data-fb>`:''}
+  detail.innerHTML=`<section class="pk-hero">${wall?`<div class="pk-wall" aria-hidden="true">${wall}</div>`:''}${big?`<div class="pk-ph"><img src="${esc(big)}" alt="" data-fb></div>`:''}
       <div class="pk-in">
         <div class="pk-k">Фільмографія · ${tracked?'стежиш':'не стежиш'}</div>
         <h2 class="pk-name">${esc(person?.name||'')}</h2>
