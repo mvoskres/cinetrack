@@ -211,19 +211,20 @@ function buildCollBar(){
   const om=_ownedMovieMap(),all=(_collGroupsCache||[]).map(c=>_collCounts(c,om));
   const cnt={incomplete:all.filter(c=>c.total>0&&c.owned<c.total).length,complete:all.filter(c=>c.total>0&&c.owned>=c.total).length,
     upcoming:all.filter(c=>c.upcoming).length,all:all.length};
-  const sub=document.getElementById('collSub');
-  if(sub)sub.textContent=all.length?`${cnt.all} франшиз · ${cnt.complete} повних · ${cnt.incomplete} у процесі`:'';
+  const sub=document.getElementById('collSub');if(sub)sub.textContent='';
   el.innerHTML=`
-    <div class="cat-seg" role="group" aria-label="Статус">${[['incomplete','Незавершені'],['complete','Повні'],['upcoming','Чекають продовження'],['all','Усі']]
-      .map(([k,l])=>`<button class="cat-chip${f.status===k?' on':''}" data-act="collSetStatus" data-args="${A(`${k}`)}">${l}<span class="num">${cnt[k]}</span></button>`).join('')}</div>
-    <div class="local-search-wrap"><span class="local-search-icon">${ic('search')}</span>
-      <input class="local-search" type="text" placeholder="Пошук франшизи…" aria-label="Пошук франшизи" value="${esc(f.q)}" data-input="collSearch" data-args="[&quot;$value&quot;]">
-    </div>
-    <button id="collFbtn" class="flt-pill${n?' has-n':''}" data-act="toggleCollPan">${ic('filter')}Тип, жанр${n?` <span class="flt-n">${n}</span>`:''}</button>
-    <select class="sort-sel" aria-label="Сортування" data-change="collSetSort" data-args="[&quot;$value&quot;]">
-      ${[['missing-asc','Найближчі до завершення'],['owned-desc','Найбільше переглянуто'],['next-asc','Найближча прем\'єра'],['name-asc','А→Я']]
-        .map(([v,l])=>`<option value="${v}"${f.sort===v?' selected':''}>${l}</option>`).join('')}
-    </select>`;
+    <div class="fa-tabs" role="group" aria-label="Статус">${[['incomplete','незавершені'],['complete','повні'],['upcoming','чекають<em> продовження</em>'],['all','усі']]
+      .map(([k,l])=>`<button class="fa-tab${f.status===k?' on':''}" aria-pressed="${f.status===k}" data-act="collSetStatus" data-args="${A(`${k}`)}"><b class="num">${cnt[k]}</b><span>${l}</span></button>`).join('')}</div>
+    <div class="fa-tools">
+      <div class="local-search-wrap"><span class="local-search-icon">${ic('search')}</span>
+        <input class="local-search" type="text" placeholder="Пошук франшизи…" aria-label="Пошук франшизи" value="${esc(f.q)}" data-input="collSearch" data-args="[&quot;$value&quot;]">
+      </div>
+      <button id="collFbtn" class="flt-pill${n?' has-n':''}" data-act="toggleCollPan">${ic('filter')}Тип, жанр${n?` <span class="flt-n">${n}</span>`:''}</button>
+      <select class="sort-sel" aria-label="Сортування" data-change="collSetSort" data-args="[&quot;$value&quot;]">
+        ${[['missing-asc','Найближчі до завершення'],['owned-desc','Найбільше переглянуто'],['next-asc','Найближча прем\'єра'],['name-asc','А→Я']]
+          .map(([v,l])=>`<option value="${v}"${f.sort===v?' selected':''}>${l}</option>`).join('')}
+      </select>
+    </div>`;
 }
 function toggleCollPan(){
   const p=document.getElementById('collPanel'),b=document.getElementById('collFbtn');
@@ -306,49 +307,67 @@ function renderCollections(preserveOrder){
   }
 
   const shown=list.slice(0,_collShown);
-  g.innerHTML=`<div class="coll-grid">${shown.map(c=>_collCardHtml(c,ownedMap)).join('')}</div>
+  const f=_collFilter,plain=f.status==='incomplete'&&!f.q&&!f.types.length&&!f.genres.length;
+  g.innerHTML=`${plain?_collOneLeftHtml(list,ownedMap):''}<div class="fa-album">${shown.map(c=>_collCardHtml(c,ownedMap)).join('')}</div>
     ${shown.length<list.length?`<div style="text-align:center;margin-top:1.25rem">
       <button class="rec-btn m" data-act="collMore">Показати ще (${list.length-shown.length})</button>
     </div>`:''}`;
 }
 
-const COLL_ROWS=6; /* parts shown before "Усі частини" */
+const COLL_ROWS=12; /* parts shown before «Усі частини» */
+const _COLL_ST={ok:'Переглянуто',wn:'Дивлюсь',pl:'Заплановано'};
+/* the title opens the in-app sheet; ctrl/middle click keeps the IMDb/TMDB link */
+function _collLink(p,inner,cls=''){
+  const link=p.imdbID?`https://www.imdb.com/title/${p.imdbID}/`:(p.id?`https://www.themoviedb.org/movie/${p.id}`:null);
+  if(!link)return `<span class="${cls}">${inner}</span>`;
+  return `<a class="${cls}" href="${esc(link)}" target="_blank" rel="noopener" ${p.id?`data-act="_tsClickT" data-args="${A('$ev','movie',p.id)}"`:`data-act="_tsClick" data-args="${A('$ev',p.imdbID)}"`}>${inner}</a>`;
+}
+function _collCell(p,k,ownedMap,extra){
+  const owned=p.imdbID?ownedMap[p.imdbID]:null,out=_partOut(p);
+  const skipped=out&&p.imdbID&&!owned&&_skippedParts[p.imdbID];
+  const st=!out?'up':owned?owned.status:skipped?'skip':'miss';
+  const img=_tsImg(p.poster,'w185')||(owned?ps(owned.item.poster):'');
+  const num=String(k+1).padStart(2,'0');
+  let pic;
+  if(st==='ok'||st==='wn'||st==='pl'){
+    pic=_collLink(p,`<img src="${esc(img||BLANK)}" alt="" loading="lazy" data-fb>${st!=='ok'?`<i class="fa-bd ${st}" title="${_COLL_ST[st]}">${ic(st==='wn'?'play':'bookmark')}</i>`:''}`,`fa-pc ${st}`);
+  }else if(st==='up'){
+    pic=_collLink(p,`<b>${num}</b><span>${p.date?new Date(p.date+'T00:00:00').toLocaleDateString('uk-UA',{day:'numeric',month:'short',year:'numeric'}):'анонс'}</span>`,'fa-slot up');
+  }else{
+    const btn=p.imdbID?`<button class="fa-add ${st}" data-act="collAddMissing" data-args="${A(`${p.imdbID}`,`${_collMetaEnc(p)}`)}" title="${st==='skip'?'Пропущено, натисни щоб змінити':'Додати'}" aria-label="${st==='skip'?'Пропущено':'Додати'}: ${esc(p.title)}">${ic(st==='skip'?'ban':'plus')}</button>`:'';
+    pic=`<div class="fa-slot ${st}">${_collLink(p,`<b>${num}</b>`,'fa-slot-in')}${btn}</div>`;
+  }
+  const ir=owned?.item.imdbRating||p.imdbRating;
+  const meta=[p.year?esc(p.year):'',ir?`IMDb ${esc(ir)}`:p.vote?`TMDB ${esc(p.vote)}`:''].filter(Boolean).join(' · ');
+  return `<div class="fa-cell ${st}${extra?' extra':''}">${pic}<div class="fa-cap">${_collLink(p,esc(p.title),'fa-t')}<span>${meta}</span></div></div>`;
+}
 function _collCardHtml(c,ownedMap){
-  const poster=_tsImg(c.poster,'w185')||BLANK;
-  const pct=c.total?Math.round(100*c.owned/c.total):0;
   const complete=c.total>0&&c.owned>=c.total;
   const isOpen=_collExpanded.has(String(c.id));
-  const ST={ok:['ok','check','Переглянуто'],wn:['wn','play','Дивлюсь'],pl:['pl','bookmark','Заплановано']};
-  const rows=c.list.map((p,k)=>{
-    const owned=p.imdbID?ownedMap[p.imdbID]:null;
-    const skipped=p.imdbID&&!owned&&_skippedParts[p.imdbID];
-    let st='<span class="st"></span>';
-    if(owned){const m=ST[owned.status];st=`<span class="st ${m[0]}" title="${m[2]}">${ic(m[1])}</span>`;}
-    else if(skipped)st=`<button class="st skip" data-act="collAddMissing" data-args="${A(`${p.imdbID}`,`${_collMetaEnc(p)}`)}" title="Пропущено, натисни щоб змінити" aria-label="Пропущено: ${esc(p.title)}">${ic('ban')}</button>`;
-    else if(p.imdbID)st=`<button class="st add" data-act="collAddMissing" data-args="${A(`${p.imdbID}`,`${_collMetaEnc(p)}`)}" title="Додати" aria-label="Додати ${esc(p.title)}">${ic('plus')}</button>`;
-    const link=p.imdbID?`https://www.imdb.com/title/${p.imdbID}/`:(p.id?`https://www.themoviedb.org/movie/${p.id}`:null);
-    const t=link?`<a href="${esc(link)}" target="_blank" rel="noopener" ${p.id?`data-act="_tsClickT" data-args="${A('$ev','movie',p.id)}"`:`data-act="_tsClick" data-args="${A('$ev',p.imdbID)}"`}>${esc(p.title)}</a>`:esc(p.title);
-    const out=_partOut(p);
-    if(!out){st='<span class="st"></span>';}
-    const ir=owned?.item.imdbRating||p.imdbRating;
-    const rt=!out?`<span class="fc-up">${p.date?'вийде '+new Date(p.date+'T00:00:00').toLocaleDateString('uk-UA',{day:'numeric',month:'short',year:'numeric'}):'анонс'}</span>`
-      :ir?`IMDb ${esc(ir)}`:p.vote?`TMDB ${esc(p.vote)}`:'';
-    return `<div class="fc-part${owned||skipped?'':' missing'}${out?'':' upcoming'}${k>=COLL_ROWS?' extra':''}"><span class="fc-ord">${String(k+1).padStart(2,'0')}</span><span class="fc-pt" title="${esc(p.title)}">${t} ${p.year?`<span class="num">${esc(p.year)}</span>`:''}</span><span class="fc-rt">${rt}</span>${st}</div>`;
-  }).join('');
+  const cells=c.list.map((p,k)=>_collCell(p,k,ownedMap,k>=COLL_ROWS)).join('');
+  const foot=complete?'Зібрано повністю':`Бракує ${c.total-c.owned}`;
   const more=c.list.length>COLL_ROWS?`<button class="fc-more" data-cid="${esc(c.id)}" data-count="${c.list.length}" data-act="toggleCollParts" data-args="[&quot;$el&quot;]">${isOpen?'Згорнути':`Усі частини (${c.list.length})`}</button>`:'';
-  return `<article class="fc${isOpen?' expanded':''}">
-    <div class="fc-head"><img src="${esc(poster)}" alt="" loading="lazy" data-fb>
-      <div><div class="fc-name">${esc(c.name)}</div><div class="fc-sub"><span class="num">${c.owned}/${c.total}</span> переглянуто${c.upcoming?` · ще ${c.upcoming} не вийшли`:''}</div></div>
-      <span class="fc-pill ${complete?'done':'todo'}">${complete?'Повна':`Бракує ${c.total-c.owned}`}</span></div>
-    <div class="tr-bar"><i style="width:${pct}%"></i></div>
-    <div class="fc-parts">${rows}</div>${more}
+  return `<article class="fa-pg${complete?' full':''}${isOpen?' expanded':''}">
+    <div class="fa-pg-h"><h3 class="fa-pg-n">${esc(c.name)}</h3><div class="fa-pg-c num"><b>${c.owned}</b>/${c.total}</div></div>
+    <div class="fa-slots">${cells}</div>
+    <div class="fa-pg-f"><span>${foot}${c.upcoming?` · ще ${c.upcoming} ${c.upcoming===1?'вийде':'вийдуть'}`:''}</span>${more}</div>
   </article>`;
+}
+/* franchises one part away from complete: that part, big */
+function _collOneLeftHtml(list,ownedMap){
+  const one=list.filter(c=>c.total>1&&c.total-c.owned===1).map(c=>{
+    const k=c.list.findIndex(p=>_partOut(p)&&!(p.imdbID&&(ownedMap[p.imdbID]?.status==='ok'||_skippedParts[p.imdbID])));
+    return k<0?null:{c,p:c.list[k],k};
+  }).filter(Boolean);
+  if(!one.length)return '';
+  return `<section class="fa-one"><h2 class="fa-h">Лишилась одна частина</h2><p class="fa-s">${one.length} ${one.length%10===1&&one.length%100!==11?'франшиза':one.length%10>=2&&one.length%10<=4&&(one.length%100<12||one.length%100>14)?'франшизи':'франшиз'} за крок до повної</p>
+    <div class="fa-one-strip">${one.slice(0,24).map(o=>`<div class="fa-one-i"><small>${esc(o.c.name)}</small>${_collCell(o.p,o.k,ownedMap,false)}</div>`).join('')}</div></section>`;
 }
 let _collExpanded=new Set(); /* which franchise cards show all parts — survives re-renders so
   adding a movie mid-list doesn't collapse the card you're working in */
 function collMore(){_collShown+=COLL_PAGE_SIZE;renderCollections(true);}
 function toggleCollParts(btn){
-  const card=btn.closest('.fc'),open=card.classList.toggle('expanded'),cid=btn.dataset.cid;
+  const card=btn.closest('.fa-pg'),open=card.classList.toggle('expanded'),cid=btn.dataset.cid;
   if(open)_collExpanded.add(cid);else _collExpanded.delete(cid);
   btn.textContent=open?'Згорнути':`Усі частини (${btn.dataset.count})`;
 }
