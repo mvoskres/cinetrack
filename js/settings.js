@@ -166,7 +166,7 @@ function _buildBackup(incK){
     collCache:_collCache,collDetails:_collDetails,skippedParts:_skippedParts,unresolvable:_unresolvable,
     gameBestScore:_gameBest.frame.streak,gameRoundBest:_gameBest.frame.round,gameActorBest:_gameBest.actor.streak,gameActorRound:_gameBest.actor.round,gameQuoteBest:_gameBest.quote.streak,gameQuoteRound:_gameBest.quote.round,gameBackdropCache:_gameBackdropCache,
     personCache:_personCache,resolveCache:_resolveCache,tmdbFind:_findCache,
-    statsTmdb:_sxT,statsPeople:_sxP}; /* no apiCache: it expires in 24h anyway */
+    statsTmdb:_sxT,statsPeople:_sxP,accent:accentNow()}; /* no apiCache: it expires in 24h anyway */
 }
 async function doExport(){
   const btn=document.querySelector('[data-act="doExport"] small'),orig=btn?.textContent; /* the row's grey line doubles as progress */
@@ -431,6 +431,7 @@ function _applyBackup(data){
     _gameBestSave(t);
   }
   if(nGame){Object.assign(_gameBackdropCache,nGame);_gameCacheSave();}
+  if(typeof data.accent==='string'&&_hexRgb(data.accent)&&data.accent.toLowerCase()!==accentNow())setAccent(data.accent); /* the colour travels with the backup */
   _sxRestore(data.statsTmdb,data.statsPeople); /* stats: collected cast/series data, so a new device does not collect it again */
   /* data.apiCache is deliberately ignored: 24 h of someone else's answers, and the biggest thing in the file */
   if(nDet){Object.assign(_collDetails,nDet);_collDetailsSave();}
@@ -530,6 +531,7 @@ function doImport(e,mode){
 
 /* ── VERSION and CHANGELOG: newest first; bump APP_VERSION and add an entry with every change pushed to the site ── */
 const CHANGELOG=[
+  {v:'2.0.1',d:'08.11.2026',n:['Акцентний колір зберігається в бекапі (файл і Drive) і відновлюється разом із даними']},
   {v:'2.0',d:'08.11.2026',n:['Акцентний колір на вибір: Налаштування → «Акцентний колір», вісім готових або свій']},
   {v:'1.9.2',d:'08.11.2026',n:['Картка фільму: кнопка «Пропустити» для частин франшиз (і «Скасувати», якщо вже пропущено)','Кнопки «Переглянуто / Дивлюсь / Запланувати» однакові: жодна більше не виглядає вже обраною']},
   {v:'1.9.1',d:'08.11.2026',n:['Франшизи: усі частини постерами, стан — міткою на постері: «Не переглянуто» (натиск додає), «Пропущено», «Заплановано», «Дивлюсь», «Вийде …»; переглянуті з зеленою галочкою. Пропущені частини, як і раніше, зараховуються до зібраних','Мітки «Заплановано» й «Дивлюсь» теж натискаються: можна змінити статус або пропустити частину просто з франшизи']},
