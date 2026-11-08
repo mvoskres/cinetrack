@@ -1715,9 +1715,11 @@ button.fa-lbl:hover{transform:translateY(-1px);filter:brightness(1.1);}
 button.fa-lbl.up{cursor:pointer;}
 .fa-pc.mute img{filter:grayscale(1) brightness(.4);}
 @media(max-width:760px){
-  .pk-hero{min-height:420px;}
-  .pk-photo{right:0;width:100%;height:62%;aspect-ratio:auto;object-position:50% 22%;-webkit-mask:linear-gradient(0deg,transparent,#000 50%);mask:linear-gradient(0deg,transparent,#000 50%);}
-  .pk-in{padding:1.2rem 1.1rem;max-width:none;}
+  /* phone: the photo sits above the text instead of under it, so no text crosses the face */
+  .pk-hero{min-height:0;flex-direction:column;align-items:stretch;}
+  .pk-wall,.pk-hero::before{display:none;}
+  .pk-photo{position:relative;right:auto;top:auto;width:100%;height:280px;aspect-ratio:auto;object-position:50% 22%;z-index:0;-webkit-mask:linear-gradient(0deg,transparent 0,#000 30%);mask:linear-gradient(0deg,transparent 0,#000 30%);}
+  .pk-in{padding:0 1.1rem 1.2rem;margin-top:-1.6rem;max-width:none;position:relative;}
   .pk-dec{grid-template-columns:1fr;gap:.6rem;padding:.9rem 0;}
   .pk-dh{display:flex;align-items:baseline;gap:.6rem;}
   .pk-dh b{font-size:1.3rem;}.pk-dh i{margin:0;}
@@ -1727,3 +1729,9 @@ button.fa-lbl.up{cursor:pointer;}
 /* the faces reuse .person-chip for the active marker only: drop the old pill look */
 .pk-face.person-chip,.pk-face.person-chip.active{display:flex;flex-direction:column;align-items:center;gap:.4rem;border:0;background:none;border-radius:0;padding:0;color:var(--text);font:inherit;}
 .pk-face.person-chip img{width:72px;height:72px;}
+
+/* people hero: tilted poster wall fills the space between the text and the photo */
+.pk-wall{position:absolute;inset:-30px -10px;display:grid;grid-template-columns:repeat(10,1fr);gap:6px;transform:rotate(-4deg) scale(1.08);z-index:-4;opacity:.5;}
+.pk-wall img{width:100%;aspect-ratio:2/3;object-fit:cover;border-radius:4px;background:var(--ink-3);}
+.pk-hero::before{content:"";position:absolute;inset:0;z-index:-3;background:linear-gradient(90deg,rgba(9,10,13,.97) 0%,rgba(9,10,13,.86) 34%,rgba(9,10,13,.4) 62%,rgba(9,10,13,.55) 100%),linear-gradient(0deg,rgba(9,10,13,.7),transparent 50%);}
+@media(max-width:760px){.pk-wall,.pk-hero::before{display:none;}}
