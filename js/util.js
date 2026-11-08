@@ -232,14 +232,22 @@ function tmdbFetch(endpoint,timeout=6000,force){
   const cached=_tmdbCache[endpoint];
   if(!force&&cached&&Date.now()-cached.ts<TMDB_TTL)return Promise.resolve(cached.d);
   if(_tmdbInflight[endpoint])return _tmdbInflight[endpoint]; /* same request already on the wire */
-  const sep=endpoint.includes('?')?'&':'?';
-  const ctrl=new AbortController();const id=setTimeout(()=>ctrl.abort(),timeout);
-  const pr=fetch(`https://api.themoviedb.org/3${endpoint}${sep}api_key=${TMDB_KEY}`,{
-    signal:ctrl.signal,headers:{Accept:'application/json'}
-  }).then(r=>{clearTimeout(id);if(!r.ok){const er=new Error(`TMDB HTTP ${r.status}`);er.status=r.status;throw er;}return r.json();})
+  const sep=endpoint.includes('?')?'&':'?',url=`https://api.themoviedb.org/3${endpoint}${sep}api_key=${TMDB_KEY}`;
+  /* one try; the timeout covers the wait for the headers */
+  const once=()=>{const ctrl=new AbortController(),id=setTimeout(()=>ctrl.abort(),timeout);
+    return fetch(url,{signal:ctrl.signal,headers:{Accept:'application/json'}}).finally(()=>clearTimeout(id));};
+  /* 429 is TMDB's rate limit: wait as long as it asks (Retry-After, else 1 s then 2 s, at most 10 s) and try again, twice at most */
+  const run=async()=>{
+    for(let a=0;;a++){
+      const r=await once();
+      if(r.status===429&&a<2){const s=parseFloat(r.headers.get('Retry-After'));await new Promise(ok=>setTimeout(ok,Math.min(10,s>0?s:a+1)*1000));continue;}
+      if(!r.ok){const er=new Error(`TMDB HTTP ${r.status}`);er.status=r.status;throw er;}
+      return r.json();
+    }
+  };
+  const pr=run()
   .then(d=>{_tmdbNetFails=0;_tmdbCache[endpoint]={d,ts:Date.now()};return d;})
   .catch(e=>{
-    clearTimeout(id);
     if(e&&(e.name==='TypeError'||e.message==='Failed to fetch'||e.message==='NetworkError when attempting to fetch resource.')){
       if(++_tmdbNetFails>=3&&!_tmdbBlocked){_tmdbBlocked=true;console.warn('[CineTrack] TMDB unreachable — disabling TMDB calls for this session.');}
     }

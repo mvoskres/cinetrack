@@ -71,6 +71,7 @@ function clearCaches(){
   Object.keys(_gameCast).forEach(k=>delete _gameCast[k]);localStorage.removeItem('ct_game_cast');
   Object.keys(_gameTag).forEach(k=>delete _gameTag[k]);localStorage.removeItem('ct_game_tag_uk');
   Object.keys(_sxT).forEach(k=>delete _sxT[k]);Object.keys(_sxP).forEach(k=>delete _sxP[k]);localStorage.removeItem('ct_stats_tmdb');localStorage.removeItem('ct_stats_people');
+  localStorage.removeItem('ct_recsrc');localStorage.removeItem('ct_rec_gtiles');_recTiles={};
   Object.keys(_personCache).forEach(k=>delete _personCache[k]);localStorage.removeItem('ct_personcache');
   Object.keys(_tsCache).forEach(k=>delete _tsCache[k]);localStorage.removeItem('ct_titlecache');
   const freed=before-_storageChars();
@@ -531,6 +532,7 @@ function doImport(e,mode){
 
 /* ── VERSION and CHANGELOG: newest first; bump APP_VERSION and add an entry with every change pushed to the site ── */
 const CHANGELOG=[
+  {v:'1.13',d:'08.11.2026',n:['Рекомендації в новому вигляді: жанри великими плитками з кадрами, полиці стрічками, «Додати» і «сховати» просто на постері','Нова перша полиця «Для тебе»: тайтли, які радять одразу кілька твоїх улюблених, з підписом «схоже на X і Y»','Назви українською; більше не пропонується переглянуте й сховане (звірка за кодом TMDB)','«Схоже на…» добирається з усього переглянутого з високим IMDb, а не за датою додавання; у «Свіжих» і жанрах з’явились серіали','«Оновити» справді оновлює всі полиці; полиці аніме й анімаційних серіалів; надійніше при збоях TMDB']},
   {v:'1.12.4',d:'08.11.2026',n:['Люди на ПК: фото — висока панель ліворуч на всю висоту портрета, текст посередині, стіна постерів лише праворуч']},
   {v:'1.12.3',d:'08.11.2026',n:['Люди: мʼякі краї фото в портреті замість різких']},
   {v:'1.12.2',d:'08.11.2026',n:['Люди: фото в портреті суцільне, постери крізь нього не просвічують; на телефоні показується весь портрет, обличчя не обрізається']},

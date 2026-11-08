@@ -66,7 +66,7 @@ function _freeCacheSpace(){
   _pruneApiCache(200);
   try{localStorage.setItem('ct_apicache',JSON.stringify(_apiCache));}catch(e){localStorage.removeItem('ct_apicache');}
   /* pure caches only (all refetched on demand); lists, tracked people, collections, game progress stay */
-  ['ct_gamebackdrops','ct_titlecache','ct_personcache','ct_recs','ct_nopic'].forEach(k=>localStorage.removeItem(k));
+  ['ct_gamebackdrops','ct_titlecache','ct_personcache','ct_recs','ct_recsrc','ct_nopic'].forEach(k=>localStorage.removeItem(k));
 }
 function _pruneApiCache(max){
   const now=Date.now();let n=0;
