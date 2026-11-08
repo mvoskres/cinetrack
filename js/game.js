@@ -271,9 +271,10 @@ async function _gamePickActor(){
 }
 function _gamePickAny(){return _game.type==='actor'?_gamePickActor():_game.type==='quote'?_gamePickQuote():_gamePick();}
 
-/* ── QUOTE game: the tagline from the title sheet (TMDB, Ukrainian first, English if there is none);
+/* ── QUOTE game: the Ukrainian tagline from the title sheet (TMDB); titles without one are skipped;
    the title's own name inside it is hidden ── */
-let _gameTag=_lsJSON('ct_game_tag',{}); /* imdbID -> {t:'tagline'} | {none:true,ts} */
+let _gameTag=_lsJSON('ct_game_tag_uk',{}); /* imdbID -> {t:'tagline'} | {none:true,ts} */
+try{localStorage.removeItem('ct_game_tag');}catch(e){} /* 1.6 cache: had English fallbacks */
 async function _gameGetTag(item){
   const c=_gameTag[item.imdbID];
   if(c&&(c.t||(c.ts&&Date.now()-c.ts<7*864e5)))return c.t||null;
@@ -285,9 +286,8 @@ async function _gameGetTag(item){
       const path=`/${kind}/${kind==='tv'?f.t:f.m}`;
       const uk=await tmdbFetch(`${path}?language=uk-UA`);if(!uk)return null; /* network or key problem: ask again next time */
       t=(uk.tagline||'').trim();
-      if(!t){const en=await tmdbFetch(`${path}?language=en-US`);t=(en?.tagline||'').trim();}
     }
-    _gameTag[item.imdbID]=t?{t}:{none:true,ts:Date.now()};_lsSet('ct_game_tag',JSON.stringify(_gameTag));
+    _gameTag[item.imdbID]=t?{t}:{none:true,ts:Date.now()};_lsSet('ct_game_tag_uk',JSON.stringify(_gameTag));
     return t||null;
   }catch(e){return null;}
 }
@@ -303,7 +303,7 @@ async function _gamePickQuote(){
   const fresh=_game.pool.filter(p=>!_game.recent.includes(p.imdbID)&&p.imdbID!==_game.current?.item.imdbID);
   const src=fresh.length?fresh:_game.pool;
   const tried=new Set();
-  for(let i=0;i<14&&tried.size<src.length;i++){
+  for(let i=0;i<30&&tried.size<src.length;i++){
     const cand=src[Math.floor(Math.random()*src.length)];
     if(tried.has(cand.imdbID))continue;tried.add(cand.imdbID);
     const tag=await _gameGetTag(cand);if(!tag)continue;

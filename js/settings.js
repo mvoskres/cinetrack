@@ -68,7 +68,7 @@ function clearCaches(){
   Object.keys(_apiCache).forEach(k=>delete _apiCache[k]);_cacheFlush();
   Object.keys(_gameBackdropCache).forEach(k=>delete _gameBackdropCache[k]);localStorage.removeItem('ct_gamebackdrops');
   Object.keys(_gameCast).forEach(k=>delete _gameCast[k]);localStorage.removeItem('ct_game_cast');
-  Object.keys(_gameTag).forEach(k=>delete _gameTag[k]);localStorage.removeItem('ct_game_tag');
+  Object.keys(_gameTag).forEach(k=>delete _gameTag[k]);localStorage.removeItem('ct_game_tag_uk');
   Object.keys(_personCache).forEach(k=>delete _personCache[k]);localStorage.removeItem('ct_personcache');
   Object.keys(_tsCache).forEach(k=>delete _tsCache[k]);localStorage.removeItem('ct_titlecache');
   const freed=before-_storageChars();
@@ -526,6 +526,7 @@ function doImport(e,mode){
 
 /* ── VERSION and CHANGELOG: newest first; bump APP_VERSION and add an entry with every change pushed to the site ── */
 const CHANGELOG=[
+  {v:'1.6.1',d:'08.11.2026',n:['«Впізнай цитату»: лише українські цитати, тайтли без українського гасла пропускаються']},
   {v:'1.6',d:'08.11.2026',n:['Третя гра «Впізнай цитату»: гасло з картки переглянутого тайтлу, треба вгадати, звідки воно. Назва в самій цитаті прихована']},
   {v:'1.5',d:'08.11.2026',n:['Нова гра «Впізнай актора»: фото актора з головних ролей у переглянутому, треба вгадати, де він грав. Перемикач «Кадр / Актор» на вкладці гри, окремі рекорди']},
   {v:'1.4',d:'08.11.2026',n:['Вигляд за замовчуванням для Переглянутого й Планую: Налаштування → «Вигляд за замовчуванням» (сітка, список або полиці); перемикач над списком діє до наступного відкриття','Номер версії та історія змін у Налаштуваннях']},
