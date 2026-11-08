@@ -167,7 +167,7 @@ function _buildBackup(incK){
     collCache:_collCache,collDetails:_collDetails,skippedParts:_skippedParts,unresolvable:_unresolvable,
     gameBestScore:_gameBest.frame.streak,gameRoundBest:_gameBest.frame.round,gameActorBest:_gameBest.actor.streak,gameActorRound:_gameBest.actor.round,gameQuoteBest:_gameBest.quote.streak,gameQuoteRound:_gameBest.quote.round,gameBackdropCache:_gameBackdropCache,
     personCache:_personCache,resolveCache:_resolveCache,tmdbFind:_findCache,
-    statsTmdb:_sxT,statsPeople:_sxP,accent:accentNow()}; /* no apiCache: it expires in 24h anyway */
+    statsTmdb:_sxT,statsPeople:_sxP,ukTitles:_ukList,accent:accentNow()}; /* no apiCache: it expires in 24h anyway */
 }
 async function doExport(){
   const btn=document.querySelector('[data-act="doExport"] small'),orig=btn?.textContent; /* the row's grey line doubles as progress */
@@ -433,6 +433,10 @@ function _applyBackup(data){
   }
   if(nGame){Object.assign(_gameBackdropCache,nGame);_gameCacheSave();}
   if(typeof data.accent==='string'&&_hexRgb(data.accent)&&data.accent.toLowerCase()!==accentNow())setAccent(data.accent); /* the colour travels with the backup */
+  if(data.ukTitles&&typeof data.ukTitles==='object'&&!Array.isArray(data.ukTitles)){ /* Ukrainian list titles: a new device need not look them all up again */
+    let nUk=0;for(const [k,v] of Object.entries(data.ukTitles))if(/^tt\d+$/.test(k)&&typeof v==='string'&&v.length<300&&!Object.hasOwn(_ukList,k)){_ukList[k]=v;nUk++;}
+    if(nUk)_lsSet('ct_uk_titles',JSON.stringify(_ukList));
+  }
   _sxRestore(data.statsTmdb,data.statsPeople); /* stats: collected cast/series data, so a new device does not collect it again */
   /* data.apiCache is deliberately ignored: 24 h of someone else's answers, and the biggest thing in the file */
   if(nDet){Object.assign(_collDetails,nDet);_collDetailsSave();}
@@ -532,6 +536,7 @@ function doImport(e,mode){
 
 /* ── VERSION and CHANGELOG: newest first; bump APP_VERSION and add an entry with every change pushed to the site ── */
 const CHANGELOG=[
+  {v:'1.16',d:'08.11.2026',n:['Вхід лише для запрошених: застосунок відкривається тільки після входу через Google поштою, яку додав власник; решта бачить лише екран входу','При переході між сторінками екран повертається нагору','Роки серіалів на картках коротші («2011–19»), щоб оцінка IMDb влазила','Українські назви тепер у бекапі: на новому пристрої не треба шукати їх заново']},
   {v:'1.15',d:'08.11.2026',n:['Українські назви в Переглянутому, Дивлюсь і Планую (де TMDB має переклад); пошук у списках знаходить і за українською, і за оригінальною назвою']},
   {v:'1.14',d:'08.11.2026',n:['Українські назви у Франшизах, Людях і в рекомендаціях «Наступне у франшизах» та «Люди» (там, де TMDB має переклад; інакше лишається англійська)']},
   {v:'1.13',d:'08.11.2026',n:['Рекомендації в новому вигляді: жанри великими плитками з кадрами, полиці стрічками, «Додати» і «сховати» просто на постері','Нова перша полиця «Для тебе»: тайтли, які радять одразу кілька твоїх улюблених, з підписом «схоже на X і Y»','Назви українською; більше не пропонується переглянуте й сховане (звірка за кодом TMDB)','«Схоже на…» добирається з усього переглянутого з високим IMDb, а не за датою додавання; у «Свіжих» і жанрах з’явились серіали','«Оновити» справді оновлює всі полиці; полиці аніме й анімаційних серіалів; надійніше при збоях TMDB']},

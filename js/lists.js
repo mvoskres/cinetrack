@@ -3,6 +3,8 @@ const TITLES={watched:'Переглянуте',watching:'Дивлюсь',planned
 function goTab(id,btn){
   btn=btn||document.getElementById('ni-'+id); /* data-act buttons pass only the id (or themselves) */
   document.getElementById('gameModalBg')?.classList.add('hidden');
+  const tabEl=document.getElementById('tab-'+id);
+  if(tabEl&&tabEl.classList.contains('hidden'))window.scrollTo(0,0); /* a new tab starts at its top, not at the old tab's scroll depth */
   document.querySelectorAll('[id^="tab-"]').forEach(t=>t.classList.add('hidden'));
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
   document.getElementById('tab-'+id).classList.remove('hidden');
@@ -370,7 +372,9 @@ function cardMenu(ev,list,id){
 }
 
 /* ── POSTER CARD — the one card for watched, planned, recs, people ── */
-function _myMeta(i){const c=i.customCategory||i.type;return `<div class="pc-m">${i.year?`<span class="num">${esc(i.year)}</span>`:''}<span>${catLabel(c)}</span>${i.imdbRating?`<span class="imdb">IMDb <span class="num">${esc(i.imdbRating)}</span></span>`:''}</div>`;}
+/* «2011–2019» → «2011–19», «1995–2001» → «1995–01»: on a phone card the line fits year and IMDb only when the range is short */
+function _yrShort(y){y=String(y||'');const m=/^(\d{4})\s*\D\s*(\d{4})$/.exec(y.trim());return m?m[1]+'–'+m[2].slice(2):y;}
+function _myMeta(i){const c=i.customCategory||i.type;return `<div class="pc-m">${i.year?`<span class="num">${esc(_yrShort(i.year))}</span>`:''}<span>${catLabel(c)}</span>${i.imdbRating?`<span class="imdb">IMDb <span class="num">${esc(i.imdbRating)}</span></span>`:''}</div>`;}
 function _tagsHtml(i){return (i.tags||[]).length?`<div class="card-utags">${i.tags.map(t=>`<span class="utag">${esc(t)}<button class="utag-x" data-act="rmTag" data-args="${A((i.id),`${uriSafe(t)}`)}" aria-label="Видалити тег ${esc(t)}">✕</button></span>`).join('')}</div>`:'';}
 function myCard(list,i){
   return `<article class="pc">
