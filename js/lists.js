@@ -235,9 +235,19 @@ function _gridRender(t,g,list,cardFn){
 /* ── VIEWS: grid / list / shelves for Переглянуте and Планую (remembered per list) ── */
 const VIEW_LISTS={watched:1,planned:1};
 const VIEWS=[['grid','Сітка'],['list','Список'],['shelves','Полиці']];
-let _views=_lsJSON('ct_views',{});
-function viewOf(t){const v=_views[t];return VIEWS.some(([k])=>k===v)?v:'grid';}
-function setView(t,v){_views[t]=v;_lsSet('ct_views',JSON.stringify(_views));buildBar(t);rerender(t);}
+/* default view is chosen in Settings (ct_views_def); the switcher above a list only changes it for this visit */
+let _viewDef=_lsJSON('ct_views_def',null);
+if(!_viewDef){_viewDef=_lsJSON('ct_views',{});_lsSet('ct_views_def',JSON.stringify(_viewDef));try{localStorage.removeItem('ct_views');}catch(e){}}
+const _views={};
+const _okView=v=>VIEWS.some(([k])=>k===v);
+function viewDefOf(t){return _okView(_viewDef[t])?_viewDef[t]:'grid';}
+function viewOf(t){return _okView(_views[t])?_views[t]:viewDefOf(t);}
+function setView(t,v){_views[t]=v;buildBar(t);rerender(t);}
+function setViewDef(t,v){_viewDef[t]=v;_lsSet('ct_views_def',JSON.stringify(_viewDef));delete _views[t];buildBar(t);rerender(t);openIO('stView');}
+function _stViewHtml(){
+  const row=(t,n)=>`<div class="st-key-line"><span class="st-key-n">${n}</span><div class="seg" role="group" aria-label="${n}: вигляд за замовчуванням">${VIEWS.map(([k,l])=>`<button class="seg-b${viewDefOf(t)===k?' on':''}" aria-pressed="${viewDefOf(t)===k}" data-act="setViewDef" data-args="${A(`${t}`,`${k}`)}">${l}</button>`).join('')}</div></div>`;
+  return `<div class="st-row" id="stView"><div class="st-row-head"><span class="st-lbl">Вигляд за замовчуванням</span></div>${row('watched','Переглянуте')}${row('planned','Планую')}<p class="st-hint">Перемикач над списком змінює вигляд лише до наступного відкриття сайту</p></div>`;
+}
 function viewSeg(t){
   if(!(t in VIEW_LISTS))return '';
   const cur=viewOf(t);

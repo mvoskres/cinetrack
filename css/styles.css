@@ -1333,3 +1333,8 @@ kbd{display:inline-block;font:500 .7rem var(--mono);border:1px solid var(--borde
 }
 /* toasts close on tap (the report after a Drive pull used to stay up 12 s with no way to dismiss it) */
 .toast{pointer-events:auto;cursor:pointer;}
+
+/* changelog */
+.cl-ver .st-row-head{display:flex;justify-content:space-between;align-items:baseline;gap:.5rem;}
+.cl-ver ul{margin:.4rem 0 0;padding-left:1.1rem;font-size:.8rem;line-height:1.5;color:var(--text-2);}
+.cl-ver li+li{margin-top:.2rem;}

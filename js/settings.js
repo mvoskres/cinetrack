@@ -10,6 +10,7 @@ function openIO(target){
     </div>
     <div class="st-body">
       ${API?acc+key:key+acc}
+      ${_stViewHtml()}
       <div class="st-row">
         <div class="st-row-head"><span class="st-lbl">Файли й обслуговування</span></div>
         <button class="st-act" data-act="doExport">${ic('save')}<span><b>Зберегти бекап у файл</b><small>JSON з усіма списками й ключами</small></span></button>
@@ -30,6 +31,7 @@ function openIO(target){
           <button class="w-btn" data-act="clearCaches">Очистити кеші</button>
           <div id="stoMsg" class="st-msg"></div></div>`:''}
       </div>
+      <div class="st-row" id="stVer"><button class="st-act" data-act="openChangelog">${ic('film')}<span><b>Версія ${APP_VERSION}</b><small>від ${CHANGELOG[0].d} · історія змін</small></span></button></div>
     </div>`);
   document.querySelector('.modal-bg')?.classList.add('st-bg');document.querySelector('.modal')?.classList.add('st-modal');
   const el=target&&document.getElementById(target);
@@ -515,4 +517,27 @@ function doImport(e,mode){
     }catch(err){show('var(--rose)','✕ '+(err.message||'невірний файл'));}
   };
   rd.readAsText(file);e.target.value='';
+}
+
+/* ── VERSION and CHANGELOG: newest first; bump APP_VERSION and add an entry with every change pushed to the site ── */
+const CHANGELOG=[
+  {v:'1.4',d:'08.11.2026',n:['Вигляд за замовчуванням для Переглянутого й Планую: Налаштування → «Вигляд за замовчуванням» (сітка, список або полиці); перемикач над списком діє до наступного відкриття','Номер версії та історія змін у Налаштуваннях']},
+  {v:'1.3',d:'07.11.2026',n:['Перемикач вигляду для Переглянутого й Планую: сітка, список, полиці за категоріями','Гра «Впізнай кадр»: українські назви, оригінал у дужках','Звіт після «Підтягнути» з Drive коротший; сповіщення закриваються дотиком']},
+  {v:'1.2',d:'03.11.2026',n:['Безпека: перевірка бекапів при відновленні, захист від шкідливих даних','Відновлення: без дублів, повторні перегляди зберігаються, звіт про пропущене','Дві відкриті вкладки більше не перезаписують одна одну','Drive: 10 копій, захист від зменшеного автобекапу, відновлення із заміною та знімком','Доступність: клавіатура, підказки, зірки оцінки','Дрібні виправлення: сезони, ліміти API, постери, гра']},
+  {v:'1.1',d:'28.10.2026',n:['Картка тайтлу: статус у списках під постерами схожих тайтлів']},
+  {v:'1.0',d:'27.10.2026',n:['Бекап на Google Drive','Мобільні картки «Дивлюсь»: більший постер, кнопки на всю ширину','Виправлено відсутні постери через TMDB','Налаштування на одній сторінці, автоматичне обслуговування','Помаранчеві акценти']},
+];
+const APP_VERSION=CHANGELOG[0].v;
+function openChangelog(){
+  modal(`<div class="st-head"><h2 class="modal-title">Історія змін</h2><button class="st-x" data-act="closeModal" title="Закрити" aria-label="Закрити">✕</button></div>
+    <div class="st-body">${CHANGELOG.map(e=>`<div class="st-row cl-ver"><div class="st-row-head"><span class="st-lbl">Версія ${e.v}${e.v===APP_VERSION?' · поточна':''}</span><span class="st-hint">${e.d}</span></div><ul>${e.n.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`).join('')}</div>`);
+  document.querySelector('.modal')?.classList.add('st-modal');
+  _lsSet('ct_seen_ver',APP_VERSION);
+}
+/* after an update: one toast that leads to the changelog (not on the very first visit) */
+function _versionNotice(){
+  const seen=localStorage.getItem('ct_seen_ver');
+  if(seen===APP_VERSION)return;
+  _lsSet('ct_seen_ver',APP_VERSION);
+  if(seen||localStorage.getItem('ct_watched'))setTimeout(()=>{toast(`Оновлено до версії ${APP_VERSION}. Що нового — Налаштування → Версія`,'',7000);},1500);
 }
