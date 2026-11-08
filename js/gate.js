@@ -11,7 +11,7 @@
   document.documentElement.classList.add('locked');
   document.addEventListener('DOMContentLoaded',()=>{
     const g=document.createElement('div');g.id='gate';
-    g.innerHTML='<div class="gate-box"><div class="gate-logo">CineTrack</div>'
+    g.innerHTML='<div class="gate-box"><div class="gate-logo">Кінопис</div>'
       +'<p class="gate-t">Вхід лише для запрошених</p>'
       +'<p class="gate-s">Увійди через Google тією поштою, яку додав власник.</p>'
       +'<button class="btn gate-btn" type="button">Увійти через Google</button>'
