@@ -3,7 +3,7 @@ function mvToW(id){
   const it=watching.find(i=>i.id===id);if(!it)return;
   modal(`
     <h2 class="modal-title" style="margin-bottom:.3rem">Переглянуто</h2>
-    <div class="modal-sub" style="margin-bottom:1rem">${esc(it.title)}</div>
+    <div class="modal-sub" style="margin-bottom:1rem">${esc(tn(it))}</div>
     <div class="form-g"><label class="form-lbl" for="mC">Категорія</label>
       <select class="form-sel" id="mC">
         ${Object.entries(CAT).map(([v,l])=>`<option value="${v}"${(it.customCategory||it.type)===v?' selected':''}>${l}</option>`).join('')}
@@ -128,7 +128,7 @@ function rDash(){
       pill=fdFuture(ls.nextEpDate);
       cls='dc-soon';
     }
-    return `<div class="dash-card ${cls}"><img class="dash-img" src="${posterSrc(i.poster)}" data-pf="${esc(i.imdbID)}" loading="lazy"><div class="dash-info"><div class="dash-title"><a href="${imdbHref(i)}" target="_blank" rel="noopener">${esc(i.title)}</a></div><div class="dash-ep">${ep}</div><div class="dash-pill">${pill}</div></div></div>`;
+    return `<div class="dash-card ${cls}"><img class="dash-img" src="${posterSrc(i.poster)}" data-pf="${esc(i.imdbID)}" loading="lazy"><div class="dash-info"><div class="dash-title"><a href="${imdbHref(i)}" target="_blank" rel="noopener">${esc(tn(i))}</a></div><div class="dash-ep">${ep}</div><div class="dash-pill">${pill}</div></div></div>`;
   };
 
   const allCards=[

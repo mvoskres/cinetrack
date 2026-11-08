@@ -102,6 +102,10 @@ function _stAccentHtml(){
 }
 applyAccent(accentNow());
 
+/* Ukrainian titles for list items (imdbID -> title, '' = TMDB has no translation); the list item keeps its own
+   (English) title for matching, search finds both */
+let _ukList=_lsJSON('ct_uk_titles',{});
+function tn(i){return (i&&_ukList[i.imdbID])||i?.title||'';}
 let watched =_lsJSON('ct_watched',[]);
 let watching=_lsJSON('ct_watching',[]);
 let hidden  =_lsJSON('ct_hidden',[]);
@@ -245,7 +249,7 @@ function buildTags(t){
 }
 function applyF(list,t){
   const f=F[t];let r=[...list];
-  if(f.q){const q=f.q.toLowerCase();r=r.filter(i=>(i.title||'').toLowerCase().includes(q));}
+  if(f.q){const q=f.q.toLowerCase();r=r.filter(i=>(i.title||'').toLowerCase().includes(q)||tn(i).toLowerCase().includes(q));}
   if(f.cats?.length)    r=r.filter(i=>f.cats.includes(i.customCategory||i.type));
   if(f.genres?.length)  r=r.filter(i=>f.genres.some(g=>(i.genre||'').split(',').map(s=>s.trim()).includes(g)));
   if(f.decades?.length) r=r.filter(i=>{const y=parseInt(i.year);return y&&f.decades.includes(String(Math.floor(y/10)*10));});
@@ -259,7 +263,7 @@ function sort(l,s){
     case 'added-asc':       return a.sort((x,y)=>(x.addedAt||0)-(y.addedAt||0));
     case 'year-desc':       return a.sort((x,y)=>parseInt(y.year||0)-parseInt(x.year||0));
     case 'year-asc':        return a.sort((x,y)=>parseInt(x.year||0)-parseInt(y.year||0));
-    case 'title-asc':       return a.sort((x,y)=>(x.title||'').localeCompare(y.title||'','uk'));
+    case 'title-asc':       return a.sort((x,y)=>tn(x).localeCompare(tn(y),'uk'));
     case 'genre-asc':       return a.sort((x,y)=>fg(x).localeCompare(fg(y),'uk'));
     case 'rating-desc':     return a.sort((x,y)=>(y.rating||0)-(x.rating||0));
     case 'imdb-rating-desc':return a.sort((x,y)=>parseFloat(y.imdbRating||0)-parseFloat(x.imdbRating||0));

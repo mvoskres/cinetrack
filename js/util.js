@@ -212,6 +212,29 @@ function blank(){return"data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/200
 function _ukTitle(loc,orig,en){loc=(loc||'').trim();return loc&&loc!==orig&&loc!==en?loc:'';}
 /* «Термінатор | Колекція», «Terminator Collection» → «Термінатор» */
 function _collName(det,fallback){return String(det?.uname||det?.name||fallback||'').replace(/\s*[|(]\s*Колекці[яї]\)?\s*$/i,'').replace(/ Collection$/,'');}
+let _ukListBusy=false;
+async function _ukListFill(){
+  if(_ukListBusy||!TMDB_KEY||_tmdbBlocked)return;
+  const todo=[...new Map([...watched,...watching,...planned].filter(i=>/^tt\d+$/.test(i.imdbID||'')&&!Object.hasOwn(_ukList,i.imdbID)).map(i=>[i.imdbID,i])).values()];
+  if(!todo.length)return;
+  _ukListBusy=true;let fails=0,n=0,lastPaint=Date.now();
+  const paint=()=>{try{rWatched();rWatching(true);rPlanned();if(typeof rDash==='function')rDash();}catch(e){}};
+  for(let k=0;k<todo.length&&fails<5;k+=6){
+    await Promise.all(todo.slice(k,k+6).map(async i=>{
+      try{
+        const d=await tmdbFetch(`/find/${i.imdbID}?external_source=imdb_id&language=uk-UA`);
+        const m=d?.movie_results?.[0],t=d?.tv_results?.[0],r=i.type==='series'?(t||m):(m||t);
+        _ukList[i.imdbID]=r?_ukTitle(r.title||r.name,r.original_title||r.original_name,i.title):'';
+        if(!_findCache[i.imdbID]&&(m||t)){_findCache[i.imdbID]={m:m?.id||0,t:t?.id||0};}
+        fails=0;n++;
+      }catch(e){fails++;}
+    }));
+    if(n%60<6)_lsSet('ct_uk_titles',JSON.stringify(_ukList));
+    if(Date.now()-lastPaint>8000){lastPaint=Date.now();paint();}
+  }
+  _lsSet('ct_uk_titles',JSON.stringify(_ukList));_findSave();
+  _ukListBusy=false;paint();
+}
 const TMDB_GENRES={
   Action:28,Adventure:12,Animation:16,Comedy:35,Crime:80,
   Documentary:99,Drama:18,Family:10751,Fantasy:14,History:36,

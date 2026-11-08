@@ -259,14 +259,14 @@ function myRow(list,i){
   const c=i.customCategory||i.type;
   return `<div class="lrow">
     <a class="lrow-art" href="${imdbHref(i)}" target="_blank" rel="noopener" tabindex="-1" data-act="_tsClick" data-args="${A('$ev',`${i.imdbID}`)}"><img src="${posterSrc(i.poster)}" data-pf="${esc(i.imdbID)}" alt="" loading="lazy"></a>
-    <div class="lrow-t"><a href="${imdbHref(i)}" target="_blank" rel="noopener" data-act="_tsClick" data-args="${A('$ev',`${i.imdbID}`)}">${esc(i.title)}</a>
+    <div class="lrow-t"><a href="${imdbHref(i)}" target="_blank" rel="noopener" data-act="_tsClick" data-args="${A('$ev',`${i.imdbID}`)}">${esc(tn(i))}</a>
       ${i.comment?`<div class="pc-note" title="${esc(i.comment)}">${esc(i.comment)}</div>`:''}${_tagsHtml(i)}</div>
     <span class="lrow-y num">${esc(i.year||'')}</span>
     <span class="lrow-c">${catLabel(c)}</span>
     <span class="lrow-g">${esc((i.genre||'').split(',').slice(0,2).map(s=>s.trim()).join(', '))}</span>
     <span class="lrow-i num">${i.imdbRating?esc(i.imdbRating):'—'}</span>
     <span class="lrow-my num">${i.rating?`${ic('star')}${esc(i.rating)}`:''}</span>
-    <button class="lrow-more" data-act="cardMenu" data-args="${A('$ev',`${list}`,(i.id))}" aria-label="Дії: ${esc(i.title)}">${ic('dots')}</button>
+    <button class="lrow-more" data-act="cardMenu" data-args="${A('$ev',`${list}`,(i.id))}" aria-label="Дії: ${esc(tn(i))}">${ic('dots')}</button>
   </div>`;
 }
 /* shelves: one row of posters per category, newest first by the chosen sort; «Усі» opens the whole category */
@@ -376,9 +376,9 @@ function myCard(list,i){
   return `<article class="pc">
     <div class="pc-art"><a href="${imdbHref(i)}" target="_blank" rel="noopener" tabindex="-1" data-act="_tsClick" data-args="${A('$ev',`${i.imdbID}`)}"><img src="${posterSrc(i.poster)}" data-pf="${esc(i.imdbID)}" alt="" loading="lazy"></a>
       ${i.rating?`<span class="pc-my">${ic('star')}${esc(i.rating)}</span>`:''}
-      ${i.streamUrl&&safeUrl(i.streamUrl)?`<a class="pc-fab play" href="${esc(safeUrl(i.streamUrl))}" target="_blank" rel="noopener" aria-label="Дивитись ${esc(i.title)}">${ic('play')}</a>`:''}
-      <button class="pc-fab more" data-act="cardMenu" data-args="${A('$ev',`${list}`,(i.id))}" aria-label="Дії: ${esc(i.title)}">${ic('dots')}</button></div>
-    <div class="pc-t"><a href="${imdbHref(i)}" target="_blank" rel="noopener" data-act="_tsClick" data-args="${A('$ev',`${i.imdbID}`)}">${esc(i.title)}</a></div>
+      ${i.streamUrl&&safeUrl(i.streamUrl)?`<a class="pc-fab play" href="${esc(safeUrl(i.streamUrl))}" target="_blank" rel="noopener" aria-label="Дивитись ${esc(tn(i))}">${ic('play')}</a>`:''}
+      <button class="pc-fab more" data-act="cardMenu" data-args="${A('$ev',`${list}`,(i.id))}" aria-label="Дії: ${esc(tn(i))}">${ic('dots')}</button></div>
+    <div class="pc-t"><a href="${imdbHref(i)}" target="_blank" rel="noopener" data-act="_tsClick" data-args="${A('$ev',`${i.imdbID}`)}">${esc(tn(i))}</a></div>
     ${_myMeta(i)}
     ${i.comment?`<div class="pc-note" title="${esc(i.comment)}">${esc(i.comment)}</div>`:''}
     ${_tagsHtml(i)}
@@ -408,7 +408,7 @@ function editW(id){
   const it=watched.find(i=>i.id===id);if(!it)return;
   modal(`
     <img class="modal-poster" src="${imgSrc(it.poster)}" loading="lazy" data-fb alt="">
-    <h2 class="modal-title">${esc(it.title)}</h2>
+    <h2 class="modal-title">${esc(tn(it))}</h2>
     <div class="modal-sub" style="margin-bottom:1.1rem">${esc(it.year||'')} · ${tl(it.type)}</div>
     <div class="form-g"><label class="form-lbl" for="eC">Категорія</label>
       <select class="form-sel" id="eC">
@@ -452,9 +452,9 @@ function rWatching(skipLive){
       <img class="tr-art" src="${posterSrc(i.poster)}" data-pf="${esc(i.imdbID)}" alt="" loading="lazy" data-act="openTitle" data-args="${A(`${i.imdbID}`)}" style="cursor:pointer">
       <div class="tr-body">
         <div class="tr-top"><div class="tr-head">
-          <h3 class="tr-t"><a href="${imdbHref(i)}" target="_blank" rel="noopener" data-act="_tsClick" data-args="${A('$ev',`${i.imdbID}`)}">${esc(i.title)}</a>${_dupSet.has(i.imdbID)?'<span class="dup-badge" title="Цей тайтл є ще в іншому списку">дубль</span>':''}</h3>
+          <h3 class="tr-t"><a href="${imdbHref(i)}" target="_blank" rel="noopener" data-act="_tsClick" data-args="${A('$ev',`${i.imdbID}`)}">${esc(tn(i))}</a>${_dupSet.has(i.imdbID)?'<span class="dup-badge" title="Цей тайтл є ще в іншому списку">дубль</span>':''}</h3>
           <div class="tr-meta">${catLabel(i.customCategory||i.type)}${i.year?` · <span class="num">${esc(i.year)}</span>`:''}${i.imdbRating?` · IMDb <span class="num">${esc(i.imdbRating)}</span>`:''}</div></div>
-          <button class="icon-btn" data-act="cardMenu" data-args="${A('$ev','watching',(i.id))}" aria-label="Ще дії: ${esc(i.title)}">${ic('dots')}</button></div>
+          <button class="icon-btn" data-act="cardMenu" data-args="${A('$ev','watching',(i.id))}" aria-label="Ще дії: ${esc(tn(i))}">${ic('dots')}</button></div>
         ${isSeries?`<div id="lv-${esc(i.imdbID)}">${lh}</div>
           <div class="tr-bar" title="Сезон ${esc(i.season)} з ${esc(i.totalSeasons||1)}"><i style="width:${+_seasonPct(i)||0}%"></i></div>
           <div class="counter">
