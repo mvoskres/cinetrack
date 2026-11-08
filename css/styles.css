@@ -1342,3 +1342,7 @@ kbd{display:inline-block;font:500 .7rem var(--mono);border:1px solid var(--borde
 /* actor game: portrait photo inside the same frame box */
 .game-type{margin-bottom:.8rem;}
 .game-shot.portrait img{width:auto;max-width:100%;height:100%;object-fit:contain;}
+
+/* quote game: the tagline sits in the frame box */
+.game-shot.quote{aspect-ratio:auto;min-height:180px;padding:1.5rem;}
+.game-quote{margin:0;font-family:var(--serif);font-style:italic;font-size:clamp(1.15rem,2.6vw,1.6rem);line-height:1.4;color:var(--text);text-align:center;max-width:36ch;}

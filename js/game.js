@@ -10,15 +10,17 @@ function _gameCacheSave(){_lsSet('ct_gamebackdrops',JSON.stringify(_gameBackdrop
 const GAME_FRAMES=12;
 {let t=false;for(const k in _gameBackdropCache){const f=_gameBackdropCache[k].backdrops;if(f&&f.length>GAME_FRAMES){_gameBackdropCache[k].backdrops=f.slice(0,GAME_FRAMES);t=true;}}if(t)_gameCacheSave();}
 /* records per game type: frame keeps its old keys, actor has its own */
-const _GB_KEYS={frame:['ct_game_highscore','ct_game_roundbest'],actor:['ct_game_actor_hs','ct_game_actor_rb']};
+const _GB_KEYS={frame:['ct_game_highscore','ct_game_roundbest'],actor:['ct_game_actor_hs','ct_game_actor_rb'],quote:['ct_game_quote_hs','ct_game_quote_rb']};
 const _gameBest={};for(const t in _GB_KEYS)_gameBest[t]={streak:parseInt(localStorage.getItem(_GB_KEYS[t][0])||'0'),round:parseInt(localStorage.getItem(_GB_KEYS[t][1])||'0')};
 function _gb(){return _gameBest[_game.type]||_gameBest.frame;}
 function _gameBestSave(t=_game.type){const b=_gameBest[t];_lsSet(_GB_KEYS[t][0],String(b.streak));_lsSet(_GB_KEYS[t][1],String(b.round));}
 /* game types: «Кадр» guesses the title from a frame, «Актор» guesses where the shown actor played */
 const GAME_TYPES={frame:{name:'Кадр',sub:'Кадр без тексту з того, що ти переглянув. Обери назву з чотирьох схожих варіантів',unit:'кадрів',load:'Завантажую кадр…'},
-  actor:{name:'Актор',sub:'Фото актора з головних ролей у тому, що ти переглянув. Вгадай, де він грав',unit:'акторів',load:'Шукаю актора…'}};
+  actor:{name:'Актор',sub:'Фото актора з головних ролей у тому, що ти переглянув. Вгадай, де він грав',unit:'акторів',load:'Шукаю актора…',what:'актора',many:'Актори'},
+  quote:{name:'Цитата',sub:'Гасло з картки тайтлу, який ти переглянув. Вгадай, звідки воно',unit:'цитат',load:'Шукаю цитату…',what:'цитату',many:'Цитати'}};
+GAME_TYPES.frame.what='кадр';GAME_TYPES.frame.many='Кадри';
 const GAME_ROUND=10;
-let _game={type:['frame','actor'].includes(localStorage.getItem('ct_game_type'))?localStorage.getItem('ct_game_type'):'frame',mode:'streak',filter:'all',pool:[],q:0,score:0,streak:0,recent:[],log:[],answered:true,current:null,next:null};
+let _game={type:Object.hasOwn(GAME_TYPES,localStorage.getItem('ct_game_type')||'')?localStorage.getItem('ct_game_type'):'frame',mode:'streak',filter:'all',pool:[],q:0,score:0,streak:0,recent:[],log:[],answered:true,current:null,next:null};
 
 /* Ukrainian titles for the options: one TMDB /find call per title (it returns the localized title), kept for good.
    '' = TMDB has no title for it; the original title is used then */
@@ -46,7 +48,7 @@ function loadGameTab(){
   const n=cnt[_game.filter];
   const T=GAME_TYPES[_game.type];
   const h=document.querySelector('#tab-game .section-title'),sb=document.querySelector('#tab-game .recs-sub');
-  if(h)h.textContent=`Впізнай ${_game.type==='actor'?'актора':'кадр'}`;if(sb)sb.textContent=T.sub;
+  if(h)h.textContent=`Впізнай ${T.what}`;if(sb)sb.textContent=T.sub;
   const blocked=!TMDB_KEY||_tmdbBlocked?'Потрібен TMDB API-ключ у налаштуваннях, щоб підтягувати кадри й фото.':n<4?`Для гри потрібно щонайменше 4 переглянуті тайтли, а тут ${n}.`:'';
   el.innerHTML=`
     <div class="seg game-type" role="group" aria-label="Гра">${Object.entries(GAME_TYPES).map(([k,v])=>`<button class="seg-b${_game.type===k?' on':''}" aria-pressed="${_game.type===k}" data-act="setGameType" data-args="${A(`${k}`)}">${v.name}</button>`).join('')}</div>
@@ -57,7 +59,7 @@ function loadGameTab(){
       <button class="game-mode" data-act="startGame" data-args="[&quot;streak&quot;]" ${blocked?'disabled':''}>
         <span class="game-mode-ic">${ic('spark')}</span>
         <span class="game-mode-name">Серія</span>
-        <span class="game-mode-desc">${_game.type==='actor'?'Актори':'Кадри'} йдуть, доки не помилишся</span>
+        <span class="game-mode-desc">${T.many} йдуть, доки не помилишся</span>
         <span class="game-mode-best">Рекорд: <b class="num">${_gb().streak}</b> поспіль</span>
       </button>
       <button class="game-mode" data-act="startGame" data-args="[&quot;round&quot;]" ${blocked?'disabled':''}>
@@ -80,7 +82,7 @@ function startGame(mode){
   const pool=_gameEligible().filter(i=>_game.filter==='all'||_gameKind(i)===_game.filter);
   if(pool.length<4)return;
   _game={..._game,mode,pool,q:0,score:0,streak:0,recent:[],log:[],answered:true,current:null,next:null};
-  document.getElementById('gameTitle').textContent=(mode==='round'?`Раунд з ${GAME_ROUND} ${GAME_TYPES[_game.type].unit}`:'Серія')+(_game.type==='actor'&&mode!=='round'?' · Актор':'');
+  document.getElementById('gameTitle').textContent=(mode==='round'?`Раунд з ${GAME_ROUND} ${GAME_TYPES[_game.type].unit}`:'Серія')+(_game.type!=='frame'&&mode!=='round'?` · ${GAME_TYPES[_game.type].name}`:'');
   document.getElementById('gameModalBg').classList.remove('hidden');
   document.getElementById('gameOver').classList.add('hidden');
   document.getElementById('gamePlay').classList.remove('hidden');
@@ -156,7 +158,7 @@ async function gameNextQuestion(){
   _game.q++;_game.answered=true;
   document.getElementById('gameReveal').innerHTML='';
   document.getElementById('gameOpts').innerHTML='';
-  const sw=document.getElementById('gameShotWrap');sw.classList.toggle('portrait',_game.type==='actor');sw.innerHTML=`<div class="spinner">${GAME_TYPES[_game.type].load}</div>`;
+  const sw=document.getElementById('gameShotWrap');sw.classList.toggle('portrait',_game.type==='actor');sw.classList.toggle('quote',_game.type==='quote');sw.innerHTML=`<div class="spinner">${GAME_TYPES[_game.type].load}</div>`;
   _gameHud();
   const pick=await(_game.next||_gamePickAny());
   if(run!==_gameRun)return; /* closed or restarted while loading */
@@ -165,7 +167,7 @@ async function gameNextQuestion(){
   if(!pick){gameEnd(true);return;}
   _game.current=pick;
   _game.recent.push(pick.item.imdbID);if(_game.recent.length>Math.min(10,_game.pool.length-1))_game.recent.shift();
-  document.getElementById('gameShotWrap').innerHTML=`<img src="${esc(pick.url)}" alt="${pick.actor?'Актор, якого треба впізнати':'Кадр, який треба впізнати'}">`;
+  document.getElementById('gameShotWrap').innerHTML=pick.quote?`<blockquote class="game-quote">«${esc(pick.quote)}»</blockquote>`:`<img src="${esc(pick.url)}" alt="${pick.actor?'Актор, якого треба впізнати':'Кадр, який треба впізнати'}">`;
   const opts=_gameShuffle(pick.opts);
   const box=document.getElementById('gameOpts');box.innerHTML='';
   opts.forEach((o,k)=>{const b=document.createElement('button');b.className='game-opt';b.dataset.id=o.id;
@@ -200,8 +202,8 @@ function gameEnd(noMoreImages){
   const over=document.getElementById('gameOver');over.classList.remove('hidden');
   const round=_game.mode==='round';
   const record=round?_game.score>=_gb().round&&_game.score>0&&_game.q>=GAME_ROUND:_game.streak>0&&_game.streak>=_gb().streak;
-  const head=noMoreImages?(_game.type==='actor'?'Актори закінчились':'Кадри закінчились'):round?`${_game.score} з ${GAME_ROUND}`:`Серія: ${_game.streak}`;
-  const sub=noMoreImages?(_game.type==='actor'?'Не вдалося знайти фото акторів':'Не вдалося знайти кадри')+' для решти тайтлів у цьому наборі.':record?'Новий рекорд!':round?`Найкраще: ${_gb().round} з ${GAME_ROUND}`:`Рекорд лишається ${_gb().streak}`;
+  const head=noMoreImages?`${GAME_TYPES[_game.type].many} закінчились`:round?`${_game.score} з ${GAME_ROUND}`:`Серія: ${_game.streak}`;
+  const sub=noMoreImages?({frame:'Не вдалося знайти кадри',actor:'Не вдалося знайти фото акторів',quote:'Не вдалося знайти цитати'}[_game.type])+' для решти тайтлів у цьому наборі.':record?'Новий рекорд!':round?`Найкраще: ${_gb().round} з ${GAME_ROUND}`:`Рекорд лишається ${_gb().streak}`;
   const log=_game.log.slice(-GAME_ROUND);
   over.innerHTML=`
     <div class="game-over-ic">${ic(noMoreImages?'frame':record?'trophy':_game.score?'check':'film')}</div>
@@ -267,4 +269,49 @@ async function _gamePickActor(){
   }
   return null;
 }
-function _gamePickAny(){return _game.type==='actor'?_gamePickActor():_gamePick();}
+function _gamePickAny(){return _game.type==='actor'?_gamePickActor():_game.type==='quote'?_gamePickQuote():_gamePick();}
+
+/* ── QUOTE game: the tagline from the title sheet (TMDB, Ukrainian first, English if there is none);
+   the title's own name inside it is hidden ── */
+let _gameTag=_lsJSON('ct_game_tag',{}); /* imdbID -> {t:'tagline'} | {none:true,ts} */
+async function _gameGetTag(item){
+  const c=_gameTag[item.imdbID];
+  if(c&&(c.t||(c.ts&&Date.now()-c.ts<7*864e5)))return c.t||null;
+  try{
+    const f=await tmdbFindIds(item.imdbID);
+    const kind=item.type==='series'?(f.t?'tv':f.m?'movie':null):(f.m?'movie':f.t?'tv':null);
+    let t='';
+    if(kind){
+      const path=`/${kind}/${kind==='tv'?f.t:f.m}`;
+      const uk=await tmdbFetch(`${path}?language=uk-UA`);if(!uk)return null; /* network or key problem: ask again next time */
+      t=(uk.tagline||'').trim();
+      if(!t){const en=await tmdbFetch(`${path}?language=en-US`);t=(en?.tagline||'').trim();}
+    }
+    _gameTag[item.imdbID]=t?{t}:{none:true,ts:Date.now()};_lsSet('ct_game_tag',JSON.stringify(_gameTag));
+    return t||null;
+  }catch(e){return null;}
+}
+function _gameMask(text,names){
+  let out=text;
+  for(const n of names){
+    const core=(n||'').split(/[:—–(]/)[0].trim();if(core.length<3)continue;
+    out=out.replace(new RegExp(core.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi'),'…');
+  }
+  return out;
+}
+async function _gamePickQuote(){
+  const fresh=_game.pool.filter(p=>!_game.recent.includes(p.imdbID)&&p.imdbID!==_game.current?.item.imdbID);
+  const src=fresh.length?fresh:_game.pool;
+  const tried=new Set();
+  for(let i=0;i<14&&tried.size<src.length;i++){
+    const cand=src[Math.floor(Math.random()*src.length)];
+    if(tried.has(cand.imdbID))continue;tried.add(cand.imdbID);
+    const tag=await _gameGetTag(cand);if(!tag)continue;
+    const items=[cand,..._gameDistractors(cand)];
+    const names=await Promise.all(items.map(_gameUkName));
+    const opts=items.map((it,k)=>({id:it.imdbID,name:names[k]}));
+    opts.forEach((o,k)=>{if(opts.some((p,j)=>j!==k&&p.name===o.name))o.name=items[k].title;});
+    return{item:cand,quote:_gameMask(tag,[cand.title,names[0]]),name:opts[0].name,opts};
+  }
+  return null;
+}
