@@ -23,8 +23,17 @@ function searchOpen(){
   const L=document.getElementById('srch');if(!L)return;
   navClose(true);
   if(!document.body.classList.contains('srch-on')){L.hidden=false;document.body.classList.add('srch-on');_ovPush();}
+  _srchFit();
   const si=document.getElementById('searchInput');if(si){si.focus({preventScroll:true});si.select();}
 }
+/* phone keyboard: the browser pans the visible area under the keyboard and a plain fixed layer slides off the top.
+   The layer follows window.visualViewport instead, so its search line stays on screen while typing. */
+function _srchFit(){
+  const L=document.getElementById('srch'),v=window.visualViewport;if(!L||!v)return;
+  if(!document.body.classList.contains('srch-on')){L.style.top=L.style.height='';return;}
+  L.style.top=Math.max(0,v.offsetTop)+'px';L.style.height=v.height+'px';
+}
+if(window.visualViewport){visualViewport.addEventListener('resize',_srchFit);visualViewport.addEventListener('scroll',_srchFit);}
 /* a hit opened a title card / dialog: hide the layer but keep the query, the results and the scroll position */
 let _srchSusp=false,_srchTop=0;
 function searchSuspend(){
@@ -37,7 +46,7 @@ function searchResume(){
   if(!_srchSusp)return;
   if(!document.getElementById('titleSheet')?.classList.contains('hidden')||document.getElementById('mbox')?.innerHTML.trim())return; /* still something on top */
   _srchSusp=false;const L=document.getElementById('srch');
-  L.hidden=false;document.body.classList.add('srch-on');L.scrollTop=_srchTop;
+  L.hidden=false;document.body.classList.add('srch-on');L.scrollTop=_srchTop;_srchFit();
 }
 function searchClose(fromHistory){
   if(_srchSusp){_srchSusp=false;document.body.classList.add('srch-on');} /* a waiting search closes for good */
