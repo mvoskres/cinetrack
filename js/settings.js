@@ -9,7 +9,7 @@ function openIO(target){
       <button class="st-x" data-act="closeModal" title="Закрити" aria-label="Закрити">✕</button>
     </div>
     <div class="st-body">
-      ${API?acc+key:key+acc}
+      ${API&&TMDB_KEY?acc+key:key+acc}
       ${_stAccentHtml()}
       ${_stViewHtml()}
       <div class="st-row">
@@ -39,22 +39,23 @@ function openIO(target){
   if(el){el.scrollIntoView({block:'center'});el.classList.add('st-flash');setTimeout(()=>el.classList.remove('st-flash'),1800);}
 }
 /* a key row is one compact line while the key exists; the input only shows after «Змінити» or when there is none */
-function _stKeyRow(id,name,key,save,url,opt,bad,hint){
+function _stKeyRow(id,name,key,save,url,role,bad,hint){
   const has=!!key;
   return `<div class="st-key">
-    <div class="st-key-line"><span class="st-key-n">${name}${opt?'<em>необов\'язковий</em>':''}</span>
+    <div class="st-key-line"><span class="st-key-n">${name}<em>${role}</em></span>
       ${has?`<span class="st-key-v${bad?' bad':''}">${bad?'✕ недоступний':'✓ '+esc(key.slice(0,4))+'••••'}</span><button class="st-chg" data-act="stKeyEdit" data-args="${A(id)}">Змінити</button>`:'<span class="st-key-v off">не встановлено</span>'}
-      <a href="${url}" target="_blank" rel="noopener" class="st-link">отримати ключ →</a></div>
+      ${has?'':`<a href="${url}" target="_blank" rel="noopener" class="st-link">отримати ключ →</a>`}</div>
     ${bad?'<p class="st-hint" style="color:var(--rose)">TMDB недоступний з цієї мережі, спробуй VPN</p>':!has&&hint?`<p class="st-hint">${hint}</p>`:''}
     <div class="st-ed" id="${id}Ed"${has?' style="display:none"':''}>
       <input class="api-inp" id="${id}K" type="text" placeholder="Вставте ключ…" aria-label="Ключ ${name}" data-enter="${save}">
-      <button class="st-save-btn" data-act="${save}">Зберегти</button></div>
+      <button class="st-save-btn" data-act="${save}">Зберегти</button>${has?`<a href="${url}" target="_blank" rel="noopener" class="st-link">отримати новий ключ →</a>`:''}</div>
     <div id="${id}Msg" class="st-msg"></div></div>`;
 }
 function _stKeys(){
   return `<div class="st-row" id="stKeys"><div class="st-row-head"><span class="st-lbl">Ключі API</span></div>
-    ${_stKeyRow('api','OMDb',API,'saveKey','https://www.omdbapi.com/apikey.aspx',false,false,'Для пошуку, постерів і метаданих. Без нього застосунок не працює.')}
-    ${_stKeyRow('tmdb','TMDB',TMDB_KEY,'saveTMDBKey','https://www.themoviedb.org/settings/api',true,_tmdbBlocked&&!!TMDB_KEY,'Покращує рекомендації. Без ключа вони працюють через OMDb.')}</div>`;
+    ${_stKeyRow('tmdb','TMDB',TMDB_KEY,'saveTMDBKey','https://www.themoviedb.org/settings/api','назви, описи, пошук',_tmdbBlocked&&!!TMDB_KEY,'Головне джерело: українські назви й описи, пошук, сезони, рекомендації, франшизи, люди, статистика й гра. Без нього більшість сторінок порожні.')}
+    ${_stKeyRow('api','OMDb',API,'saveKey','https://www.omdbapi.com/apikey.aspx','рейтинг IMDb',false,'Рейтинг IMDb і дані при додаванні в список, а також запасний пошук. Без нього не додати новий тайтл.')}
+    <p class="st-hint">Обидва ключі безкоштовні й потрібні. Зберігаються лише в цьому браузері та у твоєму бекапі.</p></div>`;
 }
 function stKeyEdit(id){const e=document.getElementById(id+'Ed');if(!e)return;e.style.display='flex';document.getElementById(id+'K')?.focus();}
 const STORAGE_QUOTA_CHARS=5e6; /* Chrome/Edge/Firefox: ~5M chars per origin */
@@ -79,7 +80,7 @@ function clearCaches(){
   const m=document.getElementById('stoMsg');if(m){m.style.color='var(--jade-2)';m.textContent=`Звільнено ${(freed/1e6).toFixed(2)} млн символів`;}
 }
 function saveKey(){const v=(document.getElementById('apiK').value||'').trim(),m=document.getElementById('apiMsg');if(!v){m.style.color='var(--rose)';m.textContent='Введіть ключ';return;}API=v;_lsSet('ct_apikey',v);m.style.color='var(--jade-2)';m.textContent='Ключ збережено';openIO('stKeys');/* redraw: the row turns compact and OMDb leaves the top */}
-function saveTMDBKey(){const v=(document.getElementById('tmdbK').value||'').trim(),m=document.getElementById('tmdbMsg');if(!v){m.style.color='var(--rose)';m.textContent='Введіть ключ';return;}TMDB_KEY=v;_tmdbBlocked=false;_tmdbNetFails=0;_lsSet('ct_tmdbkey',v);/* Clear TMDB cache so next fetch uses the new key */Object.keys(_tmdbCache).forEach(k=>delete _tmdbCache[k]);m.style.color='var(--jade-2)';m.textContent='Ключ збережено. Оновлюємо рекомендації…';document.getElementById('tmdbK').value='';setTimeout(()=>{closeModal();refreshRecs();},400);}
+function saveTMDBKey(){const v=(document.getElementById('tmdbK').value||'').trim(),m=document.getElementById('tmdbMsg');if(!v){m.style.color='var(--rose)';m.textContent='Введіть ключ';return;}TMDB_KEY=v;_tmdbBlocked=false;_tmdbNetFails=0;_lsSet('ct_tmdbkey',v);/* Clear TMDB cache so next fetch uses the new key */Object.keys(_tmdbCache).forEach(k=>delete _tmdbCache[k]);document.getElementById('tmdbK').value='';openIO('stKeys');setTimeout(()=>{const n=document.getElementById('tmdbMsg');if(n){n.style.color='var(--jade-2)';n.textContent='Ключ збережено';}},0);refreshRecs();}
 /* Quiet maintenance: both fixers touch no DOM and return how many titles they changed.
    They run by themselves (after an import, and weekly), see runMaintenance. */
 async function fixAnime(){
@@ -540,6 +541,7 @@ function doImport(e,mode){
 
 /* ── VERSION and CHANGELOG: newest first; bump APP_VERSION and add an entry with every change pushed to the site ── */
 const CHANGELOG=[
+  {v:'1.19.3',d:'09.11.2026',n:['Налаштування, ключі: TMDB більше не «необов’язковий» — він тепер головне джерело й стоїть першим. Біля кожного ключа коротко, для чого він; посилання «отримати ключ» показується, лише коли ключа немає або його змінюєш','Без ключа TMDB застосунок одразу підказує його додати']},
   {v:'1.19.2',d:'09.11.2026',n:['Повторний перегляд — окремий стан: у «Дивлюсь» біля назви пише «повторно» замість «дубль», а «Перевірка даних» у Налаштуваннях такі тайтли більше не пропонує прибрати. Стан зберігається в бекапі']},
   {v:'1.19.1',d:'09.11.2026',n:['Картка тайтлу: стан («Переглянуто», «Дивлюсь», «Заплановано») тепер кнопка ▾ — натисни й обери інший стан або видали. Окрему кнопку «Дивитись знову» прибрано','Новий перехід: з «Дивлюсь» у «Планую»']},
   {v:'1.19',d:'09.11.2026',n:['«Дивитись знову»: переглянутий фільм чи серіал можна повернути в «Дивлюсь» без видалення й нового пошуку — кнопка в картці тайтлу та в меню ⋯ картки в Переглянутому. У Переглянутому він теж лишається з твоєю оцінкою й коментарем','Під час повторного перегляду картка показує «Дивлюсь знову» і серії, а коли позначаєш «Переглянуто повністю», форма вже містить твою попередню оцінку й коментар']},

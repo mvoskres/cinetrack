@@ -2,7 +2,9 @@
 ['watched','watching','planned'].forEach(buildBar);
 rWatched();rWatching();rPlanned();rDash();updateStats();
 if(!API)
-  setTimeout(()=>toast('Додай OMDb API-ключ у Налаштуваннях, щоб застосунок запрацював.','',10000),800);
+  setTimeout(()=>toast('Додай ключ OMDb у Налаштуваннях, щоб застосунок запрацював.','',10000),800);
+else if(!TMDB_KEY)
+  setTimeout(()=>toast('Додай ключ TMDB у Налаштуваннях: без нього немає українських назв, пошуку, рекомендацій і статистики.','',10000),800);
 else if(!watched.length&&!watching.length&&!planned.length)
   setTimeout(()=>toast('Даних поки немає. Відновити бекап: Налаштування → Відновити.','',8000),600);
 _backupStateRender();
