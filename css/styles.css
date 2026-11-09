@@ -1996,3 +1996,7 @@ body.srch-on{overflow:hidden;}
   /* shade: darker behind the words, posters stay visible at the top and edges */
   body.nav-on .dk-shade{background:linear-gradient(180deg,rgba(15,18,22,.7) 0%,rgba(15,18,22,.82) 25%,rgba(15,18,22,.93) 55%,rgba(15,18,22,.97) 100%);}
 }
+/* title card: the status chip is a button that opens the status menu */
+button.chip-s.st-sw{font-family:var(--sans);font-size:.8rem;padding:.35rem .7rem;border:0;cursor:pointer;}
+button.chip-s.st-sw:hover{filter:brightness(1.2);}
+.st-car{font-size:.7rem;margin-left:.15rem;opacity:.8;}

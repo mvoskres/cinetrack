@@ -136,16 +136,35 @@ const _tsImg=(p,w)=>typeof p==='string'&&/^\/[\w.\-]+$/.test(p)?`https://image.t
 const _ytOk=k=>/^[\w-]{6,20}$/.test(k||'');
 const _tsFd=d=>d?new Date(d+'T00:00:00').toLocaleDateString('uk-UA',{day:'numeric',month:'long',year:'numeric'}):'';
 
+/* status chip menu: every other state, plus removal; «Дивлюсь» from Переглянуте is a rewatch (the watched record stays) */
+function _tsStatusMenu(ev){
+  const d=_tsCur?.data;if(!d)return;
+  const id=d.imdbID,W=watched.find(x=>x.imdbID===id),Wn=watching.find(x=>x.imdbID===id),P=planned.find(x=>x.imdbID===id);
+  const it=[];
+  if(Wn){
+    it.push({icon:'check',label:'Переглянуто',fn:'mvToW',args:[Wn.id]});
+    if(!P)it.push({icon:'bookmark',label:'Планую',fn:'wnToPl',args:[Wn.id]});
+    it.push('-',{icon:'trash',label:W?'Прибрати з «Дивлюсь»':'Видалити',fn:'_menuDel',args:['watching',Wn.id],danger:1});
+  }else if(W){
+    it.push({icon:'play',label:'Дивлюсь',fn:'wToWn',args:[W.id]});
+    if(!P)it.push({icon:'bookmark',label:'Планую',fn:'addPl',args:[id]});
+    it.push('-',{icon:'trash',label:'Видалити',fn:'_menuDel',args:['watched',W.id],danger:1});
+  }else if(P){
+    it.push({icon:'check',label:'Переглянуто',fn:'plToW',args:[P.id]},{icon:'play',label:'Дивлюсь',fn:'plToWn',args:[P.id]},
+      '-',{icon:'trash',label:'Видалити',fn:'_menuDel',args:['planned',P.id],danger:1});
+  }
+  openMenu(ev,it);
+}
 function _tsActions(d){
   const own=_tsOwned(d.imdbID);
   if(own){
     const it=own.item,lbl=[...{watched:['ok','check','Переглянуто'],watching:['wn','play','Дивлюсь'],planned:['pl','bookmark','Заплановано']}[own.list]];
     const extra=own.list==='watching'&&it.type==='series'?` · ${_epLabel(it)}`:own.list==='watched'&&it.rating?` · твоя оцінка ${it.rating}/10`:'';
     if(own.list==='watching'&&watched.some(x=>x.imdbID===d.imdbID))lbl[2]='Дивлюсь знову';
-    const main=own.list==='watched'?`<button class="btn" data-act="editW" data-args="${A((it.id))}">${ic('star')}Оцінка і коментар</button><button class="btn" data-act="wToWn" data-args="${A((it.id))}">${ic('play')}Дивитись знову</button>`
+    const main=own.list==='watched'?`<button class="btn" data-act="editW" data-args="${A((it.id))}">${ic('star')}Оцінка і коментар</button>`
       :own.list==='planned'?`<button class="btn" data-act="plToW" data-args="${A((it.id))}">${ic('check')}Переглянуто</button><button class="btn" data-act="plToWn" data-args="${A((it.id))}">${ic('play')}Почати дивитись</button>${_tsSkipBtn(d)}`
       :`<button class="btn primary" data-act="mvToW" data-args="${A((it.id))}">${ic('check')}Переглянуто повністю</button>`;
-    return `<span class="chip-s ${lbl[0]}">${ic(lbl[1])}${lbl[2]}${extra}</span>${main}
+    return `<button class="chip-s st-sw ${lbl[0]}" data-act="_tsStatusMenu" data-args="${A('$ev')}" aria-haspopup="menu" title="Змінити стан">${ic(lbl[1])}${lbl[2]}${extra}<span class="st-car" aria-hidden="true">▾</span></button>${main}
       <button class="icon-btn" data-act="cardMenu" data-args="${A('$ev',`${own.list}`,(it.id))}" aria-label="Ще дії">${ic('dots')}</button>`;
   }
   if(!d.imdbID)return `<span class="chip-s mute">Немає на IMDb, тож додати не вийде</span>`;

@@ -45,6 +45,12 @@ async function wToWn(id){
   if(n&&w.customCategory&&n.customCategory!==w.customCategory){n.customCategory=w.customCategory;saveAll();rWatching();}
   toast(`«${tn(w)}» знову в «Дивлюсь». У Переглянутому теж лишається`,'ok',4200);
 }
+function wnToPl(id){
+  const it=watching.find(i=>i.id===id);if(!it)return;
+  if(!planned.some(x=>x.imdbID===it.imdbID))planned.unshift({id:Date.now(),imdbID:it.imdbID,title:it.title,poster:it.poster,year:it.year,type:it.type,genre:it.genre||'',country:it.country||'',imdbUrl:it.imdbUrl,imdbRating:it.imdbRating||null,...(it.runtime?{runtime:it.runtime}:{}),...(it.tags?.length?{tags:[...it.tags]}:{}),...(it.streamUrl?{streamUrl:it.streamUrl}:{}),customCategory:it.customCategory,addedAt:Date.now()});
+  watching=watching.filter(i=>i.id!==id);
+  saveAll();rWatching();rPlanned();rDash();toast(`«${tn(it)}» → Планую`,'ok');
+}
 async function plToWn(id){
   const it=planned.find(i=>i.id===id);if(!it)return;
   const origIdx=planned.indexOf(it);
