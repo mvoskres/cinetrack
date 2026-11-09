@@ -3,7 +3,7 @@ const TITLES={watched:'Переглянуте',watching:'Дивлюсь',planned
 function goTab(id,btn){
   document.getElementById('gameModalBg')?.classList.add('hidden');
   const tabEl=document.getElementById('tab-'+id);
-  if(tabEl&&tabEl.classList.contains('hidden'))window.scrollTo(0,0); /* a new tab starts at its top, not at the old tab's scroll depth */
+  const fresh=!!tabEl&&tabEl.classList.contains('hidden'); /* a new tab starts at its top, not at the old tab's scroll depth */
   document.querySelectorAll('[id^="tab-"]').forEach(t=>t.classList.add('hidden'));
   document.getElementById('tab-'+id).classList.remove('hidden');
   document.querySelectorAll('[data-tab]').forEach(b=>{const o=b.dataset.tab===id;b.classList.toggle('on',o);if(o)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
@@ -16,6 +16,7 @@ function goTab(id,btn){
   if(id==='game')loadGameTab();
   const ds=document.getElementById('dashSection');if(ds)ds.hidden=id!=='watching'; /* air strip belongs to Дивлюсь */
   closeMenu();navClose();searchClose();
+  if(fresh){window.scrollTo(0,0);requestAnimationFrame(()=>window.scrollTo(0,0));} /* after the menu closed: its history step must not bring the old position back */
 }
 
 /* ── SEARCH ── */

@@ -3,6 +3,7 @@
    (a drop-down, .dk-drop); on a phone (≤700px) it is a floating dock at the bottom that grows into the full
    menu. navOpen/navClose toggle body.nav-on for both. The search is a full-screen layer (#srch, body.srch-on).
    Both push one history entry, so the phone's Back button closes them instead of leaving the site. */
+try{history.scrollRestoration='manual';}catch(e){} /* closing the menu/search goes «back»; the browser must not restore an old scroll then */
 let _ovPushed=false;
 function _ovPush(){if(!_ovPushed){try{history.pushState({ctOv:1},'');_ovPushed=true;}catch(e){}}}
 function _ovPop(){if(_ovPushed&&!document.body.classList.contains('nav-on')&&!document.body.classList.contains('srch-on')){_ovPushed=false;history.back();}}
