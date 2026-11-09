@@ -37,8 +37,8 @@ function _tmdbOwnedId(mt,id){
 }
 function _ownBadge(imdbID){
   if(!imdbID)return'';
-  if(watched.find(x=>x.imdbID===imdbID))return `<span class="sug-badge ok">${ic('check')}Переглянуто</span>`;
   if(watching.find(x=>x.imdbID===imdbID))return `<span class="sug-badge wn">${ic('play')}Дивлюсь</span>`;
+  if(watched.find(x=>x.imdbID===imdbID))return `<span class="sug-badge ok">${ic('check')}Переглянуто</span>`;
   if(planned.find(x=>x.imdbID===imdbID))return `<span class="sug-badge pl">${ic('bookmark')}Планую</span>`;
   return'';
 }
@@ -364,7 +364,7 @@ function cardMenu(ev,list,id){
     {icon:'link',label:it.streamUrl?'Змінити посилання':'Додати посилання',fn:'editUrl',args:[id]},
     {icon:'tag',label:'Додати тег',fn:'addTag',args:[id]},'-'];
   const items={
-    watched:[{icon:'star',label:'Оцінка і коментар',fn:'editW',args:[id]},...common,{icon:'trash',label:'Видалити',fn:'_menuDel',args:['watched',id],danger:1}],
+    watched:[{icon:'star',label:'Оцінка і коментар',fn:'editW',args:[id]},!watching.some(x=>x.imdbID===it.imdbID)&&{icon:'play',label:'Дивитись знову',fn:'wToWn',args:[id]},...common,{icon:'trash',label:'Видалити',fn:'_menuDel',args:['watched',id],danger:1}],
     planned:[{icon:'check',label:'Переглянуто',fn:'plToW',args:[id]},{icon:'play',label:'Почати дивитись',fn:'plToWn',args:[id]},...common,{icon:'trash',label:'Видалити',fn:'_menuDel',args:['planned',id],danger:1}],
     watching:[ser&&{icon:'refresh',label:'Оновити дані ефіру',fn:'relive',args:[it.imdbID]},ser&&it.season<(it.totalSeasons||1)&&{icon:'plus',label:'Наступний сезон',fn:'adj',args:[id,'s',1]},ser&&it.season>1&&{icon:'minus',label:'Попередній сезон',fn:'adj',args:[id,'s',-1]},
       {icon:'check',label:'Переглянуто повністю',fn:'mvToW',args:[id]},...common,{icon:'trash',label:'Видалити',fn:'_menuDel',args:['watching',id],danger:1}],

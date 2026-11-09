@@ -25,7 +25,7 @@ function openTitle(imdbID){_tsOpen({imdbID},true);}
 function openTitleTmdb(mt,id){_tsOpen({mt:mt==='tv'?'tv':'movie',id:+id},true);}
 function _tsOwned(imdbID){
   if(!imdbID)return null;
-  for(const[l,arr]of[['watched',watched],['watching',watching],['planned',planned]]){const it=arr.find(x=>x.imdbID===imdbID);if(it)return{list:l,item:it};}
+  for(const[l,arr]of[['watching',watching],['watched',watched],['planned',planned]]){const it=arr.find(x=>x.imdbID===imdbID);if(it)return{list:l,item:it};}
   return null;
 }
 async function _tsOpen(ref,push){
@@ -139,9 +139,10 @@ const _tsFd=d=>d?new Date(d+'T00:00:00').toLocaleDateString('uk-UA',{day:'numeri
 function _tsActions(d){
   const own=_tsOwned(d.imdbID);
   if(own){
-    const it=own.item,lbl={watched:['ok','check','Переглянуто'],watching:['wn','play','Дивлюсь'],planned:['pl','bookmark','Заплановано']}[own.list];
+    const it=own.item,lbl=[...{watched:['ok','check','Переглянуто'],watching:['wn','play','Дивлюсь'],planned:['pl','bookmark','Заплановано']}[own.list]];
     const extra=own.list==='watching'&&it.type==='series'?` · ${_epLabel(it)}`:own.list==='watched'&&it.rating?` · твоя оцінка ${it.rating}/10`:'';
-    const main=own.list==='watched'?`<button class="btn" data-act="editW" data-args="${A((it.id))}">${ic('star')}Оцінка і коментар</button>`
+    if(own.list==='watching'&&watched.some(x=>x.imdbID===d.imdbID))lbl[2]='Дивлюсь знову';
+    const main=own.list==='watched'?`<button class="btn" data-act="editW" data-args="${A((it.id))}">${ic('star')}Оцінка і коментар</button><button class="btn" data-act="wToWn" data-args="${A((it.id))}">${ic('play')}Дивитись знову</button>`
       :own.list==='planned'?`<button class="btn" data-act="plToW" data-args="${A((it.id))}">${ic('check')}Переглянуто</button><button class="btn" data-act="plToWn" data-args="${A((it.id))}">${ic('play')}Почати дивитись</button>${_tsSkipBtn(d)}`
       :`<button class="btn primary" data-act="mvToW" data-args="${A((it.id))}">${ic('check')}Переглянуто повністю</button>`;
     return `<span class="chip-s ${lbl[0]}">${ic(lbl[1])}${lbl[2]}${extra}</span>${main}
@@ -216,7 +217,7 @@ function _tsRefreshActions(){
   const n=document.getElementById('tsMine');if(n)n.innerHTML=_tsMine(_tsCur.data);
 }
 function _tsMine(d){
-  const it=_tsOwned(d.imdbID)?.item;if(!it)return '';
+  const it=watched.find(x=>x.imdbID===d.imdbID)||_tsOwned(d.imdbID)?.item;if(!it)return '';
   const bits=[];
   const rt=Math.max(0,Math.min(10,Math.round(+it.rating)||0)); /* repeat() throws on a negative or fractional count */
   if(rt)bits.push(`<div><span class="ts-k">Твоя оцінка</span><span class="ts-stars" aria-label="${rt} з 10">${'★'.repeat(rt)}<i>${'★'.repeat(10-rt)}</i></span></div>`);

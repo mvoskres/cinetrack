@@ -1,6 +1,7 @@
 /* ── MOVE ── */
 function mvToW(id){
   const it=watching.find(i=>i.id===id);if(!it)return;
+  const ex=watched.find(x=>x.imdbID===it.imdbID),r0=ex?.rating||0;
   modal(`
     <h2 class="modal-title" style="margin-bottom:.3rem">Переглянуто</h2>
     <div class="modal-sub" style="margin-bottom:1rem">${esc(tn(it))}</div>
@@ -9,10 +10,10 @@ function mvToW(id){
         ${Object.entries(CAT).map(([v,l])=>`<option value="${v}"${(it.customCategory||it.type)===v?' selected':''}>${l}</option>`).join('')}
       </select></div>
     <div class="form-g"><label class="form-lbl" id="starsLbl">Моя оцінка</label>
-      <div class="stars" id="starsBox" role="radiogroup" aria-labelledby="starsLbl">${buildStars(0)}</div>
-      <input type="hidden" id="eR" value="0"></div>
+      <div class="stars" id="starsBox" role="radiogroup" aria-labelledby="starsLbl">${buildStars(r0)}</div>
+      <input type="hidden" id="eR" value="${r0}"></div>
     <div class="form-g"><label class="form-lbl" for="eCm">Враження</label>
-      <textarea class="form-ta" id="eCm" rows="3" placeholder="Що сподобалось?"></textarea></div>
+      <textarea class="form-ta" id="eCm" rows="3" placeholder="Що сподобалось?">${esc(ex?.comment||'')}</textarea></div>
     <div class="modal-btns">
       <button class="m-btn g" data-act="confirmMv" data-args="${A((id))}">Перенести в переглянуте</button>
       <button class="m-btn can" data-act="closeModal">Скасувати</button>
@@ -31,6 +32,18 @@ function confirmMv(id){
   else watched.unshift({id:Date.now(),imdbID:it.imdbID,title:it.title,poster:it.poster,year:it.year,type:it.type,genre:it.genre,country:it.country||'',imdbUrl:it.imdbUrl,imdbRating:it.imdbRating||null,...(it.runtime?{runtime:it.runtime}:{}),...(it.tags?.length?{tags:[...it.tags]}:{}),...(it.streamUrl?{streamUrl:it.streamUrl}:{}),customCategory:document.getElementById('mC').value,rating:parseInt(document.getElementById('eR').value)||0,comment:document.getElementById('eCm').value.trim(),addedAt:Date.now()});
   watching=watching.filter(i=>i.id!==id);
   saveAll();rWatched();rWatching();closeModal();
+}
+/* «Дивитись знову»: the watched record (rating, comment, stats) stays; a Дивлюсь copy starts at S1E1 with the same
+   category, tags and link. OMDb is asked once for the season count, as for any add to Дивлюсь. */
+async function wToWn(id){
+  const w=watched.find(i=>i.id===id);if(!w)return;
+  if(watching.find(x=>x.imdbID===w.imdbID)){toast('Вже є в «Дивлюсь»','',2200);return;}
+  let ok=false;
+  try{ok=await addWn(w.imdbID);}catch(e){toast(_omdbErr(e),'err',4200);}
+  if(!ok)return;
+  const n=watching.find(x=>x.imdbID===w.imdbID);
+  if(n&&w.customCategory&&n.customCategory!==w.customCategory){n.customCategory=w.customCategory;saveAll();rWatching();}
+  toast(`«${tn(w)}» знову в «Дивлюсь». У Переглянутому теж лишається`,'ok',4200);
 }
 async function plToWn(id){
   const it=planned.find(i=>i.id===id);if(!it)return;
