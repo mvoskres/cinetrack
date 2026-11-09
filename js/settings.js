@@ -167,7 +167,7 @@ function _buildBackup(incK){
     collCache:_collCache,collDetails:_collDetails,skippedParts:_skippedParts,unresolvable:_unresolvable,
     gameBestScore:_gameBest.frame.streak,gameRoundBest:_gameBest.frame.round,gameActorBest:_gameBest.actor.streak,gameActorRound:_gameBest.actor.round,gameQuoteBest:_gameBest.quote.streak,gameQuoteRound:_gameBest.quote.round,gameBackdropCache:_gameBackdropCache,
     personCache:_personCache,resolveCache:_resolveCache,tmdbFind:_findCache,
-    statsTmdb:_sxT,statsPeople:_sxP,ukTitles:_ukList,accent:accentNow()}; /* no apiCache: it expires in 24h anyway */
+    statsTmdb:_sxT,statsPeople:_sxP,ukTitles:_ukList,accent:accentNow(),views:_viewDef}; /* no apiCache: it expires in 24h anyway */
 }
 async function doExport(){
   const btn=document.querySelector('[data-act="doExport"] small'),orig=btn?.textContent; /* the row's grey line doubles as progress */
@@ -433,6 +433,10 @@ function _applyBackup(data){
   }
   if(nGame){Object.assign(_gameBackdropCache,nGame);_gameCacheSave();}
   if(typeof data.accent==='string'&&_hexRgb(data.accent)&&data.accent.toLowerCase()!==accentNow())setAccent(data.accent); /* the colour travels with the backup */
+  if(data.views&&typeof data.views==='object'&&!Array.isArray(data.views)){ /* default views travel with the backup too */
+    let ch=0;for(const t in VIEW_LISTS)if(_okView(data.views[t])&&data.views[t]!==viewDefOf(t)){_viewDef[t]=data.views[t];delete _views[t];ch++;}
+    if(ch)_lsSet('ct_views_def',JSON.stringify(_viewDef));
+  }
   if(data.ukTitles&&typeof data.ukTitles==='object'&&!Array.isArray(data.ukTitles)){ /* Ukrainian list titles: a new device need not look them all up again */
     let nUk=0;for(const [k,v] of Object.entries(data.ukTitles))if(/^tt\d+$/.test(k)&&typeof v==='string'&&v.length<300&&!Object.hasOwn(_ukList,k)){_ukList[k]=v;nUk++;}
     if(nUk)_lsSet('ct_uk_titles',JSON.stringify(_ukList));
@@ -536,6 +540,7 @@ function doImport(e,mode){
 
 /* ── VERSION and CHANGELOG: newest first; bump APP_VERSION and add an entry with every change pushed to the site ── */
 const CHANGELOG=[
+  {v:'1.17.1',d:'09.11.2026',n:['Налаштування: вибір вигляду за замовчуванням більше не перезапускає вікно','Вигляд за замовчуванням тепер у бекапі; зміна кольору чи вигляду теж запускає автобекап на Drive (раніше колір у бекап потрапляв, лише якщо змінювались і списки)']},
   {v:'1.17',d:'08.11.2026',n:['Нова назва: Кінопис (замість CineTrack, якого в інтернеті безліч). Адреса сайту, дані й бекапи на Drive лишаються ті самі']},
   {v:'1.16.1',d:'08.11.2026',n:['Картки: роки й тип у першому рядку, оцінка IMDb окремим другим рядком; роки серіалів знову повністю («2011–2020»)']},
   {v:'1.16',d:'08.11.2026',n:['Вхід лише для запрошених: застосунок відкривається тільки після входу через Google поштою, яку додав власник; решта бачить лише екран входу','При переході між сторінками екран повертається нагору','Оцінка IMDb на картках серіалів більше не обрізається','Українські назви тепер у бекапі: на новому пристрої не треба шукати їх заново']},
