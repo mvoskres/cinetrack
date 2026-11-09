@@ -34,22 +34,21 @@ function _srchFit(){
   L.style.top=Math.max(0,v.offsetTop)+'px';L.style.height=v.height+'px';
 }
 if(window.visualViewport){visualViewport.addEventListener('resize',_srchFit);visualViewport.addEventListener('scroll',_srchFit);}
-/* a hit opened a title card / dialog: hide the layer but keep the query, the results and the scroll position */
-let _srchSusp=false,_srchTop=0;
+/* a hit opened a title card / dialog: the search stays where it is, under the card (z 800) or dialog (z 1000),
+   with its query, results and scroll position; closing the card simply shows it again */
+let _srchSusp=false;
 function searchSuspend(){
   if(!document.body.classList.contains('srch-on'))return;
-  const L=document.getElementById('srch');_srchTop=L.scrollTop;
-  document.body.classList.remove('srch-on');L.hidden=true;_srchSusp=true;
-  document.getElementById('searchInput')?.blur();
+  _srchSusp=true;document.getElementById('searchInput')?.blur();
 }
+function _srchCovered(){return !document.getElementById('titleSheet')?.classList.contains('hidden')||!!document.getElementById('mbox')?.innerHTML.trim();}
 function searchResume(){
-  if(!_srchSusp)return;
-  if(!document.getElementById('titleSheet')?.classList.contains('hidden')||document.getElementById('mbox')?.innerHTML.trim())return; /* still something on top */
-  _srchSusp=false;const L=document.getElementById('srch');
-  L.hidden=false;document.body.classList.add('srch-on');L.scrollTop=_srchTop;_srchFit();
+  if(!_srchSusp||_srchCovered())return;
+  _srchSusp=false;
+  const q=document.getElementById('searchInput')?.value.trim();if(q)doSearch(q); /* a status changed in the card shows on its poster (TMDB answers come from the cache) */
 }
 function searchClose(fromHistory){
-  if(_srchSusp){_srchSusp=false;document.body.classList.add('srch-on');} /* a waiting search closes for good */
+  _srchSusp=false;
   if(!document.body.classList.contains('srch-on'))return;
   document.body.classList.remove('srch-on');document.getElementById('srch').hidden=true;
   clearTimeout(_st2);hideSug();const si=document.getElementById('searchInput');if(si){si.value='';si.blur();}
@@ -57,10 +56,10 @@ function searchClose(fromHistory){
 }
 document.addEventListener('keydown',e=>{
   if(e.key!=='Escape')return;
-  if(document.getElementById('mbox')?.innerHTML.trim())return; /* a dialog on top handles its own Esc */
+  if(_srchCovered())return; /* a card or dialog on top handles its own Esc */
   if(document.body.classList.contains('srch-on')){e.preventDefault();searchClose();}
   else if(document.body.classList.contains('nav-on'))navClose();
-});
+},true); /* capture: decided before the card's own Esc closes it, so one Esc closes only the card */
 /* a click outside the drop-down (computer/tablet) closes it */
 document.addEventListener('click',e=>{
   if(!document.body.classList.contains('nav-on')||window.innerWidth<=700)return;

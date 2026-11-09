@@ -1969,3 +1969,6 @@ body.srch-on{overflow:hidden;}
   .srch .sug-p .sug-badge{left:5px;top:5px;padding:3px 7px;font-size:10.5px;}
 }
 @media(prefers-reduced-motion:reduce){.dock,.dk-big{transition:none;}}
+
+/* keyboard hints only where there is a keyboard */
+@media(max-width:700px),(pointer:coarse){.kb-only,.srch-x kbd,.dk-sr kbd{display:none;}}
