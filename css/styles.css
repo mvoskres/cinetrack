@@ -1865,9 +1865,9 @@ html.locked body>*:not(#gate){display:none!important;}
 .dk-mb,.dk-big,.ph-top,.dk-drop{display:none;}
 /* search layer */
 body.srch-on{overflow:hidden;}
-.srch{position:fixed;inset:0;z-index:470;background:var(--ink);overflow:auto;overscroll-behavior:contain;}
+.srch{position:fixed;inset:0;z-index:470;background:var(--ink);overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;}
 .srch[hidden]{display:none;}
-.srch .srch-wall{inset:-20%;opacity:.07;z-index:0;}
+.srch .srch-wall{position:fixed;inset:-20%;opacity:.07;z-index:0;} /* fixed: the rotated wall must not widen the scroll area */
 .srch::before{content:"";position:fixed;inset:0;z-index:1;background:linear-gradient(180deg,rgba(15,18,22,.85),var(--ink) 60%);pointer-events:none;}
 .srch-in{position:relative;z-index:2;max-width:1180px;margin:0 auto;padding:26px 32px 48px;min-height:100%;}
 .srch-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;}
