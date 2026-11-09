@@ -237,7 +237,7 @@ function buildCollBar(){
       .map(([k,l])=>`<button class="fa-tab${f.status===k?' on':''}" aria-pressed="${f.status===k}" data-act="collSetStatus" data-args="${A(`${k}`)}"><b class="num">${cnt[k]}</b><span>${l}</span></button>`).join('')}</div>
     <div class="fa-tools">
       <div class="local-search-wrap"><span class="local-search-icon">${ic('search')}</span>
-        <input class="local-search" type="text" placeholder="Пошук франшизи…" aria-label="Пошук франшизи" value="${esc(f.q)}" data-input="collSearch" data-args="[&quot;$value&quot;]">
+        <input class="local-search" type="text" placeholder="Пошук франшизи…" aria-label="Пошук франшизи" value="${esc(f.q)}" data-input="collSearch" data-args="[&quot;$value&quot;]"><button type="button" class="ls-x" data-act="lsClear" data-args="[&quot;$el&quot;]" aria-label="Очистити пошук" title="Очистити">${ic('x')}</button>
       </div>
       <button id="collFbtn" class="flt-pill${n?' has-n':''}" data-act="toggleCollPan">${ic('filter')}Тип, жанр${n?` <span class="flt-n">${n}</span>`:''}</button>
       <select class="sort-sel" aria-label="Сортування" data-change="collSetSort" data-args="[&quot;$value&quot;]">

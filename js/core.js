@@ -197,7 +197,7 @@ function buildBar(t){
       <button class="cat-chip${cur?'':' on'}" data-act="setCat" data-args="${A(`${t}`,'')}">Усі<span class="num">${list.length}</span></button>
       ${cats.map(c=>`<button class="cat-chip${cur===c?' on':''}" data-act="setCat" data-args="${A(`${t}`,`${c}`)}">${catLabel(c)}<span class="num">${counts[c]}</span></button>`).join('')}</div>`:''}
     <div class="local-search-wrap"><span class="local-search-icon">${ic('search')}</span>
-      <input class="local-search" type="text" placeholder="Пошук у списку…" aria-label="Пошук у списку" value="${esc(f.q||'')}" data-input="lsearch" data-args="${A(`${t}`,'$value')}">
+      <input class="local-search" type="text" placeholder="Пошук у списку…" aria-label="Пошук у списку" value="${esc(f.q||'')}" data-input="lsearch" data-args="${A(`${t}`,'$value')}"><button type="button" class="ls-x" data-act="lsClear" data-args="[&quot;$el&quot;]" aria-label="Очистити пошук" title="Очистити">${ic('x')}</button>
     </div>
     <button id="fbtn-${t}" class="flt-pill${n?' has-n':''}" data-act="togglePan" data-args="${A(`${t}`)}">${ic('filter')}Жанр, роки, теги${n?` <span class="flt-n">${n}</span>`:''}</button>
     <select class="sort-sel" aria-label="Сортування" data-change="doSort" data-args="${A(`${t}`,'$value')}">

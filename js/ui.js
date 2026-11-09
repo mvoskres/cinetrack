@@ -71,6 +71,14 @@ document.getElementById('srch')?.addEventListener('click',e=>{if(e.target.id==='
 let _navRz;
 window.addEventListener('resize',()=>{clearTimeout(_navRz);_navRz=setTimeout(()=>{if(window.innerWidth>1100)navClose();},120);});
 
+/* ✕ in a list search (Переглянуте/Дивлюсь/Планую, Франшизи, фільмографія); Esc in the field does the same */
+function lsClear(btn){
+  const inp=btn?.closest('.local-search-wrap')?.querySelector('.local-search');if(!inp)return;
+  inp.value='';inp.dispatchEvent(new Event('input',{bubbles:true}));inp.focus();
+}
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&e.target.classList?.contains('local-search')&&e.target.value){e.preventDefault();e.stopPropagation();lsClear(e.target);}
+});
 /* the dock's texture: the user's own best-rated posters, smaller copies where the host allows */
 function _dockWall(){
   const ps=watched.filter(i=>/^https:\/\//.test(i.poster||'')).sort((a,b)=>(parseFloat(b.imdbRating)||0)-(parseFloat(a.imdbRating)||0)).slice(0,36)

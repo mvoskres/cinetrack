@@ -240,7 +240,7 @@ function buildPersonBar(){
       .map(([k,l])=>`<button class="fa-tab${f.ownership===k?' on':''}" aria-pressed="${f.ownership===k}" data-act="personSetOwnership" data-args="${A(k)}"><b class="num">${cntO[k]}</b><span>${l}</span></button>`).join('')}</div>
     <div class="fa-tools">
       <div class="local-search-wrap"><span class="local-search-icon">${ic('search')}</span>
-        <input class="local-search" type="text" placeholder="Пошук у фільмографії…" aria-label="Пошук у фільмографії" value="${esc(f.q)}" data-input="personListSearch" data-args="[&quot;$value&quot;]">
+        <input class="local-search" type="text" placeholder="Пошук у фільмографії…" aria-label="Пошук у фільмографії" value="${esc(f.q)}" data-input="personListSearch" data-args="[&quot;$value&quot;]"><button type="button" class="ls-x" data-act="lsClear" data-args="[&quot;$el&quot;]" aria-label="Очистити пошук" title="Очистити">${ic('x')}</button>
       </div>
       <button class="flt-pill${nf?' has-n':''}${_personPanOpen?' active':''}" data-act="personTogglePan">${ic('filter')}Тип, роль${nf?` <span class="flt-n">${nf}</span>`:''}</button>
       <select class="sort-sel" aria-label="Порядок у десятилітті" data-change="personSetSort" data-args="[&quot;$value&quot;]">

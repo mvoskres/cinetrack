@@ -2001,3 +2001,10 @@ button.chip-s.st-sw{font-family:var(--sans);font-size:.8rem;padding:.35rem .7rem
 button.chip-s.st-sw:hover{filter:brightness(1.2);}
 .st-car{font-size:.7rem;margin-left:.15rem;opacity:.8;}
 .dup-badge.rw{background:var(--gold-d);color:var(--gold);border-color:var(--gold-b);}
+/* list search: ✕ to clear, only while there is text */
+.local-search{padding-right:2.1rem;}
+.ls-x{position:absolute;right:.35rem;top:50%;transform:translateY(-50%);width:28px;height:28px;display:grid;place-items:center;border:0;border-radius:50%;background:transparent;color:var(--muted);cursor:pointer;}
+.ls-x:hover{color:var(--text);background:rgba(255,255,255,.08);}
+.ls-x svg.i{width:16px;height:16px;}
+.local-search:placeholder-shown~.ls-x{display:none;}
+@media(pointer:coarse){.ls-x{width:36px;height:36px;right:.15rem;}}
