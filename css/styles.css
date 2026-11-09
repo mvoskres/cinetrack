@@ -1971,7 +1971,7 @@ body.srch-on{overflow:hidden;}
 @media(prefers-reduced-motion:reduce){.dock,.dk-big{transition:none;}}
 
 /* keyboard hints only where there is a keyboard */
-@media(max-width:700px),(pointer:coarse){.kb-only,.srch-x kbd,.dk-sr kbd{display:none;}}
+@media(max-width:700px),(pointer:coarse){kbd,.kb-only,.game-keys{display:none!important;}} /* every keyboard hint (Enter, Esc, 1–4, /) */
 /* Гра: one column centred on the screen (it was pinned to the left of a wide page) */
 @media(min-width:701px){#tab-game{max-width:960px;margin-left:auto;margin-right:auto;}#gameStart{max-width:none;}}
 @media(max-width:700px),(pointer:coarse){.game-keys{display:none;}}
