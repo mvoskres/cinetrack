@@ -43,15 +43,22 @@ function _ownBadge(imdbID){
   return'';
 }
 async function _tmdbSearch(q){
-  const d=await tmdbFetch(`/search/multi?query=${encodeURIComponent(q)}&language=uk-UA&include_adult=false`);
+  const url=p=>`/search/multi?query=${encodeURIComponent(q)}&language=uk-UA&include_adult=false&page=${p}`;
+  const d=await tmdbFetch(url(1));
   if(document.getElementById('searchInput').value.trim()!==q)return true; /* typed on meanwhile */
-  const res=(d?.results||[]).filter(r=>r.media_type==='person'?r.profile_path&&r.popularity>1:(r.media_type==='movie'||r.media_type==='tv'));
+  let all=d?.results||[];
+  /* up to 20 titles: one TMDB page is 20 mixed hits (people, unposted), so a second page fills the rest */
+  if((d?.total_pages||1)>1&&all.filter(r=>r.media_type==='movie'||r.media_type==='tv').length<20){
+    try{const d2=await tmdbFetch(url(2));if(document.getElementById('searchInput').value.trim()!==q)return true;
+      const seen=new Set(all.map(r=>r.media_type+r.id));all=all.concat((d2?.results||[]).filter(r=>!seen.has(r.media_type+r.id)));}catch(e){}
+  }
+  const res=all.filter(r=>r.media_type==='person'?r.profile_path&&r.popularity>1:(r.media_type==='movie'||r.media_type==='tv'));
   if(!res.length){document.getElementById('suggestions').innerHTML='';return false;}
   _ownIdx=null;
   /* TMDB's order puts «Золотая дюна» above «Дюна»: exact, then prefix matches first, then popularity */
   const ql=q.toLowerCase(),rank=r=>{const t=[r.title||r.name,r.original_title||r.original_name].map(x=>(x||'').toLowerCase());
     return t.includes(ql)?0:t.some(x=>x.startsWith(ql))?1:2;};
-  const titles=res.filter(r=>r.media_type!=='person').sort((a,b)=>rank(a)-rank(b)||(b.popularity||0)-(a.popularity||0)).slice(0,7),people=res.filter(r=>r.media_type==='person').slice(0,2);
+  const titles=res.filter(r=>r.media_type!=='person').sort((a,b)=>rank(a)-rank(b)||(b.popularity||0)-(a.popularity||0)).slice(0,20),people=res.filter(r=>r.media_type==='person').slice(0,4);
   const box=document.getElementById('suggestions');box.classList.remove('hidden');
   document.querySelector('#srch .search-wrap').classList.remove('loading');
   box.innerHTML=titles.map(r=>{
@@ -85,7 +92,7 @@ async function _omdbSearch(q){
     const res=r.Search.filter(m=>m.Type!=='episode');if(!res.length){hideSug();return;}
     const box=document.getElementById('suggestions');box.classList.remove('hidden');
     document.querySelector('#srch .search-wrap').classList.remove('loading');
-    box.innerHTML=res.slice(0,7).map(m=>{
+    box.innerHTML=res.slice(0,10).map(m=>{
       let b='';
       if(watched.find(x=>x.imdbID===m.imdbID))       b=`<span class="sug-badge ok">${ic('check')}Переглянуто</span>`;
       else if(watching.find(x=>x.imdbID===m.imdbID)) b=`<span class="sug-badge wn">${ic('play')}Дивлюсь</span>`;
