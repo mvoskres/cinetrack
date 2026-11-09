@@ -190,6 +190,12 @@ async function addW(id){
   saveAll();rWatched();rWatching();rPlanned();rDash();toast(`«${m.Title}» додано до переглянутих`,'ok');
   return true;
 }
+/* Дивлюсь item that is a second viewing of something in Переглянуте: flagged by «Дивитись знову», or (older data)
+   started after the title had been marked watched. Not a duplicate: the badge says «повторно», the data check leaves it. */
+function _isRewatch(i){
+  const w=i&&watched.find(x=>x.imdbID===i.imdbID);if(!w)return false;
+  return !!i.rewatch||(w.addedAt||0)<=(i.addedAt||0);
+}
 async function addWn(id){
   if(watching.find(x=>x.imdbID===id)){toast('Вже є у списку "Дивлюсь"','err',2200);return false;}
   if(planned.find(x=>x.imdbID===id))
@@ -455,7 +461,7 @@ function rWatching(skipLive){
       <img class="tr-art" src="${posterSrc(i.poster)}" data-pf="${esc(i.imdbID)}" alt="" loading="lazy" data-act="openTitle" data-args="${A(`${i.imdbID}`)}" style="cursor:pointer">
       <div class="tr-body">
         <div class="tr-top"><div class="tr-head">
-          <h3 class="tr-t"><a href="${imdbHref(i)}" target="_blank" rel="noopener" data-act="_tsClick" data-args="${A('$ev',`${i.imdbID}`)}">${esc(tn(i))}</a>${_dupSet.has(i.imdbID)?'<span class="dup-badge" title="Цей тайтл є ще в іншому списку">дубль</span>':''}</h3>
+          <h3 class="tr-t"><a href="${imdbHref(i)}" target="_blank" rel="noopener" data-act="_tsClick" data-args="${A('$ev',`${i.imdbID}`)}">${esc(tn(i))}</a>${_isRewatch(i)?'<span class="dup-badge rw" title="Повторний перегляд: у Переглянутому лишається твоя оцінка">повторно</span>':_dupSet.has(i.imdbID)?'<span class="dup-badge" title="Цей тайтл є ще в іншому списку">дубль</span>':''}</h3>
           <div class="tr-meta">${catLabel(i.customCategory||i.type)}${i.year?` · <span class="num">${esc(i.year)}</span>`:''}${i.imdbRating?` · IMDb <span class="num">${esc(i.imdbRating)}</span>`:''}</div></div>
           <button class="icon-btn" data-act="cardMenu" data-args="${A('$ev','watching',(i.id))}" aria-label="Ще дії: ${esc(tn(i))}">${ic('dots')}</button></div>
         ${isSeries?`<div id="lv-${esc(i.imdbID)}">${lh}</div>

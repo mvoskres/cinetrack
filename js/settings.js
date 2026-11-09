@@ -334,7 +334,7 @@ function _normItem(src,list){
   if(src.runtime===null)o.runtime=null;else{const m=_i(src.runtime,0,2000);if(m!==null)o.runtime=m;}
   const rc=_n(src._ratingCheckedAt,0,9e15);if(rc!==null)o._ratingCheckedAt=rc;
   const sn=_i(src.season,1,500),ep=_i(src.episode,1,100000),ts=_i(src.totalSeasons,1,500);
-  if(list==='watching'){o.season=sn||1;o.episode=ep||1;o.totalSeasons=ts||Math.max(1,o.season);}
+  if(list==='watching'){o.season=sn||1;o.episode=ep||1;o.totalSeasons=ts||Math.max(1,o.season);if(src.rewatch===true)o.rewatch=true;}
   else{if(sn)o.season=sn;if(ep)o.episode=ep;if(ts)o.totalSeasons=ts;}
   if(src.prevEp&&typeof src.prevEp==='object'){const s=_i(src.prevEp.s,1,500),e=_i(src.prevEp.e,1,100000);if(s&&e)o.prevEp={s,e};}
   if(src.seasonEps&&typeof src.seasonEps==='object'&&!Array.isArray(src.seasonEps)){
@@ -540,6 +540,7 @@ function doImport(e,mode){
 
 /* ── VERSION and CHANGELOG: newest first; bump APP_VERSION and add an entry with every change pushed to the site ── */
 const CHANGELOG=[
+  {v:'1.19.2',d:'09.11.2026',n:['Повторний перегляд — окремий стан: у «Дивлюсь» біля назви пише «повторно» замість «дубль», а «Перевірка даних» у Налаштуваннях такі тайтли більше не пропонує прибрати. Стан зберігається в бекапі']},
   {v:'1.19.1',d:'09.11.2026',n:['Картка тайтлу: стан («Переглянуто», «Дивлюсь», «Заплановано») тепер кнопка ▾ — натисни й обери інший стан або видали. Окрему кнопку «Дивитись знову» прибрано','Новий перехід: з «Дивлюсь» у «Планую»']},
   {v:'1.19',d:'09.11.2026',n:['«Дивитись знову»: переглянутий фільм чи серіал можна повернути в «Дивлюсь» без видалення й нового пошуку — кнопка в картці тайтлу та в меню ⋯ картки в Переглянутому. У Переглянутому він теж лишається з твоєю оцінкою й коментарем','Під час повторного перегляду картка показує «Дивлюсь знову» і серії, а коли позначаєш «Переглянуто повністю», форма вже містить твою попередню оцінку й коментар']},
   {v:'1.18.8',d:'09.11.2026',n:['Меню на телефоні: угорі логотип і рядок пошуку, розділи посередині, налаштування й стан бекапу в нижньому рядку поруч із хрестиком — без порожнього місця']},

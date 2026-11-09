@@ -30,7 +30,7 @@ function cleanScan(){
   planned.filter(i=>wById[i.imdbID]).forEach(i=>fixes.push({grp:'cross',on:true,title:_ty(i),note:'вже в Переглянутому, прибрати з Планую',
     run:()=>{const k=planned.indexOf(i);if(k>=0)planned.splice(k,1);}}));
   /* Marked watched after it was started: a leftover. Otherwise it may be a rewatch, so off by default. */
-  watching.filter(i=>wById[i.imdbID]).forEach(i=>{const late=(wById[i.imdbID].addedAt||0)>(i.addedAt||0);
+  watching.filter(i=>wById[i.imdbID]&&!_isRewatch(i)).forEach(i=>{ /* a rewatch is not a leftover */const late=(wById[i.imdbID].addedAt||0)>(i.addedAt||0);
     fixes.push({grp:'cross',on:late,title:_ty(i),note:late?'позначено переглянутим уже після старту, прибрати з Дивлюсь':'є в Переглянутому, можливо, це повторний перегляд',
       run:()=>{const k=watching.indexOf(i);if(k>=0)watching.splice(k,1);}});});
   const inLists=new Set([...watched,...watching,...planned].map(i=>i.imdbID));

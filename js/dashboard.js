@@ -42,7 +42,7 @@ async function wToWn(id){
   try{ok=await addWn(w.imdbID);}catch(e){toast(_omdbErr(e),'err',4200);}
   if(!ok)return;
   const n=watching.find(x=>x.imdbID===w.imdbID);
-  if(n&&w.customCategory&&n.customCategory!==w.customCategory){n.customCategory=w.customCategory;saveAll();rWatching();}
+  if(n){n.rewatch=true;if(w.customCategory)n.customCategory=w.customCategory;saveAll();rWatching();}
   toast(`«${tn(w)}» знову в «Дивлюсь». У Переглянутому теж лишається`,'ok',4200);
 }
 function wnToPl(id){

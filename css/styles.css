@@ -2000,3 +2000,4 @@ body.srch-on{overflow:hidden;}
 button.chip-s.st-sw{font-family:var(--sans);font-size:.8rem;padding:.35rem .7rem;border:0;cursor:pointer;}
 button.chip-s.st-sw:hover{filter:brightness(1.2);}
 .st-car{font-size:.7rem;margin-left:.15rem;opacity:.8;}
+.dup-badge.rw{background:var(--gold-d);color:var(--gold);border-color:var(--gold-b);}
