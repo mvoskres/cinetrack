@@ -1972,3 +1972,6 @@ body.srch-on{overflow:hidden;}
 
 /* keyboard hints only where there is a keyboard */
 @media(max-width:700px),(pointer:coarse){.kb-only,.srch-x kbd,.dk-sr kbd{display:none;}}
+/* Гра: one column centred on the screen (it was pinned to the left of a wide page) */
+@media(min-width:701px){#tab-game{max-width:960px;margin-left:auto;margin-right:auto;}#gameStart{max-width:none;}}
+@media(max-width:700px),(pointer:coarse){.game-keys{display:none;}}
