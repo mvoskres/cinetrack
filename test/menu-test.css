@@ -1,0 +1,21 @@
+/* TEST PAGE ONLY (/test/): phone menu layout proposal. Not loaded by the live page. */
+.dk-top,.dk-rset{display:none;}
+@media(max-width:700px){
+  /* top: logo + a search line, so the upper part of the grown dock is not just wallpaper */
+  .dk-top{display:flex;flex-direction:column;gap:14px;position:absolute;left:0;right:0;top:0;padding:20px 22px 0;opacity:0;pointer-events:none;transition:opacity .2s .12s;}
+  body.nav-on .dk-top{opacity:1;pointer-events:auto;}
+  .dock .dk-tsr{display:flex;align-items:center;gap:10px;width:100%;padding:12px 14px;border-radius:14px;background:rgba(23,27,33,.88);border:1px solid #3a424e;color:var(--text-2);font:500 15px var(--sans);text-align:left;}
+  .dk-tsr svg.i{width:20px;height:20px;}
+  /* middle: the menu words sit in the space between top and bottom, a little below centre (thumb reach) */
+  body.nav-on .dk-big{top:132px;bottom:70px;justify-content:center;padding-top:0;padding-bottom:0;}
+  .dk-ft{display:none;}
+  /* bottom row: settings on the left, ✕ on the right — no empty strip under the menu */
+  body.nav-on .dk-rset{display:flex;}
+  .dock .dk-rset{align-items:center;gap:10px;flex:1;min-width:0;padding-left:16px;font:600 15px var(--sans);color:var(--text);text-align:left;}
+  .dk-rset small{display:block;font:400 12px var(--sans);color:var(--muted);}
+  .dk-rset small.stale{color:#e0a84a;}
+  .dk-rset .av{width:34px;height:34px;}
+  body.nav-on .dk-lists{display:none;}
+  /* shade: darker behind the words, posters stay visible at the top and edges */
+  body.nav-on .dk-shade{background:linear-gradient(180deg,rgba(15,18,22,.7) 0%,rgba(15,18,22,.82) 25%,rgba(15,18,22,.93) 55%,rgba(15,18,22,.97) 100%);}
+}

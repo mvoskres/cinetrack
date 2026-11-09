@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8"/>
+<!-- No inline scripts or event attributes anywhere: every handler is a data-act/data-input/data-change/data-enter/data-fb attribute run by the delegation in js/lists.js and js/util.js. Inline styles stay (style-src unsafe-inline). -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://accounts.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://www.omdbapi.com https://api.themoviedb.org https://api.tvmaze.com https://www.googleapis.com https://accounts.google.com; frame-src https://accounts.google.com; object-src 'none'; base-uri 'self'; form-action 'none'"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,interactive-widget=resizes-content"/>
+<title>Кінопис · тест меню</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%230e1218'/%3E%3Crect x='5' y='5' width='14' height='14' rx='1.5' fill='none' stroke='%23e8a33d' stroke-width='1.8'/%3E%3Cpath d='M9 5v14M15 5v14M5 10h4M5 14h4M15 10h4M15 14h4' stroke='%23e8a33d' stroke-width='1.4'/%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Onest:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<script src="../js/gate.js?v=ff96a136"></script>
+<link rel="stylesheet" href="../css/styles.css?v=c3a24cc5">
+<link rel="stylesheet" href="menu-test.css?v=3">
+</head>
+<body class="menu-test">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="i-film" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 3v18M17 3v18M3 8h4M3 16h4M17 8h4M17 16h4"/></symbol><symbol id="i-play" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m10 8.5 5 3.5-5 3.5z"/></symbol><symbol id="i-bookmark" viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4z"/></symbol><symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></symbol><symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M18 6l-2.5 2.5M8.5 15.5 6 18"/></symbol><symbol id="i-stack" viewBox="0 0 24 24"><rect x="4" y="8" width="13" height="13" rx="1.5"/><path d="M8 4h11a1 1 0 0 1 1 1v11"/></symbol><symbol id="i-person" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></symbol><symbol id="i-frame" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="1.5"/><path d="m3 16 5-5 4 4 3-3 6 6"/></symbol><symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol><symbol id="i-dots" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7"/></symbol><symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol><symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol><symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol><symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3.5 2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></symbol><symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></symbol><symbol id="i-tag" viewBox="0 0 24 24"><path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.3"/></symbol><symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></symbol><symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></symbol><symbol id="i-filter" viewBox="0 0 24 24"><path d="M3 5h18l-7 8v6l-4 2v-8z"/></symbol><symbol id="i-save" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 19h16"/></symbol><symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></symbol><symbol id="i-tv" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="m8 2 4 4 4-4"/></symbol><symbol id="i-ban" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m5.6 5.6 12.8 12.8"/></symbol><symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol><symbol id="i-eye-off" viewBox="0 0 24 24"><path d="M3 3l18 18M10.6 5.1A10 10 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-3.2 4M6.1 6.1C3.5 7.9 2 12 2 12s3.5 7 10 7a9.6 9.6 0 0 0 4.4-1"/></symbol><symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17.5v.01"/></symbol><symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/></symbol><symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></symbol><symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="m11 12 9-9M17 6l3 3M15 8l2 2"/></symbol><symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 21V9M7 14l5-5 5 5M4 5h16"/></symbol><symbol id="i-trophy" viewBox="0 0 24 24"><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4M12 14v4M8 21h8"/></symbol><symbol id="i-shuffle" viewBox="0 0 24 24"><path d="M3 7h4l10 10h4M3 17h4l3-3M14 10l3-3h4M18 4l3 3-3 3M18 14l3 3-3 3"/></symbol></svg>
+<div class="bg-fx" aria-hidden="true"><div class="bg-aurora1"></div><div class="bg-aurora2"></div><div class="bg-aurora3"></div><div class="bg-grain"></div></div>
+<div class="shell">
+
+
+  <!-- ╔══════════════╗ -->
+  <!-- ║    MAIN      ║ -->
+  <!-- ╚══════════════╝ -->
+  <div class="main">
+  <!-- NAV: one «dock» — top bar on a computer, a floating dock on a phone that grows into the full menu (navOpen) -->
+  <header class="dock" id="dock">
+    <div class="dk-wall" id="dkWall" aria-hidden="true"></div><div class="dk-shade" aria-hidden="true"></div>
+    <div class="dk-top"><span class="dk-logo">Кіно<b>пис</b></span><button class="dk-tsr" data-act="searchOpen"><svg class="i" aria-hidden="true"><use href="#i-search"/></svg>Пошук фільму, серіалу чи людини</button></div>
+    <nav class="dk-big" aria-label="Меню"><button class="dk-bl on" data-tab="watched" data-act="goTab" data-args="[&quot;watched&quot;]">Переглянуте<small data-nb="watched">0</small></button><button class="dk-bl" data-tab="watching" data-act="goTab" data-args="[&quot;watching&quot;]">Дивлюсь<small data-nb="watching">0</small></button><button class="dk-bl" data-tab="planned" data-act="goTab" data-args="[&quot;planned&quot;]">Планую<small data-nb="planned">0</small></button><div class="dk-gap"></div><button class="dk-bd" data-tab="stats" data-act="goTab" data-args="[&quot;stats&quot;]">Статистика</button><button class="dk-bd" data-tab="recs" data-act="goTab" data-args="[&quot;recs&quot;]">Рекомендації</button><button class="dk-bd" data-tab="collections" data-act="goTab" data-args="[&quot;collections&quot;]">Франшизи</button><button class="dk-bd" data-tab="people" data-act="goTab" data-args="[&quot;people&quot;]">Люди</button><button class="dk-bd" data-tab="game" data-act="goTab" data-args="[&quot;game&quot;]">Гра</button>
+      <div class="dk-ft"><button class="dk-set" data-act="openIO"><span class="av"><svg class="i" aria-hidden="true"><use href="#i-gear"/></svg></span>Налаштування</button><span class="bk" data-bk></span></div>
+    </nav>
+    <div class="dk-row">
+      <button class="dk-home" data-act="goTab" data-args="[&quot;watched&quot;]" aria-label="Кінопис: Переглянуте"><span class="dk-logo">Кіно<b>пис</b></span></button>
+      <nav class="dk-lists" aria-label="Списки"><button class="dk-li on" data-tab="watched" data-act="goTab" data-args="[&quot;watched&quot;]"><span class="dk-n">Переглянуте</span> <small data-nb="watched">0</small></button><button class="dk-li" data-tab="watching" data-act="goTab" data-args="[&quot;watching&quot;]"><span class="dk-n">Дивлюсь</span> <small data-nb="watching">0</small></button><button class="dk-li" data-tab="planned" data-act="goTab" data-args="[&quot;planned&quot;]"><span class="dk-n">Планую</span> <small data-nb="planned">0</small></button></nav>
+      <span class="dk-sep" aria-hidden="true"></span>
+      <nav class="dk-disc" aria-label="Розділи"><button class="dk-d" data-tab="stats" data-act="goTab" data-args="[&quot;stats&quot;]">Статистика</button><button class="dk-d" data-tab="recs" data-act="goTab" data-args="[&quot;recs&quot;]">Рекомендації</button><button class="dk-d" data-tab="collections" data-act="goTab" data-args="[&quot;collections&quot;]">Франшизи</button><button class="dk-d" data-tab="people" data-act="goTab" data-args="[&quot;people&quot;]">Люди</button><button class="dk-d" data-tab="game" data-act="goTab" data-args="[&quot;game&quot;]">Гра</button></nav>
+      <button class="dk-sr" data-act="searchOpen" title="Пошук ( / )"><svg class="i" aria-hidden="true"><use href="#i-search"/></svg><span class="t">Пошук</span><kbd>/</kbd></button>
+      <button class="dk-more" data-act="navToggle" aria-haspopup="true">Ще</button>
+      <button class="me" id="backupState" data-act="openIO" title="Налаштування"><span class="av"><svg class="i" aria-hidden="true"><use href="#i-gear"/></svg></span><span class="me-t">Налаштування<small data-bk></small></span></button>
+      <button class="dk-rset" data-act="openIO"><span class="av"><svg class="i" aria-hidden="true"><use href="#i-gear"/></svg></span><span>Налаштування<small data-bk></small></span></button><button class="dk-mb" data-act="navToggle" aria-label="Меню"><span class="ic-m"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></span><span class="ic-x"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></span></button>
+    </div>
+  </header>
+  <nav class="dk-drop" aria-label="Розділи"><button data-tab="stats" data-act="goTab" data-args="[&quot;stats&quot;]">Статистика</button><button data-tab="recs" data-act="goTab" data-args="[&quot;recs&quot;]">Рекомендації</button><button data-tab="collections" data-act="goTab" data-args="[&quot;collections&quot;]">Франшизи</button><button data-tab="people" data-act="goTab" data-args="[&quot;people&quot;]">Люди</button><button data-tab="game" data-act="goTab" data-args="[&quot;game&quot;]">Гра</button></nav>
+  <div class="ph-top"><button class="dk-home" data-act="goTab" data-args="[&quot;watched&quot;]" aria-label="Кінопис: Переглянуте"><span class="dk-logo">Кіно<b>пис</b></span></button><button class="ph-sr" data-act="searchOpen" aria-label="Пошук"><svg class="i" aria-hidden="true"><use href="#i-search"/></svg></button></div>
+
+    <div class="content">
+
+      <!-- DASHBOARD strip -->
+      <div id="dashSection" hidden></div>
+
+      <!-- tabs content -->
+      <div id="tab-watched">
+        <div class="section-head">
+          <div><div class="section-eyebrow">Колекція</div><h1 class="section-title">Переглянуте <em id="wHead">·</em></h1></div>
+        </div>
+        <div class="filter-row" id="wBar"></div>
+        <div class="active-tags" id="wTags"></div>
+        <div id="wPanel" class="flt-panel" style="display:none"></div>
+        <div class="result-count" id="wCount"></div>
+        <div id="wGrid" class="grid"></div>
+      </div>
+
+      <div id="tab-watching" class="hidden">
+        <div class="section-head">
+          <div><div class="section-eyebrow">В процесі</div><h1 class="section-title">Дивлюсь <em id="wnHead">·</em></h1></div>
+        </div>
+        <div class="filter-row" id="wnBar"></div>
+        <div class="active-tags" id="wnTags"></div>
+        <div id="wnPanel" class="flt-panel" style="display:none"></div>
+        <div id="wnList" class="wlist"></div>
+      </div>
+
+      <div id="tab-planned" class="hidden">
+        <div class="section-head">
+          <div><div class="section-eyebrow">Черга</div><h1 class="section-title">Хочу подивитись <em id="plHead">·</em></h1></div>
+        </div>
+        <div class="filter-row" id="plBar"></div>
+        <div class="active-tags" id="plTags"></div>
+        <div id="plPanel" class="flt-panel" style="display:none"></div>
+        <div id="plGrid" class="grid"></div>
+      </div>
+
+      <div id="tab-stats" class="hidden">
+        <div class="section-head"><div><h1 class="section-title">Статистика</h1></div></div>
+        <div id="statsContent"></div>
+      </div>
+      <div id="tab-recs" class="hidden">
+        <div class="section-head">
+          <div><h1 class="section-title">Рекомендації</h1><div class="recs-sub" id="recsSub"></div></div>
+          <div class="recs-actions">
+            <button class="flt-pill" id="rv-hidden" data-act="recView" data-args="[&quot;hidden&quot;]">Приховані <span class="num" id="rvHiddenN"></span></button>
+            <button class="flt-pill" id="recsRefresh" data-act="refreshRecs" title="Зібрати нову підбірку"><svg class="i" aria-hidden="true"><use href="#i-refresh"/></svg>Оновити</button>
+          </div>
+        </div>
+        <div class="rg-tiles" id="recsGenres" role="group" aria-label="Жанри"></div>
+        <div class="filter-row" id="recsBar"></div>
+        <div id="recsGrid"></div>
+      </div>
+
+      <div id="tab-collections" class="hidden">
+        <div class="section-head">
+          <div><div class="section-eyebrow">Франшизи</div><h1 class="section-title">Франшизи</h1><div class="recs-sub" id="collSub"></div></div>
+          <div style="display:flex;align-items:center;gap:.6rem;">
+            <span id="collLastRun" style="font-size:.65rem;color:var(--muted)"></span>
+            <button class="rec-btn m" data-act="refreshCollectionsData" id="collRefresh" title="Перечитати склад усіх франшиз: нові частини, дати, постери"><svg class="i" aria-hidden="true"><use href="#i-refresh"/></svg> Оновити дані</button>
+          </div>
+        </div>
+        <div class="fa-bar" id="collBar"></div>
+        <div class="flt-panel" id="collPanel" style="display:none"></div>
+        <div id="collGrid"></div>
+      </div>
+
+      <div id="tab-people" class="hidden">
+        <div class="section-head">
+          <div><h1 class="section-title">Люди</h1></div>
+          <div class="search-wrap" style="max-width:20rem;position:relative">
+            <span class="search-icon"><svg class="i" aria-hidden="true"><use href="#i-search"/></svg></span>
+            <input id="personSearchInput" class="search-input" placeholder="Знайти людину…" data-input="handlePersonSearch" data-blur="hidePersonSug" data-blur-box="personSuggestions" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="personSuggestions" aria-label="Знайти актора чи режисера" autocomplete="off">
+            <div id="personSuggestions" class="suggestions hidden" role="listbox" aria-label="Знайдені люди"></div>
+          </div>
+        </div>
+        <div id="peopleTracked" class="people-tracked"></div>
+        <div id="personDetail"></div>
+      </div>
+
+      <div id="tab-game" class="hidden">
+        <div class="section-head">
+          <div><h1 class="section-title">Впізнай кадр</h1>
+          <div class="recs-sub">Кадр без тексту з того, що ти переглянув. Обери назву з чотирьох схожих варіантів</div></div>
+        </div>
+        <div id="gameStart"></div>
+      </div>
+
+      <div id="gameModalBg" class="game-modal-bg hidden" data-act="_bgClose" data-args="[&quot;$ev&quot;,&quot;$el&quot;,&quot;closeGameModal&quot;]">
+        <div class="game-modal" role="dialog" aria-modal="true" aria-labelledby="gameTitle">
+          <div class="game-modal-head">
+            <h2 class="game-modal-title" id="gameTitle">Впізнай кадр</h2>
+            <div class="game-hud" id="gameHud"></div>
+            <button class="game-modal-close" data-act="closeGameModal" aria-label="Закрити гру">✕</button>
+          </div>
+          <div id="gamePlay" class="hidden game-modal-body">
+            <div id="gameShotWrap" class="game-shot"><div class="spinner">Завантажую кадр…</div></div>
+            <div id="gameOpts" class="game-opts" role="group" aria-label="Варіанти відповіді"></div>
+            <div id="gameReveal" class="game-reveal" aria-live="polite"></div>
+          </div>
+          <div id="gameOver" class="hidden game-modal-body"></div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /shell -->
+<div id="titleSheet" class="ts-bg hidden" data-act="_bgClose" data-args="[&quot;$ev&quot;,&quot;$el&quot;,&quot;closeTitle&quot;]"><aside class="ts" role="dialog" aria-modal="true" aria-label="Деталі тайтлу" tabindex="-1"><div id="tsBody"></div></aside></div>
+<div id="mbox"></div>
+<!-- SEARCH: a full-screen layer; results are posters (lists.js renders .sug-item cards into #suggestions) -->
+<div class="srch" id="srch" role="dialog" aria-modal="true" aria-label="Пошук" hidden>
+  <div class="srch-wall" id="srchWall" aria-hidden="true"></div>
+  <div class="srch-in">
+    <div class="srch-top">
+    <div class="srch-head"><span class="dk-logo">Кіно<b>пис</b></span><button class="srch-x" data-act="searchClose"><span>Закрити</span> <kbd>Esc</kbd><svg class="i" aria-hidden="true"><use href="#i-x"/></svg></button></div>
+    <div class="search-wrap"><span class="search-icon"><svg class="i" aria-hidden="true"><use href="#i-search"/></svg></span><input id="searchInput" class="search-input" placeholder="Фільм, серіал чи людина" data-input="handleSearch" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="suggestions" aria-label="Знайти фільм, серіал чи людину" autocomplete="off" enterkeyhint="search"><button class="srch-cancel" data-act="searchClose">Скасувати</button></div>
+    </div>
+    <div id="suggestions" class="suggestions hidden" role="listbox" aria-label="Знайдені назви"></div>
+    <p class="srch-hint" id="srchHint">Почни вводити назву українською чи в оригіналі<span class="kb-only">. ↑ ↓ вибрати, Enter відкрити</span></p>
+  </div>
+</div>
+<script src="../js/core.js?v=e14fca86"></script>
+<script src="../js/lists.js?v=80fec8f5"></script>
+<script src="../js/live.js?v=35a082be"></script>
+<script src="../js/dashboard.js?v=d7ae1c2a"></script>
+<script src="../js/collections.js?v=38ccaf36"></script>
+<script src="../js/people.js?v=57bf6a4c"></script>
+<script src="../js/game.js?v=a3f392cd"></script>
+<script src="../js/recs.js?v=2993e149"></script>
+<script src="../js/recs-view.js?v=eda07fae"></script>
+<script src="../js/title.js?v=eae8fee9"></script>
+<script src="../js/library.js?v=d3717d85"></script>
+<script src="../js/util.js?v=5e6d67f7"></script>
+<script src="../js/settings.js?v=94f8d363"></script>
+<script src="../js/drive.js?v=2cb50d2c"></script>
+<script src="../js/ui.js?v=3c62ef2f"></script>
+<script src="../js/stats.js?v=7f93676f"></script>
+<script src="../js/init.js?v=16321cc9"></script>
+
+
+</body>
+</html>
