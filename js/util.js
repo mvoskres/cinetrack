@@ -14,8 +14,7 @@ function _bgClose(ev,el,fn){if(ev.target===el&&typeof window[fn]==='function')wi
 document.addEventListener('keydown',e=>{
   if(e.key==='/'&&e.target.tagName!=='INPUT'&&e.target.tagName!=='TEXTAREA'&&e.target.tagName!=='SELECT'){
     e.preventDefault();
-    const si=document.getElementById('searchInput');
-    if(si){si.focus();si.select();}
+    searchOpen();
   }
 });
 /* a dialog: role + label for screen readers, focus moves in and comes back to where it was on close */

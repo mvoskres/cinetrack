@@ -1,15 +1,12 @@
 /* ── TABS ── */
 const TITLES={watched:'Переглянуте',watching:'Дивлюсь',planned:'Планую',stats:'Статистика',recs:'Рекомендації',collections:'Франшизи',people:'Актори й режисери',game:'Впізнай кадр'};
 function goTab(id,btn){
-  btn=btn||document.getElementById('ni-'+id); /* data-act buttons pass only the id (or themselves) */
   document.getElementById('gameModalBg')?.classList.add('hidden');
   const tabEl=document.getElementById('tab-'+id);
   if(tabEl&&tabEl.classList.contains('hidden'))window.scrollTo(0,0); /* a new tab starts at its top, not at the old tab's scroll depth */
   document.querySelectorAll('[id^="tab-"]').forEach(t=>t.classList.add('hidden'));
-  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
   document.getElementById('tab-'+id).classList.remove('hidden');
-  btn.classList.add('active');
-  document.getElementById('topbarTitle').textContent=TITLES[id]||id;
+  document.querySelectorAll('[data-tab]').forEach(b=>{const o=b.dataset.tab===id;b.classList.toggle('on',o);if(o)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
   if(id==='stats')loadStats();
   if(id==='recs')openRecs();
   if(id==='watching')rWatching(); /* rWatching already starts the live fetches */
@@ -17,14 +14,13 @@ function goTab(id,btn){
   if(id==='collections')loadCollections();
   if(id==='people')renderPeopleTab();
   if(id==='game')loadGameTab();
-  document.querySelectorAll('.tabbar button[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===id));
   const ds=document.getElementById('dashSection');if(ds)ds.hidden=id!=='watching'; /* air strip belongs to Дивлюсь */
-  closeMenu();
+  closeMenu();navClose();
 }
 
 /* ── SEARCH ── */
 let _st2;
-function handleSearch(){const q=document.getElementById('searchInput').value.trim();if(q.length<1){hideSug();document.querySelector('.search-wrap')?.classList.remove('loading');return;}clearTimeout(_st2);document.querySelector('.search-wrap').classList.add('loading');_st2=setTimeout(()=>doSearch(q),340);}
+function handleSearch(){const q=document.getElementById('searchInput').value.trim();if(q.length<1){hideSug();document.querySelector('#srch .search-wrap')?.classList.remove('loading');return;}clearTimeout(_st2);document.querySelector('#srch .search-wrap').classList.add('loading');_st2=setTimeout(()=>doSearch(q),340);}
 const _sCache={};
 /* TMDB answers in Ukrainian and does not spend the 1000/day OMDb quota */
 async function doSearch(q){
@@ -57,21 +53,20 @@ async function _tmdbSearch(q){
     return t.includes(ql)?0:t.some(x=>x.startsWith(ql))?1:2;};
   const titles=res.filter(r=>r.media_type!=='person').sort((a,b)=>rank(a)-rank(b)||(b.popularity||0)-(a.popularity||0)).slice(0,7),people=res.filter(r=>r.media_type==='person').slice(0,2);
   const box=document.getElementById('suggestions');box.classList.remove('hidden');
-  document.querySelector('.search-wrap').classList.remove('loading');
+  document.querySelector('#srch .search-wrap').classList.remove('loading');
   box.innerHTML=titles.map(r=>{
     const t=r.title||r.name||'',o=r.original_title||r.original_name||'',y=(r.release_date||r.first_air_date||'').slice(0,4);
     return `<div class="sug-item" data-act="_sugOpen" data-args="${A(r.media_type,r.id)}">
-      <img class="sug-img" src="${_tsImg(r.poster_path,'w92')||blank()}" loading="lazy" data-fb>
-      <div class="sug-info"><div class="sug-title">${esc(t)}</div><div class="sug-meta">${y?`<span class="sug-year">${esc(y)}</span> · `:''}${r.media_type==='tv'?CAT.series:CAT.movie}${o&&o!==t?` · ${esc(o)}`:''}</div></div>
-      ${_ownBadge(_tmdbOwnedId(r.media_type,r.id))}</div>`;
+      <div class="sug-p"><img class="sug-img" src="${_tsImg(r.poster_path,'w185')||blank()}" alt="" loading="lazy" data-fb>${_ownBadge(_tmdbOwnedId(r.media_type,r.id))}</div>
+      <div class="sug-title">${esc(t)}</div><div class="sug-meta">${y?`${esc(y)} · `:''}${(r.media_type==='tv'?CAT.series:CAT.movie).toLowerCase()}</div>${o&&o!==t?`<div class="sug-orig">${esc(o)}</div>`:''}</div>`;
   }).join('')+people.map(p=>`<div class="sug-item" data-act="_sugPerson" data-args="${A(p.id,p.name,p.profile_path||'')}">
-      <img class="sug-img round" src="${_tsImg(p.profile_path,'w92')}" loading="lazy" data-fb>
-      <div class="sug-info"><div class="sug-title">${esc(p.name)}</div><div class="sug-meta">${p.known_for_department==='Directing'?'Режисер':'Актор'} · фільмографія</div></div></div>`).join('');
+      <div class="sug-p round"><img class="sug-img" src="${_tsImg(p.profile_path,'w185')}" alt="" loading="lazy" data-fb></div>
+      <div class="sug-title">${esc(p.name)}</div><div class="sug-meta">${p.known_for_department==='Directing'?'режисер':'актор'} · фільмографія</div></div>`).join('');
   _sugSync('searchInput','suggestions');
   return true;
 }
-function _sugOpen(mt,id){hideSug();document.getElementById('searchInput').value='';openTitleTmdb(mt,id);}
-function _sugPerson(id,name,profile){hideSug();document.getElementById('searchInput').value='';_tsPerson(id,name,profile);}
+function _sugOpen(mt,id){searchClose();openTitleTmdb(mt,id);}
+function _sugPerson(id,name,profile){searchClose();_tsPerson(id,name,profile);}
 async function _omdbSearch(q){
   try{
     let r=_sCache[q];
@@ -89,21 +84,20 @@ async function _omdbSearch(q){
     if(!r||!r.Search){hideSug();return;}
     const res=r.Search.filter(m=>m.Type!=='episode');if(!res.length){hideSug();return;}
     const box=document.getElementById('suggestions');box.classList.remove('hidden');
-    document.querySelector('.search-wrap').classList.remove('loading');
+    document.querySelector('#srch .search-wrap').classList.remove('loading');
     box.innerHTML=res.slice(0,7).map(m=>{
       let b='';
       if(watched.find(x=>x.imdbID===m.imdbID))       b=`<span class="sug-badge ok">${ic('check')}Переглянуто</span>`;
       else if(watching.find(x=>x.imdbID===m.imdbID)) b=`<span class="sug-badge wn">${ic('play')}Дивлюсь</span>`;
       else if(planned.find(x=>x.imdbID===m.imdbID))  b=`<span class="sug-badge pl">${ic('bookmark')}Планую</span>`;
       return `<div class="sug-item" data-act="pickMovie" data-args="${A(`${m.imdbID}`)}">
-        <img class="sug-img" src="${imgSrc(m.Poster)}" loading="lazy" data-fb>
-        <div class="sug-info"><div class="sug-title">${esc(m.Title)}</div><div class="sug-meta"><span class="sug-year">${esc(m.Year)}</span> · ${tl(m.Type)}</div></div>
-        ${b}</div>`;
+        <div class="sug-p"><img class="sug-img" src="${imgSrc(m.Poster)}" alt="" loading="lazy" data-fb>${b}</div>
+        <div class="sug-title">${esc(m.Title)}</div><div class="sug-meta">${esc(m.Year)} · ${String(tl(m.Type)).toLowerCase()}</div></div>`;
     }).join('');
     _sugSync('searchInput','suggestions');
   }catch(e){hideSug();console.warn('Search error:',e);}
 }
-function hideSug(){document.getElementById('suggestions').classList.add('hidden');document.querySelector('.search-wrap').classList.remove('loading');_sugSync('searchInput','suggestions');}
+function hideSug(){document.getElementById('suggestions').classList.add('hidden');document.querySelector('#srch .search-wrap').classList.remove('loading');_sugSync('searchInput','suggestions');}
 /* ── SUGGESTIONS: ARIA + keyboard ──
    The box is a listbox, hits are options, the input is a combobox: ↑/↓ move through the hits (aria-activedescendant),
    Enter picks the active one, Esc closes. The mouse never takes focus from the input, so it no longer blurs
@@ -126,7 +120,7 @@ document.addEventListener('keydown',e=>{
   const box=document.getElementById(boxId);if(!box||box.classList.contains('hidden'))return;
   if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();_sugMove(e.target,box,e.key==='ArrowDown'?1:-1);}
   else if(e.key==='Enter'){const a=box.querySelector('.sug-item.active');if(a){e.preventDefault();a.click();}}
-  else if(e.key==='Escape'){box.classList.add('hidden');_sugSync(e.target.id,boxId);}
+  else if(e.key==='Escape'){if(e.target.id==='searchInput')return;box.classList.add('hidden');_sugSync(e.target.id,boxId);}
 });
 document.addEventListener('mousedown',e=>{if(e.target.closest?.('.suggestions'))e.preventDefault();}); /* keep focus in the input */
 /* focus leaving a field that has data-blur (+data-blur-box): run its function, unless focus went into its own list */
@@ -138,7 +132,7 @@ document.addEventListener('focusout',e=>{
 
 /* ── PICK MOVIE ── */
 async function pickMovie(imdbID){
-  hideSug();document.getElementById('searchInput').value='';
+  searchClose();
   let m=_pendingMap[imdbID];
   if(!m){
     try{

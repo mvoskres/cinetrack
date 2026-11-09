@@ -361,9 +361,8 @@ function save(){
 }
 function saveAll(){const ok=save();['watched','watching','planned'].forEach(buildBar);return ok;}
 function updateStats(){
-  document.getElementById('nb-watched').textContent=watched.length;
-  document.getElementById('nb-watching').textContent=watching.length;
-  document.getElementById('nb-planned').textContent=planned.length;
+  const nf=n=>n.toLocaleString('uk-UA'),cn={watched:watched.length,watching:watching.length,planned:planned.length};
+  document.querySelectorAll('[data-nb]').forEach(el=>{el.textContent=nf(cn[el.dataset.nb]??0);});
   const wh=document.getElementById('wHead'),wnH=document.getElementById('wnHead'),plH=document.getElementById('plHead');
   if(wh) wh.textContent='· '+watched.length;
   if(wnH)wnH.textContent='· '+watching.length;

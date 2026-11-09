@@ -11,9 +11,10 @@ setTimeout(_ukListFill,2500);
 /* a user key that would not parse was left untouched in storage (core.js _lsJSON): say so, loudly */
 if(_lsBad.size)setTimeout(()=>toast('Не вдалося прочитати збережене в браузері: '+[..._lsBad].join(', ')+'. Воно лишилось як є, нічого не перезаписано. Відновіть дані з бекапу: Налаштування','err',15000),500);
 function _backupStateRender(){
-  const el=document.getElementById('backupState');if(!el)return;
   const last=parseInt(localStorage.getItem('ct_last_export')||'0');
   const days=last?Math.max(0,Math.floor((Date.now()-last)/864e5)):null;
-  el.querySelector('span').textContent=days===null?'Бекапу ще не було':days===0?'Бекап сьогодні':`Бекап: ${days} дн тому`;
-  el.classList.toggle('stale',days===null||days>=14);
+  const t=days===null?'бекапу ще не було':days===0?'бекап сьогодні':days===1?'бекап учора':`бекап ${days} дн тому`,stale=days===null||days>=14;
+  document.querySelectorAll('[data-bk]').forEach(el=>{el.textContent=t;el.classList.toggle('stale',stale);});
+  document.querySelectorAll('.dock .av').forEach(el=>el.classList.toggle('stale',stale));
+  const me=document.getElementById('backupState');if(me)me.title='Налаштування · '+t;
 }
