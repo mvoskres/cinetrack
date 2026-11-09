@@ -15,7 +15,7 @@ function goTab(id,btn){
   if(id==='people')renderPeopleTab();
   if(id==='game')loadGameTab();
   const ds=document.getElementById('dashSection');if(ds)ds.hidden=id!=='watching'; /* air strip belongs to Дивлюсь */
-  closeMenu();navClose();
+  closeMenu();navClose();searchClose();
 }
 
 /* ── SEARCH ── */
@@ -65,7 +65,7 @@ async function _tmdbSearch(q){
   _sugSync('searchInput','suggestions');
   return true;
 }
-function _sugOpen(mt,id){searchClose();openTitleTmdb(mt,id);}
+function _sugOpen(mt,id){searchSuspend();openTitleTmdb(mt,id);}
 function _sugPerson(id,name,profile){searchClose();_tsPerson(id,name,profile);}
 async function _omdbSearch(q){
   try{
@@ -132,14 +132,14 @@ document.addEventListener('focusout',e=>{
 
 /* ── PICK MOVIE ── */
 async function pickMovie(imdbID){
-  searchClose();
+  searchSuspend();
   let m=_pendingMap[imdbID];
   if(!m){
     try{
       m=await aFetch(`i=${imdbID}&plot=short`);
       if(!m||m.Response==='False')throw new Error(m?.Error||'немає даних');
       _pmSet(imdbID,m);
-    }catch(e){toast(_omdbErr(e),'err',4200);return;}
+    }catch(e){toast(_omdbErr(e),'err',4200);searchResume();return;}
   }
   const inW=!!watched.find(x=>x.imdbID===imdbID),inWn=!!watching.find(x=>x.imdbID===imdbID),inPl=!!planned.find(x=>x.imdbID===imdbID);
   modal(`

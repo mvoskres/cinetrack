@@ -25,7 +25,22 @@ function searchOpen(){
   if(!document.body.classList.contains('srch-on')){L.hidden=false;document.body.classList.add('srch-on');_ovPush();}
   const si=document.getElementById('searchInput');if(si){si.focus({preventScroll:true});si.select();}
 }
+/* a hit opened a title card / dialog: hide the layer but keep the query, the results and the scroll position */
+let _srchSusp=false,_srchTop=0;
+function searchSuspend(){
+  if(!document.body.classList.contains('srch-on'))return;
+  const L=document.getElementById('srch');_srchTop=L.scrollTop;
+  document.body.classList.remove('srch-on');L.hidden=true;_srchSusp=true;
+  document.getElementById('searchInput')?.blur();
+}
+function searchResume(){
+  if(!_srchSusp)return;
+  if(!document.getElementById('titleSheet')?.classList.contains('hidden')||document.getElementById('mbox')?.innerHTML.trim())return; /* still something on top */
+  _srchSusp=false;const L=document.getElementById('srch');
+  L.hidden=false;document.body.classList.add('srch-on');L.scrollTop=_srchTop;
+}
 function searchClose(fromHistory){
+  if(_srchSusp){_srchSusp=false;document.body.classList.add('srch-on');} /* a waiting search closes for good */
   if(!document.body.classList.contains('srch-on'))return;
   document.body.classList.remove('srch-on');document.getElementById('srch').hidden=true;
   clearTimeout(_st2);hideSug();const si=document.getElementById('searchInput');if(si){si.value='';si.blur();}

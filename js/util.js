@@ -31,6 +31,7 @@ function modal(h){
 function closeModal(){
   document.getElementById('mbox').innerHTML='';document.removeEventListener('keydown',_modalKeys);
   const p=_modalPrev;_modalPrev=null;if(p&&p.isConnected&&typeof p.focus==='function')p.focus({preventScroll:true});
+  if(typeof searchResume==='function')searchResume();
 }
 
 /* ── STARS ── */

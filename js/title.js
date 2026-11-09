@@ -50,6 +50,7 @@ let _tsPrev=null;
 function closeTitle(){
   document.getElementById('titleSheet').classList.add('hidden');document.body.style.overflow='';_tsStack=[];_tsCur=null;_refreshVisibleTab();
   const p=_tsPrev;_tsPrev=null;if(p&&p.isConnected&&typeof p.focus==='function')p.focus({preventScroll:true});
+  searchResume(); /* opened from the search: back to the same results */
 }
 /* a status changed in the sheet must show on the tab underneath without leaving it */
 function _refreshVisibleTab(){
