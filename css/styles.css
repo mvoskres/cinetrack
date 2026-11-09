@@ -2008,3 +2008,12 @@ button.chip-s.st-sw:hover{filter:brightness(1.2);}
 .ls-x svg.i{width:16px;height:16px;}
 .local-search:placeholder-shown~.ls-x{display:none;}
 @media(pointer:coarse){.ls-x{width:36px;height:36px;right:.15rem;}}
+/* changelog accordions: one per change (x.y), its fixes (x.y.z) inside */
+details.cl-ver>summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:.6rem;}
+details.cl-ver>summary::-webkit-details-marker{display:none;}
+details.cl-ver>summary::after{content:"▾";color:var(--muted);font-size:.8rem;transition:transform .15s;margin-left:.4rem;}
+details.cl-ver[open]>summary::after{transform:rotate(180deg);}
+details.cl-ver>summary .st-hint{margin-left:auto;}
+.cl-ver .st-lbl small{font-weight:400;color:var(--muted);font-size:.72rem;}
+.cl-sub{display:flex;gap:.6rem;align-items:baseline;margin:.7rem 0 .2rem;font-size:.74rem;font-weight:600;color:var(--text-2);}
+.cl-sub span{font-weight:400;color:var(--muted);}
