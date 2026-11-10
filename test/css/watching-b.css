@@ -96,3 +96,5 @@ body.wb-on .wb-sh{display:block;position:fixed;inset:0;z-index:520;}
 .wb-tl .wb-bd,.wb-tl .wb-run,.wb-tl .tg-pill{position:static;max-width:100%;}
 .wb-tl .wb-run{text-align:left;}
 .wb-pp .wb-demo{right:7px;top:7px;bottom:auto;}
+
+.wb-demo{display:none!important;} /* demo states stay (test), the label does not */
