@@ -186,69 +186,164 @@ function tagsId(t){return{watched:'wTags',watching:'wnTags',planned:'plTags'}[t]
 function panId(t) {return{watched:'wPanel',watching:'wnPanel',planned:'plPanel'}[t];}
 function fN(t){const f=F[t];return f.cats.length+f.genres.length+f.decades.length+(f.ratings?.length||0)+(f.tags?.length||0);}
 
-/* ── FILTER BAR ── */
+/* ── FILTER BAR ──
+   One row: list search + «Фільтри» (count badge) [+ sort and view on a computer]. Under it the applied filters as chips.
+   «Фільтри» opens a sheet (bottom sheet on a phone, drop-down on a computer) where the choices are STAGED:
+   they reach F[t] only on «Показати N»; closing the sheet any other way drops them. */
 function buildBar(t){
   const el=document.getElementById(barId(t));if(!el)return;
-  const f=F[t],n=fN(t)-f.cats.length,opts=t==='watched'?S_W:S_ALL;
+  const f=F[t],n=fN(t),opts=t==='watched'?S_W:S_ALL;
   const list=tList(t),counts={};list.forEach(i=>{const c=i.customCategory||i.type;if(c)counts[c]=(counts[c]||0)+1;});
-  let cur=f.cats[0]||'';
-  if(cur&&!counts[cur]){f.cats=[];cur='';} /* its last title left the list: don't leave an invisible filter on an empty-looking list */
-  const cats=Object.keys(CAT).filter(c=>counts[c]);
+  if(f.cats[0]&&!counts[f.cats[0]])f.cats=[]; /* its last title left the list: don't leave an invisible filter on an empty-looking list */
+  const open=document.body.classList.contains('fs-on')&&_fs&&_fs.t===t;
+  el.className='filter-row fbar';
   el.innerHTML=`
     ${viewSeg(t)}
-    ${cats.length>1?`<div class="cat-seg" role="group" aria-label="Категорія">
-      <button class="cat-chip${cur?'':' on'}" data-act="setCat" data-args="${A(`${t}`,'')}">Усі<span class="num">${list.length}</span></button>
-      ${cats.map(c=>`<button class="cat-chip${cur===c?' on':''}" data-act="setCat" data-args="${A(`${t}`,`${c}`)}">${catLabel(c)}<span class="num">${counts[c]}</span></button>`).join('')}</div>`:''}
     <div class="local-search-wrap"><span class="local-search-icon">${ic('search')}</span>
-      <input class="local-search" type="text" placeholder="Пошук у списку…" aria-label="Пошук у списку" value="${esc(f.q||'')}" data-input="lsearch" data-args="${A(`${t}`,'$value')}"><button type="button" class="ls-x" data-act="lsClear" data-args="[&quot;$el&quot;]" aria-label="Очистити пошук" title="Очистити">${ic('x')}</button>
+      <input class="local-search" type="text" placeholder="Пошук серед ${list.length}" aria-label="Пошук у списку" value="${esc(f.q||'')}" data-input="lsearch" data-args="${A(`${t}`,'$value')}"><button type="button" class="ls-x" data-act="lsClear" data-args="[&quot;$el&quot;]" aria-label="Очистити пошук" title="Очистити">${ic('x')}</button>
     </div>
-    <button id="fbtn-${t}" class="flt-pill${n?' has-n':''}" data-act="togglePan" data-args="${A(`${t}`)}">${ic('filter')}Жанр, роки, теги${n?` <span class="flt-n">${n}</span>`:''}</button>
-    <select class="sort-sel" aria-label="Сортування" data-change="doSort" data-args="${A(`${t}`,'$value')}">
+    <button id="fbtn-${t}" class="flt-pill fbtn${n?' has-n':''}${open?' active':''}" aria-haspopup="dialog" aria-expanded="${open}" data-act="togglePan" data-args="${A(`${t}`)}">${ic('filter')}Фільтри${n?` <span class="flt-n">${n}</span>`:''}</button>
+    <select class="sort-sel fbar-sort" aria-label="Сортування" data-change="doSort" data-args="${A(`${t}`,'$value')}">
       ${opts.map(([v,l])=>`<option value="${v}"${f.sort===v?' selected':''}>${l}</option>`).join('')}
     </select>`;
 }
 function setCat(t,c){F[t].cats=c?[c]:[];buildBar(t);buildTags(t);rerender(t);}
 let _lsT;
 function lsearch(t,v){F[t].q=v.trim();clearTimeout(_lsT);_lsT=setTimeout(()=>rerender(t),150);}
-function togglePan(t){
-  const p=document.getElementById(panId(t)),b=document.getElementById(`fbtn-${t}`);
-  if(!p)return;
-  const open=p.style.display!=='none';
-  if(open){p.style.display='none';b?.classList.remove('active');}
-  else{buildPan(t);p.style.display='';b?.classList.add('active');}
+const _dName=d=>d+'-ті';
+const _gName=g=>typeof sxGenre==='function'?sxGenre(g):g; /* Ukrainian genre names live in stats.js, loaded later */
+const _rName=r=>r==='10'?'★ 10':'★ '+r+'+';
+const _catName=c=>Object.hasOwn(CAT,c)?CAT[c]:c;
+
+/* ── FILTER SHEET ── */
+let _fs=null; /* {t, st:{staged copy of F[t]}, more:bool} while the sheet is open */
+function togglePan(t){document.body.classList.contains('fs-on')&&_fs?.t===t?fsClose():fsOpen(t);}
+function fsOpen(t){
+  if(document.body.classList.contains('fs-on'))fsClose(true);
+  if(typeof searchClose==='function'&&document.body.classList.contains('srch-on'))searchClose(true);
+  if(typeof navClose==='function')navClose(true);
+  const f=F[t];
+  _fs={t,more:false,st:{cats:[...f.cats],genres:[...f.genres],decades:[...f.decades],ratings:[...(f.ratings||[])],tags:[...(f.tags||[])],sort:f.sort}};
+  let root=document.getElementById('fsh');
+  if(!root){root=document.createElement('div');root.id='fsh';root.className='fsh';document.body.appendChild(root);}
+  root.hidden=false;
+  document.body.classList.add('fs-on');
+  fsRender();fsPlace();
+  const b=document.getElementById(`fbtn-${t}`);b?.setAttribute('aria-expanded','true');b?.classList.add('active');
+  if(typeof _ovPush==='function')_ovPush();
+  root.querySelector('.fsh-card')?.focus({preventScroll:true});
 }
-function buildPan(t){
-  const el=document.getElementById(panId(t));if(!el)return;
-  const list=tList(t),f=F[t];
-  const genres=[...new Set(list.flatMap(i=>(i.genre||'').split(',').map(g=>g.trim()).filter(Boolean)))].sort();
-  const decades=[...new Set(list.map(i=>{const y=parseInt(i.year);return y?String(Math.floor(y/10)*10):null;}).filter(Boolean))].sort((a,b)=>b-a);
-  const opts=t==='watched'?S_W:S_ALL;
+function fsClose(fromHistory){
+  if(!document.body.classList.contains('fs-on'))return;
+  const t=_fs&&_fs.t;
+  document.body.classList.remove('fs-on');
+  const root=document.getElementById('fsh');if(root){root.hidden=true;root.innerHTML='';}
+  _fs=null;
+  if(t){const b=document.getElementById(`fbtn-${t}`);b?.setAttribute('aria-expanded','false');b?.classList.remove('active');}
+  if(fromHistory!==true&&typeof _ovPop==='function')_ovPop();
+}
+/* a computer: the card hangs under the button; a phone: CSS pins it to the bottom */
+function fsPlace(){
+  const root=document.getElementById('fsh'),card=root?.querySelector('.fsh-card'),b=_fs&&document.getElementById(`fbtn-${_fs.t}`);
+  if(!card)return;
+  if(window.innerWidth<=700||!b){card.style.top=card.style.left=card.style.width=card.style.maxHeight='';return;}
+  const r=b.getBoundingClientRect(),w=Math.min(440,window.innerWidth-24);
+  card.style.width=w+'px';
+  card.style.left=Math.max(12,Math.min(r.right-w,window.innerWidth-w-12))+'px';
+  card.style.top=(r.bottom+8)+'px';
+  card.style.maxHeight=Math.max(240,Math.min(window.innerHeight*.7,window.innerHeight-r.bottom-20))+'px';
+}
+window.addEventListener('resize',()=>{if(_fs)fsPlace();});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&document.body.classList.contains('fs-on')){e.preventDefault();e.stopPropagation();fsClose();}
+},true);
+/* live number of results for the staged choice: applyF on a temporary state */
+function _fsCount(){
+  const {t,st}=_fs,orig=F[t];let n=0;
+  F[t]={...orig,cats:st.cats,genres:st.genres,decades:st.decades,tags:st.tags,sort:st.sort};
+  if(t==='watched')F[t].ratings=st.ratings;
+  try{n=applyF(tList(t),t).length;}finally{F[t]=orig;}
+  return n;
+}
+function fsRender(){
+  const root=document.getElementById('fsh');if(!root||!_fs)return;
+  const {t,st}=_fs,list=tList(t);
+  /* focus and scroll survive the redraw */
+  const old=root.querySelector('.fsh-body'),sc=old?old.scrollTop:0,fk=document.activeElement?.getAttribute?.('data-k');
+  const cnt=arr=>{const m={};arr.forEach(k=>{if(k!=null&&k!=='')m[k]=(m[k]||0)+1;});return m;};
+  const cats=cnt(list.map(i=>i.customCategory||i.type));
+  const gc={};list.forEach(i=>new Set((i.genre||'').split(',').map(g=>g.trim()).filter(Boolean)).forEach(g=>{gc[g]=(gc[g]||0)+1;}));
+  const dc=cnt(list.map(i=>{const y=parseInt(i.year);return y?String(Math.floor(y/10)*10):null;}));
+  const tc={};list.forEach(i=>new Set(i.tags||[]).forEach(x=>{tc[x]=(tc[x]||0)+1;}));
+  st.tags=st.tags.filter(x=>tc[x]);
+  const ch=(dim,val,label,n,extra='')=>{const on=st[dim].includes(val);return `<button type="button" class="fsh-chip${on?' on':''}${extra}" aria-pressed="${on}" data-k="${dim}:${esc(val)}" data-act="fsTog" data-args="${A(`${dim}`,`${uriSafe(val)}`)}">${esc(label)}${n!=null?`<span class="num">${n}</span>`:''}</button>`;};
+  const grp=(title,body)=>`<section class="fsh-grp"><h3 class="fsh-lbl">${title}</h3><div class="fsh-chips">${body}</div></section>`;
   let h='';
-  /* category (Тип) lives in the toolbar as chips now */
-  if(genres.length)h+=`<div class="flt-row"><span class="flt-lbl">Жанр</span><div class="flt-chips">${genres.map(g=>`<button class="flt-chip${f.genres.includes(g)?' on':''}" data-act="chip" data-args="${A(`${t}`,'genres',`${uriSafe(g)}`)}">${esc(g)}</button>`).join('')}</div></div>`;
-  if(decades.length>1)h+=`<div class="flt-row"><span class="flt-lbl">Десятиліття</span><div class="flt-chips">${decades.map(d=>`<button class="flt-chip${f.decades.includes(d)?' on':''}" data-act="chip" data-args="${A(`${t}`,'decades',`${d}`)}">${d}s</button>`).join('')}</div></div>`;
-  if(t==='watched')h+=`<div class="flt-row"><span class="flt-lbl">Мін. оцінка</span><div class="flt-chips">${['6','7','8','9','10'].map(r=>`<button class="flt-chip${(f.ratings||[]).includes(r)?' on':''}" data-act="chip" data-args="${A(`${t}`,'ratings',`${r}`)}">${r==='10'?'★ 10':'★ '+r+'+'}</button>`).join('')}</div></div>`;
-  const utags=[...new Set(list.flatMap(i=>i.tags||[]))].sort();
-  if(utags.length)h+=`<div class="flt-row"><span class="flt-lbl">Теги</span><div class="flt-chips">${utags.map(t2=>{const t2e=uriSafe(t2);return `<span class="flt-chip-wrap"><button class="flt-chip flt-chip--t${(f.tags||[]).includes(t2)?' on':''}" data-act="chip" data-args="${A(`${t}`,'tags',`${t2e}`)}">${esc(t2)}</button><button class="flt-chip-del" data-act="delGlobalTag" data-args="${A(`${t2e}`)}" title="Видалити тег з усіх записів">×</button></span>`;}).join('')}</div></div>`;
-  h+=`<div class="flt-panel-footer"><button class="flt-reset" data-act="clearF" data-args="${A(`${t}`)}">✕ Скинути всі фільтри</button></div>`;
-  el.innerHTML=h;
+  if(t in VIEW_LISTS){const cur=viewOf(t);h+=grp('Вигляд',VIEWS.map(([k,l])=>`<button type="button" class="fsh-chip${cur===k?' on':''}" aria-pressed="${cur===k}" data-k="view:${k}" data-act="fsView" data-args="${A(`${k}`)}">${l}</button>`).join(''));}
+  const opts=t==='watched'?S_W:S_ALL;
+  h+=grp('Сортування',opts.map(([v,l])=>`<button type="button" class="fsh-chip${st.sort===v?' on':''}" aria-pressed="${st.sort===v}" data-k="sort:${v}" data-act="fsSort" data-args="${A(`${v}`)}">${l}</button>`).join(''));
+  const ck=Object.keys(CAT).filter(c=>cats[c]);
+  if(ck.length>1)h+=grp('Тип',ck.map(c=>ch('cats',c,CAT[c],cats[c])).join(''));
+  const gk=Object.keys(gc).sort((a,b)=>gc[b]-gc[a]||_gName(a).localeCompare(_gName(b),'uk'));
+  if(gk.length){
+    const vis=_fs.more?gk:[...gk.slice(0,12),...gk.slice(12).filter(g=>st.genres.includes(g))],hid=gk.length-vis.length;
+    h+=grp('Жанр',vis.map(g=>ch('genres',g,_gName(g),gc[g])).join('')+(hid?`<button type="button" class="fsh-chip fsh-more" data-k="more" data-act="fsMore">Ще ${hid}</button>`:''));
+  }
+  const dk=Object.keys(dc).sort((a,b)=>b-a);
+  if(dk.length>1)h+=grp('Десятиліття',dk.map(d=>ch('decades',d,_dName(d),dc[d])).join(''));
+  if(t==='watched')h+=grp('Моя оцінка',['6','7','8','9','10'].map(r=>ch('ratings',r,_rName(r),null)).join(''));
+  const tk=Object.keys(tc).sort((a,b)=>a.localeCompare(b,'uk'));
+  if(tk.length)h+=grp('Теги',tk.map(x=>`<span class="fsh-tagw">${ch('tags',x,'#'+x,tc[x],' fsh-chip--t')}<button type="button" class="fsh-tagx" data-act="delGlobalTag" data-args="${A(`${uriSafe(x)}`)}" aria-label="Видалити тег «${esc(x)}» з усіх записів" title="Видалити тег з усіх записів">×</button></span>`).join(''));
+  const n=_fsCount();
+  root.innerHTML=`<div class="fsh-bd" data-act="fsClose"></div>
+    <div class="fsh-card" role="dialog" aria-modal="true" aria-label="Фільтри" tabindex="-1">
+      <div class="fsh-grab" aria-hidden="true"></div>
+      <div class="fsh-hd"><h2 class="fsh-t">Фільтри</h2><button type="button" class="fsh-lnk" data-act="fsResetAll">Скинути все</button><button type="button" class="fsh-x" data-act="fsClose" aria-label="Закрити">${ic('x')}</button></div>
+      <div class="fsh-body">${h}</div>
+      <div class="fsh-ft"><button type="button" class="fsh-reset" data-act="fsReset">Скинути</button><button type="button" class="fsh-go" data-act="fsApply">Показати ${n}</button></div>
+    </div>`;
+  const nb=root.querySelector('.fsh-body');if(nb)nb.scrollTop=sc;
+  if(fk)[...root.querySelectorAll('[data-k]')].find(b=>b.getAttribute('data-k')===fk)?.focus({preventScroll:true});
+  fsPlace();
 }
+function fsTog(dim,val){
+  if(!_fs)return;val=decodeURIComponent(val);
+  const a=_fs.st[dim],i=a.indexOf(val);
+  if(i>=0)a.splice(i,1);else{if(dim==='ratings'||dim==='cats')a.length=0;a.push(val);}
+  fsRender();
+}
+function fsSort(v){if(!_fs)return;_fs.st.sort=v;fsRender();}
+function fsMore(){if(!_fs)return;_fs.more=true;fsRender();}
+function fsView(v){if(!_fs)return;setView(_fs.t,v);fsRender();} /* the view is not a filter: it applies at once */
+function fsReset(){if(!_fs)return;const s=_fs.st;s.cats=[];s.genres=[];s.decades=[];s.ratings=[];s.tags=[];fsRender();}
+function fsResetAll(){if(!_fs)return;_fs.st.sort='added-desc';fsReset();}
+function fsApply(){
+  if(!_fs)return;
+  const {t,st}=_fs,f=F[t];
+  f.cats=st.cats;f.genres=st.genres;f.decades=st.decades;f.tags=st.tags;f.sort=st.sort;
+  if(t==='watched')f.ratings=st.ratings;
+  fsClose();buildBar(t);buildTags(t);rerender(t);
+}
+/* kept for callers elsewhere (library.js after a tag is deleted): redraw an open sheet */
+function buildPan(t){if(_fs&&(!t||_fs.t===t))fsRender();}
+/* a chip straight onto the list (shelves «Усі N» and the like), no staging */
 function chip(t,dim,val){
   val=decodeURIComponent(val);
   const f=F[t];if(!f[dim])f[dim]=[];
   const i=f[dim].indexOf(val);
-  if(i>=0)f[dim].splice(i,1);else{if(dim==='ratings')f[dim]=[];f[dim].push(val);}
-  buildPan(t);buildTags(t);buildBar(t);rerender(t);
-  document.getElementById(`fbtn-${t}`)?.classList.add('active');
+  if(i>=0)f[dim].splice(i,1);else{if(dim==='ratings'||dim==='cats')f[dim]=[];f[dim].push(val);}
+  buildBar(t);buildTags(t);rerender(t);
 }
 function doSort(t,v){F[t].sort=v;buildBar(t);rerender(t);}
-function clearF(t){const f=F[t];f.q='';f.cats=[];f.genres=[];f.decades=[];f.ratings=[];f.tags=[];buildPan(t);buildTags(t);buildBar(t);rerender(t);}
-function removeChip(t,dim,val){val=decodeURIComponent(val);const f=F[t];if(f[dim])f[dim]=f[dim].filter(v=>v!==val);const p=document.getElementById(panId(t));if(p&&p.style.display!=='none')buildPan(t);buildTags(t);buildBar(t);rerender(t);}
+function clearF(t){F[t].q='';clearChips(t);}
+function clearChips(t){const f=F[t];f.cats=[];f.genres=[];f.decades=[];f.ratings=[];f.tags=[];buildBar(t);buildTags(t);rerender(t);}
+function removeChip(t,dim,val){val=decodeURIComponent(val);const f=F[t];if(f[dim])f[dim]=f[dim].filter(v=>v!==val);buildTags(t);buildBar(t);rerender(t);}
+/* applied filters as gold chips under the toolbar */
 function buildTags(t){
   const el=document.getElementById(tagsId(t));if(!el)return;
   const f=F[t];
-  const all=[...f.genres.map(v=>({v,l:v,d:'genres'})),...f.decades.map(v=>({v,l:v+'s',d:'decades'})),...(f.ratings||[]).map(v=>({v,l:v==='10'?'★10':'★'+v+'+',d:'ratings'})),...(f.tags||[]).map(v=>({v,l:'#'+v,d:'tags',m:true}))];
-  el.innerHTML=all.map(({v,l,d,m})=>`<span class="ftag${m?' ftag--m':''}">${esc(l)}<button class="ftag-x" data-act="removeChip" data-args="${A(`${t}`,`${d}`,`${uriSafe(v)}`)}" aria-label="Видалити фільтр">×</button></span>`).join('');
+  const all=[...f.cats.map(v=>({v,l:_catName(v),d:'cats'})),...f.genres.map(v=>({v,l:_gName(v),d:'genres'})),...f.decades.map(v=>({v,l:_dName(v),d:'decades'})),...(f.ratings||[]).map(v=>({v,l:_rName(v),d:'ratings'})),...(f.tags||[]).map(v=>({v,l:'#'+v,d:'tags',m:true}))];
+  el.innerHTML=all.length?all.map(({v,l,d,m})=>`<span class="ftag${m?' ftag--m':''}">${esc(l)}<button class="ftag-x" data-act="removeChip" data-args="${A(`${t}`,`${d}`,`${uriSafe(v)}`)}" aria-label="Прибрати фільтр ${esc(l)}">${ic('x')}</button></span>`).join('')+`<button class="ftag ftag-reset" data-act="clearChips" data-args="${A(`${t}`)}">Скинути</button>`:'';
 }
 function applyF(list,t){
   const f=F[t];let r=[...list];

@@ -115,12 +115,12 @@ function delGlobalTag(tag){
   function _doUndo(){
     [...watched,...watching,...planned].forEach(i=>{const s=snap.find(x=>x.id===i.id);if(s)i.tags=s.tags;});
     save();rWatched();rWatching();rPlanned();rDash();
-    ['watched','watching','planned'].forEach(t=>{const p=document.getElementById(panId(t));if(p&&p.style.display!=='none')buildPan(t);});
+    buildPan();
     toast('Тег відновлено','ok',2000);
   }
   [watched,watching,planned].forEach(arr=>arr.forEach(i=>{if(i.tags)i.tags=i.tags.filter(t=>t!==tag);}));
   save();rWatched();rWatching();rPlanned();rDash();
-  ['watched','watching','planned'].forEach(t=>{const p=document.getElementById(panId(t));if(p&&p.style.display!=='none')buildPan(t);});
+  buildPan();
   /* Show undo toast matching existing del() UX */
   document.querySelectorAll('.toast').forEach(t=>t.remove());
   const el=document.createElement('div');el.className='toast undo';

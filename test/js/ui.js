@@ -6,10 +6,10 @@
 try{history.scrollRestoration='manual';}catch(e){} /* closing the menu/search goes «back»; the browser must not restore an old scroll then */
 let _ovPushed=false;
 function _ovPush(){if(!_ovPushed){try{history.pushState({ctOv:1},'');_ovPushed=true;}catch(e){}}}
-function _ovPop(){if(_ovPushed&&!document.body.classList.contains('nav-on')&&!document.body.classList.contains('srch-on')){_ovPushed=false;history.back();}}
-window.addEventListener('popstate',()=>{_ovPushed=false;navClose(true);searchClose(true);});
+function _ovPop(){if(_ovPushed&&!document.body.classList.contains('nav-on')&&!document.body.classList.contains('srch-on')&&!document.body.classList.contains('fs-on')){_ovPushed=false;history.back();}}
+window.addEventListener('popstate',()=>{_ovPushed=false;navClose(true);searchClose(true);if(typeof fsClose==='function')fsClose(true);});
 
-function navOpen(){_dockWall();document.body.classList.add('nav-on');document.querySelector('.dk-mb')?.setAttribute('aria-expanded','true');_ovPush();}
+function navOpen(){_dockWall();if(typeof fsClose==='function')fsClose(true);document.body.classList.add('nav-on');document.querySelector('.dk-mb')?.setAttribute('aria-expanded','true');_ovPush();}
 function navClose(fromHistory){
   if(!document.body.classList.contains('nav-on'))return;
   document.body.classList.remove('nav-on');document.querySelector('.dk-mb')?.setAttribute('aria-expanded','false');
@@ -23,7 +23,7 @@ function navToggle(){
 function searchOpen(){
   _dockWall();
   const L=document.getElementById('srch');if(!L)return;
-  navClose(true);
+  navClose(true);if(typeof fsClose==='function')fsClose(true);
   if(!document.body.classList.contains('srch-on')){L.hidden=false;document.body.classList.add('srch-on');_ovPush();}
   _srchFit();
   const si=document.getElementById('searchInput');if(si){si.focus({preventScroll:true});si.select();}
