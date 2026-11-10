@@ -313,6 +313,7 @@ function fsRender(){
   const nb=root.querySelector('.fsh-body');if(nb)nb.scrollTop=sc;
   if(fk)[...root.querySelectorAll('[data-k]')].find(b=>b.getAttribute('data-k')===fk)?.focus({preventScroll:true});
   fsPlace();
+  sheetSwipe(root.querySelector('.fsh-card'),{close:()=>fsClose(),handle:'.fsh-grab,.fsh-hd',scroller:'.fsh-body'});
 }
 function fsTog(dim,val){
   if(!_fs)return;val=decodeURIComponent(val);

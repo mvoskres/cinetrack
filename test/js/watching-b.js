@@ -146,6 +146,7 @@ function _wbSheetDraw(){
   if(!L.querySelector('.wb-in'))L.innerHTML=`<div class="wb-dim" data-act="wbClose"></div><div class="wb-pan" role="dialog"><div class="wb-grab"></div>
     <button class="wb-x" data-act="wbClose" aria-label="Закрити">${ic('x')}</button><div class="wb-in"></div></div>`;
   L.querySelector('.wb-pan').setAttribute('aria-label',tn(i));
+  sheetSwipe(L.querySelector('.wb-pan'),{close:()=>wbClose(),up:()=>{const it=watching.find(w=>w.id===_wbCur);if(it)wbCard(it.imdbID);},handle:'.wb-grab,.wb-hd'});
   L.querySelector('.wb-in').innerHTML=`
     <div class="wb-hd"><img src="${posterSrc(i.poster)}" alt="" data-act="openTitle" data-args="${A(i.imdbID)}"><div>${x.demo?'<i class="wb-demo">демо</i>':''}
       <b class="wb-tt">${esc(tn(i))}</b>${tn(i)!==i.title?`<div class="wb-or">${esc(i.title)}</div>`:''}<div class="wb-mt">${_wbMeta(i,true)}</div>${_wbStatus(x)}</div></div>

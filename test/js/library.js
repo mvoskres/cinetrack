@@ -92,6 +92,7 @@ function tagEdit(id){
   if(!L){L=document.createElement('div');L.id='tgSheet';L.className='tg-sh';document.body.appendChild(L);}
   L.innerHTML=`<div class="tg-dim" data-act="tagClose"></div><div class="tg-pan" role="dialog" aria-label="Теги"><div class="tg-grab"></div><div class="tg-in"></div></div>`;
   _tgDraw();document.body.classList.add('tg-on');
+  sheetSwipe(L.querySelector('.tg-pan'),{close:()=>tagClose(),handle:'.tg-grab,.tg-hd'});
   try{history.pushState({tgSheet:1},'');}catch(e){}
 }
 function addTag(id){tagEdit(id);} /* old name, still used by the title card */
