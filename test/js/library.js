@@ -83,30 +83,47 @@ function cleanApply(){
 }
 
 
-function addTag(id){
-  const it=findItem(id);if(!it)return;
-  modal(`<h2 class="modal-title" style="margin-bottom:.6rem">Новий тег</h2>
-    <div class="modal-sub" style="margin-bottom:1rem">${esc(it.title)}</div>
-    <div class="form-g"><label class="form-lbl" for="tagInp">Назва тегу</label>
-      <input class="api-inp" id="tagInp" type="text" placeholder="наприклад: улюблене, передивитись…" autofocus
-        data-enter="saveTag" data-args="${A(+id)}">
-      <div id="tagErr" style="font-size:.7rem;color:var(--rose);min-height:.85rem;margin-top:.25rem"></div>
-    </div>
-    <div class="modal-btns">
-      <button class="m-btn g" data-act="saveTag" data-args="${A((id))}">Додати тег</button>
-      <button class="m-btn can" data-act="closeModal">Скасувати</button>
-    </div>`);
-  setTimeout(()=>document.getElementById('tagInp')?.focus(),120);
+/* ── TAG SHEET: every tag you already use as a toggle + a field for a new one; changes save at once ── */
+let _tgId=null;
+function _tgAll(){const c={};[...watched,...watching,...planned].forEach(i=>(i.tags||[]).forEach(t=>c[t]=(c[t]||0)+1));return Object.keys(c).sort((a,b)=>c[b]-c[a]||a.localeCompare(b,'uk')).map(t=>[t,c[t]]);}
+function tagEdit(id){
+  if(!findItem(id))return;_tgId=id;closeMenu?.();
+  let L=document.getElementById('tgSheet');
+  if(!L){L=document.createElement('div');L.id='tgSheet';L.className='tg-sh';document.body.appendChild(L);}
+  L.innerHTML=`<div class="tg-dim" data-act="tagClose"></div><div class="tg-pan" role="dialog" aria-label="Теги"><div class="tg-grab"></div><div class="tg-in"></div></div>`;
+  _tgDraw();document.body.classList.add('tg-on');
+  try{history.pushState({tgSheet:1},'');}catch(e){}
 }
-function saveTag(id){
-  const it=findItem(id);if(!it)return;
-  const t=document.getElementById('tagInp')?.value.trim();
-  const err=document.getElementById('tagErr');
-  if(!t){if(err)err.textContent='Введи назву тегу';return;}
-  if(!it.tags)it.tags=[];
-  if(it.tags.includes(t)){if(err)err.textContent=`Тег «${t}» вже є`;return;}
-  it.tags.push(t);save();rWatched();rWatching();rPlanned();closeModal();
-  toast(`«${t}» додано`,'ok',2400);
+function addTag(id){tagEdit(id);} /* old name, still used by the title card */
+function tagClose(fromHistory){
+  if(!document.body.classList.contains('tg-on'))return;
+  document.body.classList.remove('tg-on');_tgId=null;const L=document.getElementById('tgSheet');if(L)L.innerHTML='';
+  if(!fromHistory&&history.state?.tgSheet)history.back();
+}
+window.addEventListener('popstate',()=>tagClose(true));
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('tg-on')){e.stopPropagation();tagClose();}},true);
+function _tgDraw(){
+  const L=document.getElementById('tgSheet'),it=findItem(_tgId);if(!L||!it){tagClose();return;}
+  const mine=it.tags||[],all=_tgAll();
+  L.querySelector('.tg-in').innerHTML=`<div class="tg-hd"><div><b>Теги</b><span>${esc(tn(it))}</span></div><button class="tg-ok" data-act="tagClose">Готово</button></div>
+    <div class="tg-new"><input id="tgInp" class="tg-inp" type="text" maxlength="40" placeholder="Новий тег: улюблене, передивитись…" data-enter="tagNew" autocomplete="off"><button class="tg-add" data-act="tagNew">${ic('plus')}Додати</button></div>
+    ${all.length?`<div class="tg-lbl">Твої теги · тапни, щоб додати чи зняти</div><div class="tg-chips">${all.map(([t,n])=>{const on=mine.includes(t);return `<button class="tg-ch${on?' on':''}" aria-pressed="${on}" data-act="tagTog" data-args="${A(`${uriSafe(t)}`)}">${on?ic('check'):''}#${esc(t)}<span>${n}</span></button>`;}).join('')}</div>`
+      :`<div class="tg-lbl">Тегів ще немає — створи перший: ним можна позначати фільми й потім показувати лише їх (Фільтри → Теги)</div>`}`;
+}
+function _tgSaved(){save();rWatched();rWatching();rPlanned();_tgDraw();}
+function tagTog(t){t=decodeURIComponent(t);const it=findItem(_tgId);if(!it)return;it.tags=it.tags||[];const k=it.tags.indexOf(t);if(k>=0)it.tags.splice(k,1);else it.tags.push(t);_tgSaved();}
+function tagNew(){
+  const inp=document.getElementById('tgInp'),t=(inp?.value||'').trim().replace(/^#+/,'');const it=findItem(_tgId);if(!it||!t)return;
+  it.tags=it.tags||[];if(!it.tags.includes(t))it.tags.push(t);_tgSaved();
+  const ni=document.getElementById('tgInp');if(ni){ni.value='';ni.focus();}
+}
+function saveTag(id){tagNew();}
+/* a tag on a card/poster: show the list filtered by it (the tab that is open) */
+function tagGo(ev,t){
+  ev?.stopPropagation?.();ev?.preventDefault?.();t=decodeURIComponent(t);
+  const tab=['watched','watching','planned'].find(k=>!document.getElementById('tab-'+k)?.classList.contains('hidden'))||'watched';
+  if(document.body.classList.contains('wb-on'))wbClose?.();
+  F[tab].tags=[t];buildBar(tab);buildTags(tab);rerender(tab);window.scrollTo({top:0,behavior:'smooth'});
 }
 function rmTag(id,tag){tag=decodeURIComponent(tag);const it=findItem(id);if(!it||!it.tags)return;it.tags=it.tags.filter(t=>t!==tag);save();rWatched();rWatching();rPlanned();}
 function delGlobalTag(tag){

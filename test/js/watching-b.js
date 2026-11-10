@@ -81,7 +81,7 @@ function _wbTile(x){
   const sub=x.ser?`<b>сезон ${x.s} з ${x.tot}</b> · ${x.state==='new'||x.state==='go'?`ще ${x.ahead>99?'99+':x.ahead} ${_wbPl(x.ahead,'серія','серії','серій')}`:x.ls.isEnded?'завершено':'наздогнав'}`:'фільм';
   const run=!x.ser?'':x.ls.isEnded?'<span class="wb-run end">Завершено</span>':x.ls.lastAiredSeason?'<span class="wb-run on">Триває</span>':'';
   return `<div class="wb-t" id="wb-${esc(i.id)}" data-act="wbOpen" data-args="${A(i.id)}" role="button" tabindex="0" aria-label="${esc(tn(i))}">
-    <div class="wb-pp"><img src="${posterSrc(i.poster)}" data-pf="${esc(i.imdbID)}" alt="" loading="lazy">${_wbBadge(x)}${run}${x.demo?'<i class="wb-demo">демо</i>':''}${pos}${x.ser?`<div class="wb-fill"><i style="width:${x.pct}%"></i></div>`:''}</div>
+    <div class="wb-pp"><img src="${posterSrc(i.poster)}" data-pf="${esc(i.imdbID)}" alt="" loading="lazy">${_wbBadge(x)}${run}${x.demo?'<i class="wb-demo">демо</i>':''}${_tagPill(i)}${pos}${x.ser?`<div class="wb-fill"><i style="width:${x.pct}%"></i></div>`:''}</div>
     <b class="wb-n">${esc(tn(i))}</b><div class="wb-m">${_wbMeta(i)}</div><div class="wb-p">${sub}</div>${x.nd?`<div class="wb-air sm">${_wbNext(x)}</div>`:''}</div>`;
 }
 function _wbCard(x){
@@ -143,6 +143,7 @@ function _wbSheetDraw(){
     <div class="wb-hd"><img src="${posterSrc(i.poster)}" alt="" data-act="openTitle" data-args="${A(i.imdbID)}"><div>${x.demo?'<i class="wb-demo">демо</i>':''}
       <b class="wb-tt">${esc(tn(i))}</b>${tn(i)!==i.title?`<div class="wb-or">${esc(i.title)}</div>`:''}<div class="wb-mt">${_wbMeta(i,true)}</div>${_wbStatus(x)}</div></div>
     ${counter}
+    <div class="wb-tags">${_tagsHtml(i)||'<span class="wb-notag">Без тегів</span>'}<button class="wb-tgb" data-act="tagEdit" data-args="${A(i.id)}">${ic('tag')}Теги</button></div>
     <div class="wb-acts">${x.ser?`<button class="wb-b" data-act="wbDone" data-args="${A(i.id)}">${ic('check')}Весь серіал переглянуто</button>`:`<button class="wb-b" data-act="wbDone" data-args="${A(i.id)}">${ic('check')}Переглянуто</button>`}
       <button class="wb-b" data-act="wbCard" data-args="${A(i.imdbID)}">Картка</button>
       ${i.streamUrl&&safeUrl(i.streamUrl)?`<a class="wb-b sq" href="${esc(safeUrl(i.streamUrl))}" target="_blank" rel="noopener" aria-label="Дивитись">${ic('play')}</a>`:''}

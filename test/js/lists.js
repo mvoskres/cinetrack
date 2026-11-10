@@ -382,7 +382,7 @@ function cardMenu(ev,list,id){
   const ser=it.type==='series';
   const common=[it.streamUrl&&safeUrl(it.streamUrl)&&{icon:'play',label:'Дивитись',href:it.streamUrl},
     {icon:'link',label:it.streamUrl?'Змінити посилання':'Додати посилання',fn:'editUrl',args:[id]},
-    {icon:'tag',label:'Додати тег',fn:'addTag',args:[id]},'-'];
+    {icon:'tag',label:(it.tags||[]).length?'Теги ('+it.tags.length+')':'Теги',fn:'tagEdit',args:[id]},'-'];
   const items={
     watched:[{icon:'star',label:'Оцінка і коментар',fn:'editW',args:[id]},!watching.some(x=>x.imdbID===it.imdbID)&&{icon:'play',label:'Дивитись знову',fn:'wToWn',args:[id]},...common,{icon:'trash',label:'Видалити',fn:'_menuDel',args:['watched',id],danger:1}],
     planned:[{icon:'check',label:'Переглянуто',fn:'plToW',args:[id]},{icon:'play',label:'Почати дивитись',fn:'plToWn',args:[id]},...common,{icon:'trash',label:'Видалити',fn:'_menuDel',args:['planned',id],danger:1}],
@@ -394,17 +394,19 @@ function cardMenu(ev,list,id){
 
 /* ── POSTER CARD — the one card for watched, planned, recs, people ── */
 function _myMeta(i){const c=i.customCategory||i.type;return `<div class="pc-m">${i.year?`<span class="num">${esc(i.year)}</span>`:''}<span>${catLabel(c)}</span>${i.imdbRating?`<span class="imdb">IMDb <span class="num">${esc(i.imdbRating)}</span></span>`:''}</div>`;}
-function _tagsHtml(i){return (i.tags||[]).length?`<div class="card-utags">${i.tags.map(t=>`<span class="utag">${esc(t)}<button class="utag-x" data-act="rmTag" data-args="${A((i.id),`${uriSafe(t)}`)}" aria-label="Видалити тег ${esc(t)}">✕</button></span>`).join('')}</div>`:'';}
+/* tags: a quiet line of #chips (tap → show this tag in the list); edited in the tag sheet (tagEdit) */
+function _tagsHtml(i){return (i.tags||[]).length?`<div class="tg-line">${i.tags.map(t=>`<button class="tg-c" data-act="tagGo" data-args="${A('$ev',`${uriSafe(t)}`)}" title="Показати все з тегом «${esc(t)}»">#${esc(t)}</button>`).join('')}</div>`:'';}
+/* on a poster: the first tag (+N) as a small label in the corner */
+function _tagPill(i){const t=i.tags||[];return t.length?`<button class="tg-pill" data-act="tagGo" data-args="${A('$ev',`${uriSafe(t[0])}`)}" title="${esc(t.map(x=>'#'+x).join(' '))}">#${esc(t[0])}${t.length>1?` <b>+${t.length-1}</b>`:''}</button>`:'';}
 function myCard(list,i){
   return `<article class="pc">
     <div class="pc-art"><a href="${imdbHref(i)}" target="_blank" rel="noopener" tabindex="-1" data-act="_tsClick" data-args="${A('$ev',`${i.imdbID}`)}"><img src="${posterSrc(i.poster)}" data-pf="${esc(i.imdbID)}" alt="" loading="lazy"></a>
       ${i.rating?`<span class="pc-my">${ic('star')}${esc(i.rating)}</span>`:''}
       ${i.streamUrl&&safeUrl(i.streamUrl)?`<a class="pc-fab play" href="${esc(safeUrl(i.streamUrl))}" target="_blank" rel="noopener" aria-label="Дивитись ${esc(tn(i))}">${ic('play')}</a>`:''}
-      <button class="pc-fab more" data-act="cardMenu" data-args="${A('$ev',`${list}`,(i.id))}" aria-label="Дії: ${esc(tn(i))}">${ic('dots')}</button></div>
+      <button class="pc-fab more" data-act="cardMenu" data-args="${A('$ev',`${list}`,(i.id))}" aria-label="Дії: ${esc(tn(i))}">${ic('dots')}</button>${_tagPill(i)}</div>
     <div class="pc-t"><a href="${imdbHref(i)}" target="_blank" rel="noopener" data-act="_tsClick" data-args="${A('$ev',`${i.imdbID}`)}">${esc(tn(i))}</a></div>
     ${_myMeta(i)}
     ${i.comment?`<div class="pc-note" title="${esc(i.comment)}">${esc(i.comment)}</div>`:''}
-    ${_tagsHtml(i)}
   </article>`;
 }
 
