@@ -66,7 +66,10 @@ function _freeCacheSpace(){
   _pruneApiCache(200);
   try{localStorage.setItem('ct_apicache',JSON.stringify(_apiCache));}catch(e){localStorage.removeItem('ct_apicache');}
   /* pure caches only (all refetched on demand); lists, tracked people, collections, game progress stay */
-  ['ct_gamebackdrops','ct_titlecache','ct_personcache','ct_recs','ct_recsrc','ct_nopic'].forEach(k=>localStorage.removeItem(k));
+  ['ct_gamebackdrops','ct_titlecache','ct_recs','ct_recsrc','ct_nopic'].forEach(k=>localStorage.removeItem(k));
+  /* people: drop everyone except the followed ones (their filmographies are what the People page, stats and recs read) */
+  try{const keep={};(typeof _trackedPeople!=='undefined'?_trackedPeople:[]).forEach(p=>{const c=_personCache?.[p.id];if(c)keep[p.id]=c;});
+    for(const k in _personCache)if(!(k in keep))delete _personCache[k];localStorage.setItem('ct_personcache',JSON.stringify(keep));}catch(e){localStorage.removeItem('ct_personcache');}
 }
 function _pruneApiCache(max){
   const now=Date.now();let n=0;

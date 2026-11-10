@@ -245,7 +245,7 @@ function renderStats(){
 
   el.innerHTML=`
   <section class="sv-hero">
-    <div class="sv-wall" aria-hidden="true">${wall.map(i=>`<img src="${posterSrc(i.poster)}" data-pf="${esc(i.imdbID)}" alt="">`).join('')}</div>
+    <div class="sv-wall" aria-hidden="true">${wall.map(i=>`<img src="${esc(_posterSm(i.poster))}" data-pf="${esc(i.imdbID)}" alt="" decoding="async">`).join('')}</div>
     <div class="sv-hero-in">
       <div class="sv-big num">${nf(days)}</div>
       <div class="sv-big-l">${sxPl(days,['день','дні','днів'])} перед екраном</div>

@@ -1873,13 +1873,16 @@ body.srch-on{overflow:hidden;}
 @media(max-width:860px) and (min-width:701px){.dk-li small{display:none;}}
 /* phone */
 @media(max-width:700px){
-  .dock{position:fixed;left:10px;right:10px;bottom:calc(12px + env(safe-area-inset-bottom,0px));top:auto;width:auto;margin:0;height:70px;border-radius:24px;transition:height .32s cubic-bezier(.3,.7,.2,1);}
+  .dock{position:fixed;left:10px;right:10px;bottom:calc(12px + env(safe-area-inset-bottom,0px));top:auto;width:auto;margin:0;
+    height:calc(100vh - 24px - env(safe-area-inset-bottom,0px));height:calc(100svh - 24px - env(safe-area-inset-bottom,0px)); /* anchored to the bottom only, fixed height: the phone's address bar showing/hiding while scrolling must not resize it */
+    border:0;border-radius:24px;box-shadow:none;
+    clip-path:inset(calc(100% - 70px) 0 0 0 round 24px);transition:clip-path .32s cubic-bezier(.3,.7,.2,1);pointer-events:none;contain:layout paint;}
+  .dock .dk-row{pointer-events:auto;}
   body.nav-on{overflow:hidden;}
-  body.nav-on .dock{height:calc(100% - 24px - env(safe-area-inset-bottom,0px));}
+  body.nav-on .dock{clip-path:inset(0 0 0 0 round 24px);pointer-events:auto;}
   .dk-wall{grid-template-columns:repeat(6,1fr);inset:-12% -30%;}
-  .dk-shade{background:linear-gradient(180deg,rgba(15,18,22,.55),rgba(15,18,22,.8) 45%,rgba(15,18,22,.96) 80%);}
-  .dk-shade{transition:background .3s;}
-  body:not(.nav-on) .dk-shade{background:rgba(15,18,22,.9);}
+  .dk-shade{background:linear-gradient(180deg,rgba(15,18,22,.7) 0%,rgba(15,18,22,.82) 25%,rgba(15,18,22,.93) 55%,rgba(15,18,22,.95) 100%);}
+  .dk-wall{transition:opacity .3s;}
   body.nav-on .dk-wall{opacity:.6;}
   .dk-row{position:absolute;left:0;right:0;bottom:0;height:70px;gap:0;padding:0 8px 0 4px;}
   .dk-row>.dk-home,.dk-disc,.dk-sep,.dock .dk-sr,.dock .me,.dock .dk-more{display:none;}
@@ -1895,8 +1898,8 @@ body.srch-on{overflow:hidden;}
   .dk-mb .ic-x{display:none;}
   body.nav-on .dk-mb .ic-x{display:grid;}body.nav-on .dk-mb .ic-m{display:none;}
   body.nav-on .dk-lists{opacity:0;pointer-events:none;}
-  .dk-big{display:flex;flex-direction:column;align-items:flex-start;position:absolute;left:0;right:0;bottom:78px;padding:0 24px 10px;opacity:0;pointer-events:none;transition:opacity .2s .12s;}
-  body.nav-on .dk-big{opacity:1;pointer-events:auto;}
+  .dk-big{display:flex;flex-direction:column;align-items:flex-start;position:absolute;left:0;right:0;top:132px;bottom:70px;justify-content:center;padding:0 24px;opacity:0;pointer-events:none;transition:opacity .1s;}
+  body.nav-on .dk-big{opacity:1;pointer-events:auto;transition:opacity .2s .12s;}
   .dock .dk-bl,.dock .dk-bd{display:flex;align-items:baseline;gap:12px;font:700 34px/1.16 var(--serif);letter-spacing:-.025em;color:var(--text-2);text-align:left;}
   .dk-bl small{font:500 14px var(--serif);color:var(--muted);letter-spacing:0;}
   .dock .dk-bl.on,.dock .dk-bd.on{color:var(--gold);}.dk-bl.on small{color:var(--gold);opacity:.75;}
@@ -1922,7 +1925,7 @@ body.srch-on{overflow:hidden;}
   .srch .sug-title{font-size:13px;}.srch .sug-meta,.srch .sug-orig{font-size:11.5px;}
   .srch .sug-p .sug-badge{left:5px;top:5px;padding:3px 7px;font-size:10.5px;}
 }
-@media(prefers-reduced-motion:reduce){.dock,.dk-big{transition:none;}}
+@media(prefers-reduced-motion:reduce){.dock,.dk-big,.dk-top,.dk-rset,.dk-lists,.dk-wall{transition:none!important;}}
 
 /* keyboard hints only where there is a keyboard */
 @media(max-width:700px),(pointer:coarse){kbd,.kb-only,.game-keys{display:none!important;}} /* every keyboard hint (Enter, Esc, 1–4, /) */
@@ -1934,21 +1937,20 @@ body.srch-on{overflow:hidden;}
 .dk-top,.dk-rset{display:none;}
 @media(max-width:700px){
   /* top: logo + a search line, so the upper part of the grown dock is not just wallpaper */
-  .dk-top{display:flex;flex-direction:column;gap:14px;position:absolute;left:0;right:0;top:0;padding:20px 22px 0;opacity:0;pointer-events:none;transition:opacity .2s .12s;}
-  body.nav-on .dk-top{opacity:1;pointer-events:auto;}
+  .dk-top{display:flex;flex-direction:column;gap:14px;position:absolute;left:0;right:0;top:0;padding:20px 22px 0;opacity:0;pointer-events:none;transition:opacity .1s;}
+  body.nav-on .dk-top{opacity:1;pointer-events:auto;transition:opacity .2s .12s;}
   .dock .dk-tsr{display:flex;align-items:center;gap:10px;width:100%;padding:12px 14px;border-radius:14px;background:rgba(23,27,33,.88);border:1px solid #3a424e;color:var(--text-2);font:500 15px var(--sans);text-align:left;}
   .dk-tsr svg.i{width:20px;height:20px;}
   /* middle: the menu words sit in the space between top and bottom, a little below centre (thumb reach) */
-  body.nav-on .dk-big{top:132px;bottom:70px;justify-content:center;padding-top:0;padding-bottom:0;}
   /* bottom row: settings on the left, ✕ on the right — no empty strip under the menu */
-  body.nav-on .dk-rset{display:flex;}
-  .dock .dk-rset{align-items:center;gap:10px;flex:1;min-width:0;padding-left:16px;font:600 15px var(--sans);color:var(--text);text-align:left;}
+  .dock .dk-rset{display:flex;position:absolute;left:0;right:66px;top:0;bottom:0;align-items:center;gap:10px;min-width:0;padding-left:20px;font:600 15px var(--sans);color:var(--text);text-align:left;opacity:0;pointer-events:none;transition:opacity .1s;}
+  body.nav-on .dk-rset{opacity:1;pointer-events:auto;transition:opacity .2s .12s;}
+  .dk-lists{transition:opacity .2s .1s;}
+  body.nav-on .dk-lists{transition:opacity .1s;}
   .dk-rset small{display:block;font:400 12px var(--sans);color:var(--muted);}
   .dk-rset small.stale{color:#e0a84a;}
   .dk-rset .av{width:34px;height:34px;}
-  body.nav-on .dk-lists{display:none;}
   /* shade: darker behind the words, posters stay visible at the top and edges */
-  body.nav-on .dk-shade{background:linear-gradient(180deg,rgba(15,18,22,.7) 0%,rgba(15,18,22,.82) 25%,rgba(15,18,22,.93) 55%,rgba(15,18,22,.97) 100%);}
 }
 /* title card: the status chip is a button that opens the status menu */
 button.chip-s.st-sw{font-family:var(--sans);font-size:.8rem;padding:.35rem .7rem;border:0;cursor:pointer;}

@@ -6,12 +6,19 @@ let _trackedPeople=_lsJSON('ct_trackedpeople',[]);
 let _personCache=_lsJSON('ct_personcache',{});
 const PERSON_TTL=7*24*60*60*1000; /* 7 days — filmographies change rarely */
 function _peopleSave(){_lsSet('ct_trackedpeople',JSON.stringify(_trackedPeople));}
-function _personCacheSave(){_lsSet('ct_personcache',JSON.stringify(_personCache));}
+/* the cache keeps the followed people and whoever was opened within PERSON_TTL; the rest is refetched on demand */
+function _personCachePrune(){
+  const keep=new Set(_trackedPeople.map(p=>String(p.id)));let pv=null;try{pv=_personPreview;}catch(e){}if(pv)keep.add(String(pv.id));
+  const now=Date.now();let n=0;
+  for(const id in _personCache){if(keep.has(id))continue;const ts=_personCache[id]?.ts||0;if(!(now-ts<PERSON_TTL)){delete _personCache[id];n++;}}
+  return n;
+}
+function _personCacheSave(){_personCachePrune();_lsSet('ct_personcache',JSON.stringify(_personCache));}
 /* TMDB credits carry overview, backdrop, popularity… none of which is shown —
    one tracked person was ~300K chars. Keep only the fields actually read. */
 const _CREDIT_FIELDS=['id','title','name','release_date','first_air_date','media_type','character','job','order','episode_count','poster_path','vote_average','vote_count','genre_ids','original_language'];
 function _slimCredits(arr){return(arr||[]).map(c=>{const o={};_CREDIT_FIELDS.forEach(f=>{if(c[f]!==undefined)o[f]=c[f];});return o;});}
-{let slimmed=false;for(const id in _personCache){const c=_personCache[id];if([...(c.cast||[]),...(c.crew||[])].some(x=>'overview' in x)){c.cast=_slimCredits(c.cast);c.crew=_slimCredits(c.crew);slimmed=true;}}if(slimmed)_personCacheSave();}
+{let slimmed=false;for(const id in _personCache){const c=_personCache[id];if([...(c.cast||[]),...(c.crew||[])].some(x=>'overview' in x)){c.cast=_slimCredits(c.cast);c.crew=_slimCredits(c.crew);slimmed=true;}}if(slimmed||_personCachePrune())_personCacheSave();}
 function _norm(s){return String(s||'').toLowerCase().replace(/[^\p{L}\p{N}]+/gu,' ').trim();}
 
 function _ownedByTitleYear(){

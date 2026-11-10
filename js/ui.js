@@ -9,7 +9,7 @@ function _ovPush(){if(!_ovPushed){try{history.pushState({ctOv:1},'');_ovPushed=t
 function _ovPop(){if(_ovPushed&&!document.body.classList.contains('nav-on')&&!document.body.classList.contains('srch-on')){_ovPushed=false;history.back();}}
 window.addEventListener('popstate',()=>{_ovPushed=false;navClose(true);searchClose(true);});
 
-function navOpen(){document.body.classList.add('nav-on');document.querySelector('.dk-mb')?.setAttribute('aria-expanded','true');_ovPush();}
+function navOpen(){_dockWall();document.body.classList.add('nav-on');document.querySelector('.dk-mb')?.setAttribute('aria-expanded','true');_ovPush();}
 function navClose(fromHistory){
   if(!document.body.classList.contains('nav-on'))return;
   document.body.classList.remove('nav-on');document.querySelector('.dk-mb')?.setAttribute('aria-expanded','false');
@@ -21,6 +21,7 @@ function navToggle(){
   document.body.classList.contains('nav-on')?navClose():navOpen();
 }
 function searchOpen(){
+  _dockWall();
   const L=document.getElementById('srch');if(!L)return;
   navClose(true);
   if(!document.body.classList.contains('srch-on')){L.hidden=false;document.body.classList.add('srch-on');_ovPush();}
@@ -81,11 +82,14 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Escape'&&e.target.classList?.contains('local-search')&&e.target.value){e.preventDefault();e.stopPropagation();lsClear(e.target);}
 });
 /* the dock's texture: the user's own best-rated posters, smaller copies where the host allows */
+let _dockWallDone=false;
 function _dockWall(){
+  if(_dockWallDone)return;_dockWallDone=true;
   const ps=watched.filter(i=>/^https:\/\//.test(i.poster||'')).sort((a,b)=>(parseFloat(b.imdbRating)||0)-(parseFloat(a.imdbRating)||0)).slice(0,36)
     .map(i=>i.poster.replace(/\._V1_[^/]*\.jpg$/,'._V1_SX160.jpg'));
   if(!ps.length)return;
   const html=[...ps,...ps].slice(0,60).map(u=>`<i><img src="${esc(u)}" alt="" loading="lazy" decoding="async" data-fb></i>`).join('');
   ['dkWall','srchWall'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=html;});
 }
-_dockWall();
+(function(){const go=()=>('requestIdleCallback' in window?requestIdleCallback(_dockWall,{timeout:2500}):setTimeout(_dockWall,500));
+  if(document.readyState==='complete')go();else addEventListener('load',go,{once:true});})();

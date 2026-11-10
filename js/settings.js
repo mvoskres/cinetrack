@@ -167,7 +167,7 @@ function _buildBackup(incK){
     trackedPeople:_trackedPeople,
     collCache:_collCache,collDetails:_collDetails,skippedParts:_skippedParts,unresolvable:_unresolvable,
     gameBestScore:_gameBest.frame.streak,gameRoundBest:_gameBest.frame.round,gameActorBest:_gameBest.actor.streak,gameActorRound:_gameBest.actor.round,gameQuoteBest:_gameBest.quote.streak,gameQuoteRound:_gameBest.quote.round,gameBackdropCache:_gameBackdropCache,
-    personCache:_personCache,resolveCache:_resolveCache,tmdbFind:_findCache,
+    personCache:(_personCachePrune(),_personCache),resolveCache:_resolveCache,tmdbFind:_findCache,
     statsTmdb:_sxT,statsPeople:_sxP,ukTitles:_ukList,accent:accentNow(),views:_viewDef}; /* no apiCache: it expires in 24h anyway */
 }
 async function doExport(){
@@ -445,7 +445,7 @@ function _applyBackup(data){
   _sxRestore(data.statsTmdb,data.statsPeople); /* stats: collected cast/series data, so a new device does not collect it again */
   /* data.apiCache is deliberately ignored: 24 h of someone else's answers, and the biggest thing in the file */
   if(nDet){Object.assign(_collDetails,nDet);_collDetailsSave();}
-  if(pcIn){Object.assign(_personCache,nPerson);_personCacheSave();}
+  if(pcIn){Object.assign(_personCache,nPerson);_personCacheSave();} /* _personCacheSave prunes old non-followed people */
   if(nRes){Object.assign(_resolveCache,nRes);_resolveCacheSave();}
   if(nFind){Object.assign(_findCache,nFind);_findSave();}
   if(setApi){API=data.apiKey;_lsSet('ct_apikey',API);}
@@ -541,6 +541,7 @@ function doImport(e,mode){
 
 /* ── VERSION and CHANGELOG: newest first; bump APP_VERSION and add an entry with every change pushed to the site ── */
 const CHANGELOG=[
+  {v:'1.27',d:'10.11.2026',n:['Швидше відкривається: код сайту вантажиться паралельно, а не файл за файлом (на повільному інтернеті ~2,6 с замість ~7 с)','Меню на телефоні відкривається й закривається плавно, без стрибків слів і ривків затемнення; після вибору розділу спершу закривається меню, потім будується сторінка','Нижня панель на телефоні не їздить, коли під час прокрутки ховається адресний рядок','Сховище браузера: кеш фільмографій тримає лише тих, за ким стежиш, і відкритих за останні 7 днів (було заповнено майже до межі)','Стіни постерів у меню й пошуку будуються після завантаження сторінки; банер статистики бере зменшені постери']},
   {v:'1.26',d:'10.11.2026',n:['Люди: поле вгорі тепер фільтрує тих, за ким стежиш (нових людей шукай у загальному пошуку — там і «Стежити»)','Люди: обличчя сіткою у два ряди з лічильником «Стежиш N»; останнє місце — «Ще N», розгортає всіх']},
   {v:'1.25.2',d:'09.11.2026',n:['Технічне: прибрано стилі старої бічної панелі, верхнього рядка й нижньої смуги (63 правила, файл стилів менший на 5%); вигляд не змінився']},
   {v:'1.25.1',d:'09.11.2026',n:['Знову: перехід на іншу сторінку відкриває її з самого верху (після нового меню на телефоні браузер повертав стару прокрутку)']},

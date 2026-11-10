@@ -1,6 +1,10 @@
 /* ── TABS ── */
 const TITLES={watched:'Переглянуте',watching:'Дивлюсь',planned:'Планую',stats:'Статистика',recs:'Рекомендації',collections:'Франшизи',people:'Актори й режисери',game:'Впізнай кадр'};
 function goTab(id,btn){
+  if(document.body.classList.contains('nav-on')&&matchMedia('(max-width:700px)').matches){
+    document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('on',b.dataset.tab===id));
+    navClose();setTimeout(()=>goTab(id,btn),300);return;
+  }
   document.getElementById('gameModalBg')?.classList.add('hidden');
   const tabEl=document.getElementById('tab-'+id);
   const fresh=!!tabEl&&tabEl.classList.contains('hidden'); /* a new tab starts at its top, not at the old tab's scroll depth */

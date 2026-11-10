@@ -155,6 +155,8 @@ const NOPIC_TTL=7*864e5;let _noPic=_lsJSON('ct_nopic',{}),_noPicT=null;
 {const now=Date.now();let d=false;for(const k in _noPic)if(!(now-_noPic[k]<NOPIC_TTL)){delete _noPic[k];d=true;}if(d)_lsSet('ct_nopic',JSON.stringify(_noPic));}
 function _noPicMark(id){_noPic[id]=Date.now();clearTimeout(_noPicT);_noPicT=setTimeout(()=>_lsSet('ct_nopic',JSON.stringify(_noPic)),1500);}
 /* src="…" value for a stored poster: http(s) only and escaped; anything else fails on purpose, so fixBrokenPoster looks for a real one */
+/* a small copy of a poster for tiles (IMDb/Amazon ._V1_ sizes, TMDB /w…/) */
+function _posterSm(p){const u=ps(p)||'';return u.replace(/\._V1_[^/]*\.jpg$/,'._V1_SX160.jpg').replace(/(image\.tmdb\.org\/t\/p\/)(w\d+|original)\//,'$1w185/')||'data:,';}
 function posterSrc(p){return esc(ps(p)||'data:,');}
 /* same, with the blank placeholder instead of the failing 'data:,' (modals, search hits) */
 function imgSrc(p){return esc(ps(p)||blank());}
