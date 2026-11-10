@@ -108,10 +108,11 @@ body.wb-on .wb-sh{display:block;position:fixed;inset:0;z-index:520;}
 @media(max-width:700px){.wb-sel{display:flex;}.wb-sel button{flex:1 1 0;justify-content:center;padding:0 8px;font-size:14px;}}
 .wb-cs+.wb-h{margin-top:26px;}
 
-/* phone: three equal columns, the count under the word — fits 320px screens */
+/* phone: three equal columns — the count big (the fact), the word under it */
 @media(max-width:700px){
-  .wb-sel{display:grid;grid-template-columns:repeat(var(--n,3),minmax(0,1fr));width:100%;}
-  .wb-sel button{flex-direction:column;justify-content:center;gap:2px;height:52px;padding:0 4px;font-size:14px;min-width:0;}
-  .wb-sel button span{min-width:0;height:auto;padding:0;background:none!important;font:600 12px var(--sans);color:var(--muted);}
-  .wb-sel button.on span{color:var(--gold-ink);opacity:.75;}
+  .wb-sel{display:grid;grid-template-columns:repeat(var(--n,3),minmax(0,1fr));width:100%;gap:6px;padding:5px;}
+  .wb-sel button{flex-direction:column-reverse;justify-content:center;gap:3px;height:64px;padding:0 4px;min-width:0;border-radius:13px;font:600 12.5px/1.1 var(--sans);color:var(--text-2);}
+  .wb-sel button span{min-width:0;height:auto;padding:0;background:none!important;font:700 22px/1 var(--serif);letter-spacing:-.02em;color:var(--text);}
+  .wb-sel button.on{color:var(--gold-ink);}
+  .wb-sel button.on span{color:var(--gold-ink);}
 }

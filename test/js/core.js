@@ -199,8 +199,8 @@ function buildBar(t){
   el.className='filter-row fbar';
   el.innerHTML=`
     ${viewSeg(t)}
-    <div class="local-search-wrap"><span class="local-search-icon">${ic('search')}</span>
-      <input class="local-search" type="text" placeholder="Пошук" aria-label="Пошук у списку" value="${esc(f.q||'')}" data-input="lsearch" data-args="${A(`${t}`,'$value')}"><button type="button" class="ls-x" data-act="lsClear" data-args="[&quot;$el&quot;]" aria-label="Очистити пошук" title="Очистити">${ic('x')}</button>
+    <div class="local-search-wrap"><span class="local-search-icon">${ic('lsearch')}</span>
+      <input class="local-search" type="text" placeholder="Знайти в списку" aria-label="Пошук у списку" value="${esc(f.q||'')}" data-input="lsearch" data-args="${A(`${t}`,'$value')}"><button type="button" class="ls-x" data-act="lsClear" data-args="[&quot;$el&quot;]" aria-label="Очистити пошук" title="Очистити">${ic('x')}</button>
     </div>
     <button id="fbtn-${t}" class="flt-pill fbtn${n?' has-n':''}${open?' active':''}" aria-haspopup="dialog" aria-expanded="${open}" data-act="togglePan" data-args="${A(`${t}`)}">${ic('filter')}Фільтри${n?` <span class="flt-n">${n}</span>`:''}</button>
     <select class="sort-sel fbar-sort" aria-label="Сортування" data-change="doSort" data-args="${A(`${t}`,'$value')}">
