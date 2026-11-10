@@ -118,6 +118,11 @@ function rWatching(skipLive){
 /* the wall in shelves by air state: next date known / unknown / ended (+ films); unwatched episodes first inside each */
 function _wbShelves(xs){
   const back=x=>x.ahead>0?0:1,la=x=>x.ls.lastAiredDate||'';
+  if(F.watching.sort!=='air'){ /* another sort was chosen: keep its order inside every shelf */
+    const sh=[['Дата наступної серії відома',x=>x.ser&&!x.ls.isEnded&&x.nd],['Дата невідома',x=>x.ser&&!x.ls.isEnded&&!x.nd],['Серіал завершено',x=>x.ser&&x.ls.isEnded],['Фільми',x=>!x.ser]]
+      .map(([t,f])=>[t,xs.filter(f)]).filter(g=>g[1].length);
+    return sh.map(([t,a])=>`<div class="wb-h"><b>${t}</b><span>${a.length}</span></div><div class="wb-g">${a.map(_wbTile).join('')}</div>`).join('');
+  }
   const sh=[
     ['Дата наступної серії відома',xs.filter(x=>x.ser&&!x.ls.isEnded&&x.nd).sort((a,b)=>_wbDays(a.nd)-_wbDays(b.nd))],
     ['Дата невідома',xs.filter(x=>x.ser&&!x.ls.isEnded&&!x.nd).sort((a,b)=>back(a)-back(b)||(la(b)>la(a)?1:-1))],

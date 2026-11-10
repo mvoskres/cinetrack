@@ -171,7 +171,7 @@ function _resolveFresh(entry){
 /* ── FILTER STATE ── */
 const F={
   watched: {q:'',cats:[],genres:[],decades:[],ratings:[],tags:[],sort:'added-desc'},
-  watching:{q:'',cats:[],genres:[],decades:[],tags:[],air:[],sort:'added-desc'},
+  watching:{q:'',cats:[],genres:[],decades:[],tags:[],air:[],sort:'air'},
   planned: {q:'',cats:[],genres:[],decades:[],tags:[],sort:'added-desc'},
 };
 /* the one map of category labels; the other tabs derive theirs from it (library CAT_L, people CREDIT_TYPE_LABEL, tl) */
@@ -179,6 +179,7 @@ const CAT={movie:'Фільм',series:'Серіал',anime:'Аніме',cartoon:'
 function catLabel(c){return esc(Object.hasOwn(CAT,c)?CAT[c]:c||'');}
 const S_ALL=[['added-desc','Нові'],['added-asc','Старі'],['year-desc','Рік ↓'],['year-asc','Рік ↑'],['title-asc','А→Я'],['genre-asc','Жанр'],['imdb-rating-desc','IMDb ↓'],['imdb-rating-asc','IMDb ↑']];
 const S_W  =[...S_ALL,['rating-desc','Оцінка ↓']];
+const S_WN =[['air','За ефіром'],...S_ALL]; /* Дивлюсь: «За ефіром» = new episodes first, nearest dates first (the shelves' own order) */
 
 function tList(t){return t==='watched'?watched:t==='watching'?watching:planned;}
 function barId(t) {return{watched:'wBar',watching:'wnBar',planned:'plBar'}[t];}
@@ -192,7 +193,7 @@ function fN(t){const f=F[t];return f.cats.length+f.genres.length+f.decades.lengt
    they reach F[t] only on «Показати N»; closing the sheet any other way drops them. */
 function buildBar(t){
   const el=document.getElementById(barId(t));if(!el)return;
-  const f=F[t],n=fN(t),opts=t==='watched'?S_W:S_ALL;
+  const f=F[t],n=fN(t),opts=t==='watched'?S_W:t==='watching'?S_WN:S_ALL;
   const list=tList(t),counts={};list.forEach(i=>{const c=i.customCategory||i.type;if(c)counts[c]=(counts[c]||0)+1;});
   if(f.cats[0]&&!counts[f.cats[0]])f.cats=[]; /* its last title left the list: don't leave an invisible filter on an empty-looking list */
   const open=document.body.classList.contains('fs-on')&&_fs&&_fs.t===t;
@@ -291,7 +292,7 @@ function fsRender(){
   let h='';
   const _fsPhone=matchMedia('(max-width:700px)').matches; /* view and sort sit in the toolbar on a computer, sort also on a phone */
   if(t in VIEW_LISTS&&_fsPhone){const cur=viewOf(t);h+=grp('Вигляд',VIEWS.map(([k,l])=>`<button type="button" class="fsh-chip${cur===k?' on':''}" aria-pressed="${cur===k}" data-k="view:${k}" data-act="fsView" data-args="${A(`${k}`)}">${l}</button>`).join(''));}
-  const opts=t==='watched'?S_W:S_ALL;
+  const opts=t==='watched'?S_W:t==='watching'?S_WN:S_ALL;
   /* Сортування: the select in the toolbar (phone and computer) */
   if(t==='watching'){const ac={};list.forEach(i=>{const k=_airKey(i);ac[k]=(ac[k]||0)+1;});const ak=Object.keys(AIR).filter(k=>ac[k]);
     if(ak.length>1)h+=grp('Стан ефіру',ak.map(k=>ch('air',k,AIR[k],ac[k])).join(''));}
@@ -337,7 +338,7 @@ function fsSort(v){if(!_fs)return;_fs.st.sort=v;fsRender();}
 function fsMore(){if(!_fs)return;_fs.more=true;fsRender();}
 function fsView(v){if(!_fs)return;setView(_fs.t,v);fsRender();} /* the view is not a filter: it applies at once */
 function fsReset(){if(!_fs)return;const s=_fs.st;s.air=[];s.cats=[];s.genres=[];s.decades=[];s.ratings=[];s.tags=[];fsRender();}
-function fsResetAll(){if(!_fs)return;_fs.st.sort='added-desc';fsReset();}
+function fsResetAll(){if(!_fs)return;_fs.st.sort=_fs.t==='watching'?'air':'added-desc';fsReset();}
 function fsApply(){
   if(!_fs)return;
   const {t,st}=_fs,f=F[t];
