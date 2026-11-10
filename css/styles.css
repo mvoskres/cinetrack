@@ -1971,3 +1971,25 @@ details.cl-ver>summary .st-hint{margin-left:auto;}
 .cl-ver .st-lbl small{font-weight:400;color:var(--muted);font-size:.72rem;}
 .cl-sub{display:flex;gap:.6rem;align-items:baseline;margin:.7rem 0 .2rem;font-size:.74rem;font-weight:600;color:var(--text-2);}
 .cl-sub span{font-weight:400;color:var(--muted);}
+
+/* ── PEOPLE: followed people — filter + two-row grid with "+N" (1.26) ── */
+#tab-people .pf-filter{flex:none;width:min(100%,20rem);}
+#tab-people .pf-filter[hidden]{display:none;}
+.pf-head{display:flex;align-items:baseline;gap:.5rem;margin:.2rem 0 .7rem;}
+.pf-head b{font:600 1rem var(--sans);}
+.pf-head span{color:var(--muted);font:500 .9rem var(--sans);}
+.pf-btn{margin-left:auto;background:none;border:0;color:var(--gold);font:600 .88rem var(--sans);cursor:pointer;display:flex;align-items:center;gap:.35rem;padding:.3rem 0;}
+.pf-btn .i{width:16px;height:16px;}
+.pf-btn.up::after{content:"";width:.45rem;height:.45rem;border:solid currentColor;border-width:0 2px 2px 0;transform:rotate(-135deg) translateY(-2px);}
+.pf-none{display:flex;flex-direction:column;align-items:flex-start;gap:.7rem;color:var(--muted);padding:.4rem 0 1rem;}
+.pf-find{margin-top:.8rem;}
+.pk-faces.pf-grid{display:grid;grid-template-columns:repeat(var(--pf-cols),minmax(0,1fr));gap:1rem .6rem;overflow:visible;}
+.pk-faces.pf-grid .pk-face{width:auto;}
+.pf-more{opacity:1;}
+.pf-more>span{position:relative;display:flex;align-items:center;justify-content:center;border:2px solid var(--line);overflow:hidden;}
+.pf-more>span img{position:absolute;width:34px!important;height:34px!important;border:2px solid var(--ink)!important;border-radius:50%;}
+.pf-more>span img:nth-child(1){left:6px;top:8px;}
+.pf-more>span img:nth-child(2){right:6px;top:8px;}
+.pf-more>span img:nth-child(3){left:50%;margin-left:-17px;bottom:4px;}
+.pf-more>span em{position:relative;z-index:1;font:700 1rem var(--sans);font-style:normal;color:#fff;background:#000a;border-radius:99px;padding:.1rem .45rem;}
+@media (max-width:700px){#tab-people .pf-filter{width:100%;}.pk-faces.pf-grid{gap:.9rem .4rem;}}

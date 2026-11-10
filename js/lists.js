@@ -124,7 +124,7 @@ function _sugMove(inp,box,d){
   inp.setAttribute('aria-activedescendant',items[k].id);items[k].scrollIntoView({block:'nearest'});
 }
 document.addEventListener('keydown',e=>{
-  const boxId={searchInput:'suggestions',personSearchInput:'personSuggestions'}[e.target?.id];if(!boxId)return;
+  const boxId={searchInput:'suggestions'}[e.target?.id];if(!boxId)return;
   const box=document.getElementById(boxId);if(!box||box.classList.contains('hidden'))return;
   if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();_sugMove(e.target,box,e.key==='ArrowDown'?1:-1);}
   else if(e.key==='Enter'){const a=box.querySelector('.sug-item.active');if(a){e.preventDefault();a.click();}}

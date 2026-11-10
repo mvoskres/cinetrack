@@ -23,38 +23,6 @@ function _ownedByTitleYear(){
   return map;
 }
 
-let _pst;
-function handlePersonSearch(){
-  const q=document.getElementById('personSearchInput').value.trim();
-  if(q.length<2){hidePersonSug();return;}
-  clearTimeout(_pst);_pst=setTimeout(()=>doPersonSearch(q),340);
-}
-async function doPersonSearch(q){
-  if(!TMDB_KEY||_tmdbBlocked)return;
-  try{
-    const r=await tmdbFetch(`/search/person?query=${encodeURIComponent(q)}`);
-    const res=(r?.results||[]).slice(0,7);
-    const box=document.getElementById('personSuggestions');
-    if(!res.length){box.classList.add('hidden');_sugSync('personSearchInput','personSuggestions');return;}
-    box.classList.remove('hidden');
-    box.innerHTML=res.map(p=>{
-      const already=_trackedPeople.find(t=>t.id===p.id);
-      return `<div class="sug-item" data-act="addTrackedPerson" data-args="${A(p.id,p.name,p.profile_path||'',p.known_for_department||'')}">
-        <img class="sug-img" style="border-radius:50%;object-fit:cover" src="${_tsImg(p.profile_path,'w92')||blank()}" data-fb>
-        <div class="sug-info"><div class="sug-title">${esc(p.name)}</div><div class="sug-meta">${esc(p.known_for_department||'')}</div></div>
-        ${already?`<span class="sug-badge ok">${ic('check')}Стежу</span>`:''}
-      </div>`;
-    }).join('');
-    _sugSync('personSearchInput','personSuggestions');
-  }catch(e){}
-}
-function hidePersonSug(){document.getElementById('personSuggestions')?.classList.add('hidden');_sugSync('personSearchInput','personSuggestions');}
-
-function addTrackedPerson(id,name,profile,dept){
-  hidePersonSug();document.getElementById('personSearchInput').value='';
-  if(!_trackedPeople.find(t=>t.id===id)){_trackedPeople.unshift({id,name,profile,dept});_peopleSave();}
-  renderPeopleTab();openPerson(id);
-}
 function removeTrackedPerson(id){
   _trackedPeople=_trackedPeople.filter(t=>t.id!==id);_peopleSave();
   const detail=document.getElementById('personDetail');
@@ -62,7 +30,6 @@ function removeTrackedPerson(id){
   renderPeopleTab();
 }
 
-function _pkFocusSearch(){const i=document.getElementById('personSearchInput');if(i){i.focus();i.scrollIntoView({block:'center',behavior:'smooth'});}}
 let _personLast=null; /* reopen the person you looked at last */
 let _personPreview=null; /* {id,name,profile} opened from a title, not followed */
 function followPerson(id){
@@ -71,26 +38,51 @@ function followPerson(id){
   _personPreview=null;
   renderPeopleTab();openPerson(id);
 }
+/* Followed people: a filter among them (new people come from the main search) and a two-row grid;
+   the last cell "+N" opens the rest. The person on screen always stays among the visible faces. */
+let _pplQ='',_pplOpen=false;
+function peopleFilter(v){_pplQ=v.trim();renderPeopleTab();}
+function peopleToggle(){_pplOpen=!_pplOpen;renderPeopleTab();}
+function peopleFindAll(){
+  searchOpen();const si=document.getElementById('searchInput');
+  if(si&&_pplQ){si.value=_pplQ;si.dispatchEvent(new Event('input',{bubbles:true}));}
+}
+function _pplFace(p,cur){return `<button class="pk-face person-chip${p.id===cur?' active':''}" data-pid="${esc(p.id)}" data-act="openPerson" data-args="${A(p.id)}"><img src="${_tsImg(p.profile,'w185')||BLANK}" alt="" data-fb><b>${esc(p.name)}</b></button>`;}
 function renderPeopleTab(){
   const box=document.getElementById('peopleTracked');
-  if(!_trackedPeople.length&&!_personPreview){
-    box.innerHTML=`<div class="empty"><span class="empty-icon">${ic('person')}</span><div class="empty-txt">Знайди актора чи режисера в пошуку вище, щоб стежити за фільмографією</div></div>`;
-    const detail=document.getElementById('personDetail');if(detail)detail.innerHTML='';
-    return;
-  }
-  box.innerHTML=`<div class="pk-faces">${_trackedPeople.map(p=>`
-    <button class="pk-face person-chip" data-pid="${esc(p.id)}" data-act="openPerson" data-args="${A((p.id))}">
-      <img src="${_tsImg(p.profile,'w185')||BLANK}" alt="" data-fb><b>${esc(p.name)}</b>
-    </button>`).join('')}
-    <button class="pk-face pk-add" data-act="_pkFocusSearch"><span>${ic('plus')}</span><b>Додати</b></button></div>`;
+  const fw=document.getElementById('peopleFilterWrap');
+  if(fw)fw.hidden=_trackedPeople.length<4;
   const detail=document.getElementById('personDetail');
-  const cur=+detail?.dataset.pid;
+  if(!_trackedPeople.length&&!_personPreview){
+    box.innerHTML=`<div class="empty"><span class="empty-icon">${ic('person')}</span><div class="empty-txt">Знайди актора чи режисера через пошук угорі й натисни «Стежити»</div><button class="btn pf-find" data-act="peopleFindAll">${ic('search')}Знайти людину</button></div>`;
+    if(detail)detail.innerHTML='';return;
+  }
   const known=id=>_trackedPeople.some(t=>t.id===id)||_personPreview?.id===id;
-  if(!detail?.innerHTML.trim()||!known(cur)){
-    const id=known(_personLast)?_personLast:(_trackedPeople[0]?.id??_personPreview.id);
-    openPerson(id);
-  }else document.querySelectorAll('.person-chip').forEach(b=>b.classList.toggle('active',b.dataset.pid==String(cur)));
+  let cur=+detail?.dataset.pid;
+  if(!detail?.innerHTML.trim()||!known(cur))cur=known(_personLast)?_personLast:(_trackedPeople[0]?.id??_personPreview.id);
+  const n=_trackedPeople.length,q=_norm(_pplQ);
+  const list=q?_trackedPeople.filter(p=>_norm(p.name).includes(q)):_trackedPeople;
+  const cols=window.innerWidth<=700?4:Math.max(4,Math.floor((box.clientWidth||900)/110));
+  const cap=cols*2-1; /* two rows, the last cell is "+N" */
+  let vis=list,more=0;
+  if(!q&&!_pplOpen&&list.length>cap+1){
+    vis=list.slice(0,cap);more=list.length-cap;
+    if(!vis.some(p=>p.id===cur)){const a=list.find(p=>p.id===cur);if(a)vis[cap-1]=a;}
+  }
+  const rest=list.filter(p=>!vis.includes(p)).slice(0,3);
+  const moreBtn=more?`<button class="pk-face pf-more" data-act="peopleToggle" aria-label="Показати ще ${more}"><span>${rest.map(p=>`<img src="${_tsImg(p.profile,'w92')||BLANK}" alt="" data-fb>`).join('')}<em>+${more}</em></span><b>Ще ${more}</b></button>`:'';
+  const add=`<button class="pk-face pk-add" data-act="peopleFindAll"><span>${ic('plus')}</span><b>Додати</b></button>`;
+  const head=`<div class="pf-head"><b>Стежиш</b><span>${q?`${list.length} з ${n}`:n}</span>${
+    _pplOpen&&!q?`<button class="pf-btn up" data-act="peopleToggle">Згорнути</button>`:q?'':`<button class="pf-btn add" data-act="peopleFindAll">${ic('plus')}Додати</button>`}</div>`;
+  const body=q&&!list.length
+    ?`<div class="pf-none">Серед тих, за ким стежиш, немає «${esc(_pplQ)}»<button class="btn" data-act="peopleFindAll">${ic('search')}Шукати серед усіх людей</button></div>`
+    :`<div class="pk-faces pf-grid" style="--pf-cols:${cols}">${vis.map(p=>_pplFace(p,cur)).join('')}${moreBtn}${_pplOpen&&!q?add:''}</div>`;
+  box.innerHTML=head+body;
+  if(!detail?.innerHTML.trim()||+detail.dataset.pid!==cur)openPerson(cur);
+  else document.querySelectorAll('.person-chip').forEach(b=>b.classList.toggle('active',b.dataset.pid==String(cur)));
 }
+let _pplRz;
+window.addEventListener('resize',()=>{clearTimeout(_pplRz);_pplRz=setTimeout(()=>{if(!document.getElementById('tab-people')?.classList.contains('hidden'))renderPeopleTab();},200);});
 
 /* ── PEOPLE: filter/sort/pagination state ── */
 let _personGroupsCache=null; /* {personId, all:[...normalized credits]} */
