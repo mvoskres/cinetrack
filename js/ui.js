@@ -6,10 +6,10 @@
 try{history.scrollRestoration='manual';}catch(e){} /* closing the menu/search goes «back»; the browser must not restore an old scroll then */
 let _ovPushed=false;
 function _ovPush(){if(!_ovPushed){try{history.pushState({ctOv:1},'');_ovPushed=true;}catch(e){}}}
-function _ovPop(){if(_ovPushed&&!document.body.classList.contains('nav-on')&&!document.body.classList.contains('srch-on')){_ovPushed=false;history.back();}}
-window.addEventListener('popstate',()=>{_ovPushed=false;navClose(true);searchClose(true);});
+function _ovPop(){if(_ovPushed&&!document.body.classList.contains('nav-on')&&!document.body.classList.contains('srch-on')&&!document.body.classList.contains('fs-on')){_ovPushed=false;history.back();}}
+window.addEventListener('popstate',()=>{_ovPushed=false;navClose(true);searchClose(true);if(typeof fsClose==='function')fsClose(true);});
 
-function navOpen(){_dockWall();document.body.classList.add('nav-on');document.querySelector('.dk-mb')?.setAttribute('aria-expanded','true');_ovPush();}
+function navOpen(){_dockWall();if(typeof fsClose==='function')fsClose(true);document.body.classList.add('nav-on');document.querySelector('.dk-mb')?.setAttribute('aria-expanded','true');_ovPush();}
 function navClose(fromHistory){
   if(!document.body.classList.contains('nav-on'))return;
   document.body.classList.remove('nav-on');document.querySelector('.dk-mb')?.setAttribute('aria-expanded','false');
@@ -23,7 +23,7 @@ function navToggle(){
 function searchOpen(){
   _dockWall();
   const L=document.getElementById('srch');if(!L)return;
-  navClose(true);
+  navClose(true);if(typeof fsClose==='function')fsClose(true);
   if(!document.body.classList.contains('srch-on')){L.hidden=false;document.body.classList.add('srch-on');_ovPush();}
   _srchFit();
   const si=document.getElementById('searchInput');if(si){si.focus({preventScroll:true});si.select();}
@@ -93,3 +93,39 @@ function _dockWall(){
 }
 (function(){const go=()=>('requestIdleCallback' in window?requestIdleCallback(_dockWall,{timeout:2500}):setTimeout(_dockWall,500));
   if(document.readyState==='complete')go();else addEventListener('load',go,{once:true});})();
+
+/* ── SHEET SWIPE (phone): pull a bottom sheet down to close it; from the grab bar / header, a swipe up runs `up` ──
+   The sheet follows the finger; a short or slow pull springs back. Content that is scrolled keeps scrolling. */
+function sheetSwipe(pan,{close,up,handle,scroller}){
+  if(!pan||pan._sw)return;pan._sw=1;
+  let y0=0,t0=0,dy=0,mode=null,fromHandle=false;
+  const phone=()=>matchMedia('(max-width:700px)').matches;
+  pan.addEventListener('touchstart',e=>{
+    if(!phone()||e.touches.length!==1)return;
+    y0=e.touches[0].clientY;t0=Date.now();dy=0;mode=null;
+    fromHandle=!!(handle&&e.target.closest(handle));
+  },{passive:true});
+  pan.addEventListener('touchmove',e=>{
+    if(!phone()||!t0)return;
+    dy=e.touches[0].clientY-y0;
+    if(!mode){
+      if(Math.abs(dy)<8)return;
+      const sc=scroller?pan.querySelector(scroller):pan;
+      if(dy>0&&((sc?sc.scrollTop:0)<=0||fromHandle))mode='down';
+      else if(dy<0&&fromHandle&&up)mode='up';
+      else{t0=0;return;}
+      pan.style.transition='none';
+    }
+    e.preventDefault();
+    pan.style.transform=mode==='down'?`translateY(${Math.max(0,dy)}px)`:`translateY(${Math.max(-60,dy*.35)}px)`;
+  },{passive:false});
+  const end=()=>{
+    if(!mode){t0=0;return;}
+    const v=Math.abs(dy)/Math.max(1,Date.now()-t0),m=mode;mode=null;t0=0;
+    pan.style.transition='transform .22s cubic-bezier(.3,.7,.2,1)';
+    if(m==='down'&&(dy>110||(dy>40&&v>.6))){pan.style.transform='translateY(100%)';setTimeout(()=>{pan.style.transform='';pan.style.transition='';close();},200);return;}
+    pan.style.transform='';setTimeout(()=>{pan.style.transition='';},230);
+    if(m==='up'&&(dy<-50||(dy<-25&&v>.5)))up();
+  };
+  pan.addEventListener('touchend',end);pan.addEventListener('touchcancel',end);
+}

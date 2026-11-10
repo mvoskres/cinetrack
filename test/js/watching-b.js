@@ -1,7 +1,7 @@
 /* ── «Дивлюсь» variant Б (TEST): a wall of posters + a sheet with the counter.
    Overrides rWatching / rDash from lists.js / dashboard.js; adj() from live.js is reused for ±1.
    Demo air states (test only, never saved): ?demo=0 turns them off. */
-const _WB_DEMO_ON=new URLSearchParams(location.search).get('demo')!=='0';
+const _WB_DEMO_ON=location.pathname.includes('/test/')&&new URLSearchParams(location.search).get('demo')!=='0'; /* demo air states only on the test page */
 const _WB_DEMO={ /* title → overrides of the air data, days relative to today */
   'Rick and Morty':{la:0,las:9,lae:10},
   'Ted Lasso':{la:-1,las:4,lae:10},
