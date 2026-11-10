@@ -146,7 +146,7 @@ function _wbSheetDraw(){
     <div class="wb-acts">${x.ser?`<button class="wb-b" data-act="wbDone" data-args="${A(i.id)}">${ic('check')}Весь серіал переглянуто</button>`:`<button class="wb-b" data-act="wbDone" data-args="${A(i.id)}">${ic('check')}Переглянуто</button>`}
       <button class="wb-b" data-act="wbCard" data-args="${A(i.imdbID)}">Картка</button>
       ${i.streamUrl&&safeUrl(i.streamUrl)?`<a class="wb-b sq" href="${esc(safeUrl(i.streamUrl))}" target="_blank" rel="noopener" aria-label="Дивитись">${ic('play')}</a>`:''}
-      <button class="wb-b sq" data-act="cardMenu" data-args="${A('$ev','watching',i.id)}" aria-label="Ще дії">${ic('dots')}</button></div>`;
+      <button class="wb-b sq" data-act="cardMenu" data-args="${A('$ev','watching',i.id,'sheet')}" aria-label="Ще дії">${ic('dots')}</button></div>`;
 }
 function wbAdj(id,d){adj(id,'e',d);rWatching(true);}
 function wbDone(id){wbClose();mvToW(id);}

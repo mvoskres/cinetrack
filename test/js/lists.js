@@ -377,7 +377,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMenu();});
 window.addEventListener('scroll',e=>{if(!e.target.closest?.('.ct-menu'))closeMenu();},{passive:true,capture:true});
 /* title sheet: the sticky top bar stays see-through over the hero and gets a solid background once content scrolls under it */
 window.addEventListener('scroll',e=>{const t=e.target;if(t.classList?.contains('ts'))t.classList.toggle('scrolled',t.scrollTop>8);},{passive:true,capture:true});
-function cardMenu(ev,list,id){
+function cardMenu(ev,list,id,from){
   const it=findItem(id);if(!it)return;
   const ser=it.type==='series';
   const common=[it.streamUrl&&safeUrl(it.streamUrl)&&{icon:'play',label:'Дивитись',href:it.streamUrl},
@@ -389,6 +389,8 @@ function cardMenu(ev,list,id){
     watching:[ser&&{icon:'refresh',label:'Оновити дані ефіру',fn:'relive',args:[it.imdbID]},ser&&it.season<(it.totalSeasons||1)&&{icon:'plus',label:'Наступний сезон',fn:'adj',args:[id,'s',1]},ser&&it.season>1&&{icon:'minus',label:'Попередній сезон',fn:'adj',args:[id,'s',-1]},
       {icon:'check',label:'Переглянуто повністю',fn:'mvToW',args:[id]},...common,{icon:'trash',label:'Видалити',fn:'_menuDel',args:['watching',id],danger:1}],
   }[list];
+  /* from the Дивлюсь sheet: it already has «Весь серіал переглянуто», the tags row and the play button */
+  if(from==='sheet'){const out=items.filter(x=>!(x&&(x.fn==='mvToW'||x.fn==='tagEdit'||x.href)));while(out.length&&(out[0]==='-'||!out[0]))out.shift();openMenu(ev,out);return;}
   openMenu(ev,items);
 }
 
