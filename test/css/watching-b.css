@@ -98,3 +98,12 @@ body.wb-on .wb-sh{display:block;position:fixed;inset:0;z-index:520;}
 .wb-pp .wb-demo{right:7px;top:7px;bottom:auto;}
 
 .wb-demo{display:none!important;} /* demo states stay (test), the label does not */
+
+/* selector above the strip: Сьогодні / Нещодавно / Незабаром */
+.wb-sel{display:inline-flex;gap:4px;padding:4px;margin:2px 0 14px;border-radius:16px;background:var(--ink-2);border:1px solid #262d36;max-width:100%;overflow-x:auto;scrollbar-width:none;}
+.wb-sel button{flex:none;height:40px;padding:0 16px;border:0;border-radius:12px;background:none;color:var(--text-2);font:700 15px var(--sans);display:flex;align-items:center;gap:8px;cursor:pointer;}
+.wb-sel button span{min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:rgba(255,255,255,.08);color:var(--text-2);font:700 12px var(--sans);display:grid;place-items:center;}
+.wb-sel button.on{background:var(--gold);color:var(--gold-ink);}
+.wb-sel button.on span{background:rgba(26,18,6,.18);color:var(--gold-ink);}
+@media(max-width:700px){.wb-sel{display:flex;}.wb-sel button{flex:1 1 0;justify-content:center;padding:0 8px;font-size:14px;}}
+.wb-cs+.wb-h{margin-top:26px;}

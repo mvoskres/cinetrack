@@ -98,14 +98,22 @@ function rWatching(skipLive){
   const rank=x=>x.state==='wait'&&soon.includes(x)?1:_WB_ORDER[x.state];
   const ordered=[...xs].sort((a,b)=>rank(a)-rank(b)||(a.state==='new'?_wbDays(b.ls.lastAiredDate)-_wbDays(a.ls.lastAiredDate):0));
   if(!list.length){c.innerHTML=watching.length?`<div class="empty"><span class="empty-icon">${ic('search')}</span><div class="empty-txt">Нічого не знайдено</div></div>`:`<div class="empty"><span class="empty-icon">${ic('play')}</span><div class="empty-txt">Починай щось дивитись — додай серіал через пошук</div></div>`;return;}
-  const top=[...fresh,...soon];
+  /* the strip on top: a selector of three groups; a group with nothing in it has no button, no groups — no strip */
+  const groups=[['today','Сьогодні',fresh.filter(x=>_wbDays(x.ls.lastAiredDate)===0)],
+    ['recent','Нещодавно',fresh.filter(x=>_wbDays(x.ls.lastAiredDate)<0)],
+    ['soon','Незабаром',xs.filter(x=>x.nd&&_wbDays(x.nd)<=14).sort((a,b)=>_wbDays(a.nd)-_wbDays(b.nd))]].filter(g=>g[2].length);
+  if(!groups.some(g=>g[0]===_wbTop))_wbTop=groups[0]?.[0]||null;
+  const cur=groups.find(g=>g[0]===_wbTop);
   c.className='wb';
-  c.innerHTML=(top.length?`<div class="wb-h"><b>Свіжі й найближчі</b></div><div class="wb-cs">${top.map(_wbCard).join('')}</div>`:'')
+  c.innerHTML=(cur?`<div class="wb-sel" role="tablist" aria-label="Що показати вгорі">${groups.map(([k,l,a])=>`<button role="tab" aria-selected="${k===_wbTop}" class="${k===_wbTop?'on':''}" data-act="wbTopSet" data-args="${A(k)}">${l}<span>${a.length}</span></button>`).join('')}</div>
+      <div class="wb-cs">${cur[2].map(_wbCard).join('')}</div>`:'')
     +`<div class="wb-h"><b>Усі</b><span>${list.length}</span></div><div class="wb-g">${ordered.map(_wbTile).join('')}</div>`;
   if(!skipLive&&!document.getElementById('tab-watching')?.classList.contains('hidden'))_startLive(list);
   if(_wbCur)_wbSheetDraw();
 }
 /* fetchLive/_startLive call rDash after new air data: redraw the wall (without starting the fetches again) */
+let _wbTop=null;
+function wbTopSet(k){_wbTop=k;rWatching(true);}
 let _wbRT;
 function rDash(){clearTimeout(_wbRT);_wbRT=setTimeout(()=>{if(!document.getElementById('tab-watching')?.classList.contains('hidden'))rWatching(true);},120);}
 
