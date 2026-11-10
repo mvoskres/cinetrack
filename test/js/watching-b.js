@@ -105,7 +105,7 @@ function rWatching(skipLive){
   if(!groups.some(g=>g[0]===_wbTop))_wbTop=groups[0]?.[0]||null;
   const cur=groups.find(g=>g[0]===_wbTop);
   c.className='wb';
-  c.innerHTML=(cur?`<div class="wb-sel" role="tablist" aria-label="Що показати вгорі">${groups.map(([k,l,a])=>`<button role="tab" aria-selected="${k===_wbTop}" class="${k===_wbTop?'on':''}" data-act="wbTopSet" data-args="${A(k)}">${l}<span>${a.length}</span></button>`).join('')}</div>
+  c.innerHTML=(cur?`<div class="wb-sel" style="--n:${groups.length}" role="tablist" aria-label="Що показати вгорі">${groups.map(([k,l,a])=>`<button role="tab" aria-selected="${k===_wbTop}" class="${k===_wbTop?'on':''}" data-act="wbTopSet" data-args="${A(k)}">${l}<span>${a.length}</span></button>`).join('')}</div>
       <div class="wb-cs">${cur[2].map(_wbCard).join('')}</div>`:'')
     +`<div class="wb-h"><b>Усі</b><span>${list.length}</span></div><div class="wb-g">${ordered.map(_wbTile).join('')}</div>`;
   if(!skipLive&&!document.getElementById('tab-watching')?.classList.contains('hidden'))_startLive(list);
@@ -157,6 +157,8 @@ function _wbSheetDraw(){
       ${i.streamUrl&&safeUrl(i.streamUrl)?`<a class="wb-b sq" href="${esc(safeUrl(i.streamUrl))}" target="_blank" rel="noopener" aria-label="Дивитись">${ic('play')}</a>`:''}
       <button class="wb-b sq" data-act="cardMenu" data-args="${A('$ev','watching',i.id,'sheet')}" aria-label="Ще дії">${ic('dots')}</button></div>`;
 }
-function wbAdj(id,d){adj(id,'e',d);rWatching(true);}
+/* every ±episode / ±season (the sheet, the ⋯ menu) redraws the wall and the open sheet */
+const _wbAdj0=adj;adj=function(...a){_wbAdj0(...a);rWatching(true);};
+function wbAdj(id,d){adj(id,'e',d);}
 function wbDone(id){wbClose();mvToW(id);}
 function wbCard(imdbID){openTitle(imdbID);} /* the card opens over the sheet; closing it shows the sheet again */

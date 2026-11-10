@@ -107,3 +107,11 @@ body.wb-on .wb-sh{display:block;position:fixed;inset:0;z-index:520;}
 .wb-sel button.on span{background:rgba(26,18,6,.18);color:var(--gold-ink);}
 @media(max-width:700px){.wb-sel{display:flex;}.wb-sel button{flex:1 1 0;justify-content:center;padding:0 8px;font-size:14px;}}
 .wb-cs+.wb-h{margin-top:26px;}
+
+/* phone: three equal columns, the count under the word — fits 320px screens */
+@media(max-width:700px){
+  .wb-sel{display:grid;grid-template-columns:repeat(var(--n,3),minmax(0,1fr));width:100%;}
+  .wb-sel button{flex-direction:column;justify-content:center;gap:2px;height:52px;padding:0 4px;font-size:14px;min-width:0;}
+  .wb-sel button span{min-width:0;height:auto;padding:0;background:none!important;font:600 12px var(--sans);color:var(--muted);}
+  .wb-sel button.on span{color:var(--gold-ink);opacity:.75;}
+}
