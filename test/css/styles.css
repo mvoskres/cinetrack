@@ -2055,3 +2055,8 @@ details.cl-ver>summary .st-hint{margin-left:auto;}
   body.fs-on{overflow:hidden;}
 }
 @media(prefers-reduced-motion:reduce){.fsh-card{animation:none!important;}}
+/* narrow phones: sort is just the ⇅ icon (the native list still shows the names) */
+@media(max-width:400px){
+  .fbar .fbar-sort{width:44px;max-width:44px;min-width:44px;padding:0;color:transparent;text-indent:-999px;-webkit-appearance:none;appearance:none;background-position:center;background-size:18px;}
+  .fbar .fbar-sort option{color:var(--text);background:var(--ink-2);text-indent:0;}
+}
