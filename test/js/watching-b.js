@@ -47,8 +47,7 @@ function _wbBadge(x){
   if(x.state==='new')return `<span class="wb-bd g">${_wbAgo(x.ls.lastAiredDate)}</span>`;
   if(x.state==='wait'&&x.nd)return `<span class="wb-bd b">${_wbWhen(x.nd)}</span>`;
   if(x.state==='go')return `<span class="wb-bd n">ще ${x.ahead>99?'99+':x.ahead}</span>`;
-  if(x.ser&&x.ls.isEnded)return `<span class="wb-bd e">завершено</span>`;
-  return '';
+    return '';
 }
 const _wbDate=s=>{const d=new Date(s+'T00:00:00');return `${d.getDate()} ${_WB_MON[d.getMonth()]}`;};
 function _wbLast(x){ /* «Вийшла S38·E6 · вчора» (fresh) or «· 8 лист.» */
@@ -80,9 +79,10 @@ function _wbTile(x){
   const i=x.i;
   const pos=x.ser?`<div class="wb-pos"><b>S${x.s}</b><span>·</span><b>E${x.e}</b></div>`:'';
   const sub=x.ser?`<b>сезон ${x.s} з ${x.tot}</b> · ${x.state==='new'||x.state==='go'?`ще ${x.ahead>99?'99+':x.ahead} ${_wbPl(x.ahead,'серія','серії','серій')}`:x.ls.isEnded?'завершено':'наздогнав'}`:'фільм';
+  const run=!x.ser?'':x.ls.isEnded?'<span class="wb-run end">Завершено</span>':x.ls.lastAiredSeason?'<span class="wb-run on">Триває</span>':'';
   return `<div class="wb-t" id="wb-${esc(i.id)}" data-act="wbOpen" data-args="${A(i.id)}" role="button" tabindex="0" aria-label="${esc(tn(i))}">
-    <div class="wb-pp"><img src="${posterSrc(i.poster)}" data-pf="${esc(i.imdbID)}" alt="" loading="lazy">${_wbBadge(x)}${x.demo?'<i class="wb-demo">демо</i>':''}${pos}${x.ser?`<div class="wb-fill"><i style="width:${x.pct}%"></i></div>`:''}</div>
-    <b class="wb-n">${esc(tn(i))}</b><div class="wb-m">${_wbMeta(i)}</div><div class="wb-p">${sub}</div>${x.ser?`<div class="wb-air sm">${_wbNext(x)}</div>`:''}</div>`;
+    <div class="wb-pp"><img src="${posterSrc(i.poster)}" data-pf="${esc(i.imdbID)}" alt="" loading="lazy">${_wbBadge(x)}${run}${x.demo?'<i class="wb-demo">демо</i>':''}${pos}${x.ser?`<div class="wb-fill"><i style="width:${x.pct}%"></i></div>`:''}</div>
+    <b class="wb-n">${esc(tn(i))}</b><div class="wb-m">${_wbMeta(i)}</div><div class="wb-p">${sub}</div>${x.nd?`<div class="wb-air sm">${_wbNext(x)}</div>`:''}</div>`;
 }
 function _wbCard(x){
   const i=x.i,l=_wbLast(x)+_wbNext(x);
