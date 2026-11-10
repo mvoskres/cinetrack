@@ -171,7 +171,7 @@ function _resolveFresh(entry){
 /* ── FILTER STATE ── */
 const F={
   watched: {q:'',cats:[],genres:[],decades:[],ratings:[],tags:[],sort:'added-desc'},
-  watching:{q:'',cats:[],genres:[],decades:[],tags:[],sort:'added-desc'},
+  watching:{q:'',cats:[],genres:[],decades:[],tags:[],air:[],sort:'added-desc'},
   planned: {q:'',cats:[],genres:[],decades:[],tags:[],sort:'added-desc'},
 };
 /* the one map of category labels; the other tabs derive theirs from it (library CAT_L, people CREDIT_TYPE_LABEL, tl) */
@@ -184,7 +184,7 @@ function tList(t){return t==='watched'?watched:t==='watching'?watching:planned;}
 function barId(t) {return{watched:'wBar',watching:'wnBar',planned:'plBar'}[t];}
 function tagsId(t){return{watched:'wTags',watching:'wnTags',planned:'plTags'}[t];}
 function panId(t) {return{watched:'wPanel',watching:'wnPanel',planned:'plPanel'}[t];}
-function fN(t){const f=F[t];return f.cats.length+f.genres.length+f.decades.length+(f.ratings?.length||0)+(f.tags?.length||0);}
+function fN(t){const f=F[t];return f.cats.length+f.genres.length+f.decades.length+(f.ratings?.length||0)+(f.tags?.length||0)+(f.air?.length||0);}
 
 /* ── FILTER BAR ──
    One row: list search + «Фільтри» (count badge) [+ sort and view on a computer]. Under it the applied filters as chips.
@@ -213,6 +213,15 @@ function lsearch(t,v){F[t].q=v.trim();clearTimeout(_lsT);_lsT=setTimeout(()=>rer
 const _dName=d=>d+'-ті';
 const _gName=g=>typeof sxGenre==='function'?sxGenre(g):g; /* Ukrainian genre names live in stats.js, loaded later */
 const _rName=r=>r==='10'?'★ 10':'★ '+r+'+';
+/* Дивлюсь: the air state of a title — next date known / unknown / ended / film (the wall's shelves use the same split) */
+const AIR={known:'Дата відома',unknown:'Дата невідома',ended:'Завершено',film:'Фільми'};
+function _airKey(i){
+  if(i.type!=='series')return 'film';
+  const ls=(typeof _wbLs==='function'?_wbLs(i).ls:i.liveStatus)||{};
+  if(ls.isEnded)return 'ended';
+  if(ls.nextEpDate&&new Date(ls.nextEpDate+'T23:59:59')>=new Date())return 'known';
+  return 'unknown';
+}
 const _catName=c=>Object.hasOwn(CAT,c)?CAT[c]:c;
 
 /* ── FILTER SHEET ── */
@@ -223,7 +232,7 @@ function fsOpen(t){
   if(typeof searchClose==='function'&&document.body.classList.contains('srch-on'))searchClose(true);
   if(typeof navClose==='function')navClose(true);
   const f=F[t];
-  _fs={t,more:false,st:{cats:[...f.cats],genres:[...f.genres],decades:[...f.decades],ratings:[...(f.ratings||[])],tags:[...(f.tags||[])],sort:f.sort}};
+  _fs={t,more:false,st:{cats:[...f.cats],genres:[...f.genres],decades:[...f.decades],ratings:[...(f.ratings||[])],tags:[...(f.tags||[])],air:[...(f.air||[])],sort:f.sort}};
   let root=document.getElementById('fsh');
   if(!root){root=document.createElement('div');root.id='fsh';root.className='fsh';document.body.appendChild(root);}
   root.hidden=false;
@@ -262,6 +271,7 @@ function _fsCount(){
   const {t,st}=_fs,orig=F[t];let n=0;
   F[t]={...orig,cats:st.cats,genres:st.genres,decades:st.decades,tags:st.tags,sort:st.sort};
   if(t==='watched')F[t].ratings=st.ratings;
+  if(t==='watching')F[t].air=st.air;
   try{n=applyF(tList(t),t).length;}finally{F[t]=orig;}
   return n;
 }
@@ -283,6 +293,8 @@ function fsRender(){
   if(t in VIEW_LISTS&&_fsPhone){const cur=viewOf(t);h+=grp('Вигляд',VIEWS.map(([k,l])=>`<button type="button" class="fsh-chip${cur===k?' on':''}" aria-pressed="${cur===k}" data-k="view:${k}" data-act="fsView" data-args="${A(`${k}`)}">${l}</button>`).join(''));}
   const opts=t==='watched'?S_W:S_ALL;
   /* Сортування: the select in the toolbar (phone and computer) */
+  if(t==='watching'){const ac={};list.forEach(i=>{const k=_airKey(i);ac[k]=(ac[k]||0)+1;});const ak=Object.keys(AIR).filter(k=>ac[k]);
+    if(ak.length>1)h+=grp('Стан ефіру',ak.map(k=>ch('air',k,AIR[k],ac[k])).join(''));}
   const ck=Object.keys(CAT).filter(c=>cats[c]);
   if(ck.length>1)h+=grp('Тип',ck.map(c=>ch('cats',c,CAT[c],cats[c])).join(''));
   const gk=Object.keys(gc).sort((a,b)=>gc[b]-gc[a]||_gName(a).localeCompare(_gName(b),'uk'));
@@ -324,13 +336,14 @@ function fsTog(dim,val){
 function fsSort(v){if(!_fs)return;_fs.st.sort=v;fsRender();}
 function fsMore(){if(!_fs)return;_fs.more=true;fsRender();}
 function fsView(v){if(!_fs)return;setView(_fs.t,v);fsRender();} /* the view is not a filter: it applies at once */
-function fsReset(){if(!_fs)return;const s=_fs.st;s.cats=[];s.genres=[];s.decades=[];s.ratings=[];s.tags=[];fsRender();}
+function fsReset(){if(!_fs)return;const s=_fs.st;s.air=[];s.cats=[];s.genres=[];s.decades=[];s.ratings=[];s.tags=[];fsRender();}
 function fsResetAll(){if(!_fs)return;_fs.st.sort='added-desc';fsReset();}
 function fsApply(){
   if(!_fs)return;
   const {t,st}=_fs,f=F[t];
   f.cats=st.cats;f.genres=st.genres;f.decades=st.decades;f.tags=st.tags;f.sort=st.sort;
   if(t==='watched')f.ratings=st.ratings;
+  if(t==='watching')f.air=st.air;
   fsClose();buildBar(t);buildTags(t);rerender(t);
 }
 /* kept for callers elsewhere (library.js after a tag is deleted): redraw an open sheet */
@@ -345,13 +358,13 @@ function chip(t,dim,val){
 }
 function doSort(t,v){F[t].sort=v;buildBar(t);rerender(t);}
 function clearF(t){F[t].q='';clearChips(t);}
-function clearChips(t){const f=F[t];f.cats=[];f.genres=[];f.decades=[];f.ratings=[];f.tags=[];buildBar(t);buildTags(t);rerender(t);}
+function clearChips(t){const f=F[t];f.air=[];f.cats=[];f.genres=[];f.decades=[];f.ratings=[];f.tags=[];buildBar(t);buildTags(t);rerender(t);}
 function removeChip(t,dim,val){val=decodeURIComponent(val);const f=F[t];if(f[dim])f[dim]=f[dim].filter(v=>v!==val);buildTags(t);buildBar(t);rerender(t);}
 /* applied filters as gold chips under the toolbar */
 function buildTags(t){
   const el=document.getElementById(tagsId(t));if(!el)return;
   const f=F[t];
-  const all=[...f.cats.map(v=>({v,l:_catName(v),d:'cats'})),...f.genres.map(v=>({v,l:_gName(v),d:'genres'})),...f.decades.map(v=>({v,l:_dName(v),d:'decades'})),...(f.ratings||[]).map(v=>({v,l:_rName(v),d:'ratings'})),...(f.tags||[]).map(v=>({v,l:'#'+v,d:'tags',m:true}))];
+  const all=[...(f.air||[]).map(v=>({v,l:AIR[v]||v,d:'air'})),...f.cats.map(v=>({v,l:_catName(v),d:'cats'})),...f.genres.map(v=>({v,l:_gName(v),d:'genres'})),...f.decades.map(v=>({v,l:_dName(v),d:'decades'})),...(f.ratings||[]).map(v=>({v,l:_rName(v),d:'ratings'})),...(f.tags||[]).map(v=>({v,l:'#'+v,d:'tags',m:true}))];
   el.innerHTML=all.length?all.map(({v,l,d,m})=>`<span class="ftag${m?' ftag--m':''}">${esc(l)}<button class="ftag-x" data-act="removeChip" data-args="${A(`${t}`,`${d}`,`${uriSafe(v)}`)}" aria-label="Прибрати фільтр ${esc(l)}">${ic('x')}</button></span>`).join('')+`<button class="ftag ftag-reset" data-act="clearChips" data-args="${A(`${t}`)}">Скинути</button>`:'';
 }
 function applyF(list,t){
@@ -361,6 +374,7 @@ function applyF(list,t){
   if(f.genres?.length)  r=r.filter(i=>f.genres.some(g=>(i.genre||'').split(',').map(s=>s.trim()).includes(g)));
   if(f.decades?.length) r=r.filter(i=>{const y=parseInt(i.year);return y&&f.decades.includes(String(Math.floor(y/10)*10));});
   if(f.ratings?.length){const m=Math.max(...f.ratings.map(Number));r=r.filter(i=>(i.rating||0)>=m);}
+  if(f.air?.length)     r=r.filter(i=>f.air.includes(_airKey(i)));
   if(f.tags?.length)    r=r.filter(i=>f.tags.every(t=>(i.tags||[]).includes(t)));
   return sort(r,f.sort);
 }

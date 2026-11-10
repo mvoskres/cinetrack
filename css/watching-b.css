@@ -121,3 +121,4 @@ body.wb-on .wb-sh{display:block;position:fixed;inset:0;z-index:520;}
 .wb-tseg .wb-tn{margin-left:6px;font:600 .75em var(--sans);opacity:.65;}
 @media(min-width:701px){.wb-sel{display:none!important;}}
 @media(max-width:700px){.wb-tseg{display:none!important;}}
+.wb-g+.wb-h{margin-top:30px;}
