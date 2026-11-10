@@ -110,11 +110,21 @@ function rWatching(skipLive){
   if(ts){ts.hidden=!cur;ts.innerHTML=cur?groups.map(([k,l,a])=>`<button class="seg-b${k===_wbTop?' on':''}" role="tab" aria-selected="${k===_wbTop}" data-act="wbTopSet" data-args="${A(k)}">${l}<span class="wb-tn">${a.length}</span></button>`).join(''):'';}
   c.innerHTML=(cur?`<div class="wb-sel" style="--n:${groups.length}" role="tablist" aria-label="Що показати вгорі">${groups.map(([k,l,a])=>`<button role="tab" aria-selected="${k===_wbTop}" class="${k===_wbTop?'on':''}" data-act="wbTopSet" data-args="${A(k)}">${l}<span>${a.length}</span></button>`).join('')}</div>
       <div class="wb-cs">${cur[2].map(_wbCard).join('')}</div>`:'')
-    +`<div class="wb-h"><b>Усі</b><span>${list.length}</span></div><div class="wb-g">${ordered.map(_wbTile).join('')}</div>`;
+    +_wbShelves(xs);
   if(!skipLive&&!document.getElementById('tab-watching')?.classList.contains('hidden'))_startLive(list);
   if(_wbCur)_wbSheetDraw();
 }
 /* fetchLive/_startLive call rDash after new air data: redraw the wall (without starting the fetches again) */
+/* the wall in shelves by air state: next date known / unknown / ended (+ films); unwatched episodes first inside each */
+function _wbShelves(xs){
+  const back=x=>x.ahead>0?0:1,la=x=>x.ls.lastAiredDate||'';
+  const sh=[
+    ['Дата наступної серії відома',xs.filter(x=>x.ser&&!x.ls.isEnded&&x.nd).sort((a,b)=>_wbDays(a.nd)-_wbDays(b.nd))],
+    ['Дата невідома',xs.filter(x=>x.ser&&!x.ls.isEnded&&!x.nd).sort((a,b)=>back(a)-back(b)||(la(b)>la(a)?1:-1))],
+    ['Серіал завершено',xs.filter(x=>x.ser&&x.ls.isEnded).sort((a,b)=>back(a)-back(b)||b.ahead-a.ahead)],
+    ['Фільми',xs.filter(x=>!x.ser)]].filter(g=>g[1].length);
+  return sh.map(([t,a])=>`<div class="wb-h"><b>${t}</b><span>${a.length}</span></div><div class="wb-g">${a.map(_wbTile).join('')}</div>`).join('');
+}
 let _wbTop=null;
 function wbTopSet(k){_wbTop=k;rWatching(true);}
 let _wbRT;
