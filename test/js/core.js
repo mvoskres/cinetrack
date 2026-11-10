@@ -200,7 +200,7 @@ function buildBar(t){
   el.innerHTML=`
     ${viewSeg(t)}
     <div class="local-search-wrap"><span class="local-search-icon">${ic('search')}</span>
-      <input class="local-search" type="text" placeholder="Пошук серед ${list.length}" aria-label="Пошук у списку" value="${esc(f.q||'')}" data-input="lsearch" data-args="${A(`${t}`,'$value')}"><button type="button" class="ls-x" data-act="lsClear" data-args="[&quot;$el&quot;]" aria-label="Очистити пошук" title="Очистити">${ic('x')}</button>
+      <input class="local-search" type="text" placeholder="Пошук" aria-label="Пошук у списку" value="${esc(f.q||'')}" data-input="lsearch" data-args="${A(`${t}`,'$value')}"><button type="button" class="ls-x" data-act="lsClear" data-args="[&quot;$el&quot;]" aria-label="Очистити пошук" title="Очистити">${ic('x')}</button>
     </div>
     <button id="fbtn-${t}" class="flt-pill fbtn${n?' has-n':''}${open?' active':''}" aria-haspopup="dialog" aria-expanded="${open}" data-act="togglePan" data-args="${A(`${t}`)}">${ic('filter')}Фільтри${n?` <span class="flt-n">${n}</span>`:''}</button>
     <select class="sort-sel fbar-sort" aria-label="Сортування" data-change="doSort" data-args="${A(`${t}`,'$value')}">
@@ -295,6 +295,13 @@ function fsRender(){
   const tk=Object.keys(tc).sort((a,b)=>a.localeCompare(b,'uk'));
   if(tk.length)h+=grp('Теги',tk.map(x=>`<span class="fsh-tagw">${ch('tags',x,'#'+x,tc[x],' fsh-chip--t')}<button type="button" class="fsh-tagx" data-act="delGlobalTag" data-args="${A(`${uriSafe(x)}`)}" aria-label="Видалити тег «${esc(x)}» з усіх записів" title="Видалити тег з усіх записів">×</button></span>`).join(''));
   const n=_fsCount();
+  const card0=root.querySelector('.fsh-card');
+  if(card0){ /* already open: swap the groups and the count only, so the sheet does not slide in again */
+    card0.querySelector('.fsh-body').innerHTML=h;card0.querySelector('.fsh-go').textContent=`Показати ${n}`;
+    const nb0=card0.querySelector('.fsh-body');if(nb0)nb0.scrollTop=sc;
+    if(fk)[...root.querySelectorAll('[data-k]')].find(b=>b.getAttribute('data-k')===fk)?.focus({preventScroll:true});
+    fsPlace();return;
+  }
   root.innerHTML=`<div class="fsh-bd" data-act="fsClose"></div>
     <div class="fsh-card" role="dialog" aria-modal="true" aria-label="Фільтри" tabindex="-1">
       <div class="fsh-grab" aria-hidden="true"></div>

@@ -47,10 +47,24 @@ function _wbBadge(x){
   if(x.state==='new')return `<span class="wb-bd g">${_wbAgo(x.ls.lastAiredDate)}</span>`;
   if(x.state==='wait'&&x.nd)return `<span class="wb-bd b">${_wbWhen(x.nd)}</span>`;
   if(x.state==='go')return `<span class="wb-bd n">ще ${x.ahead>99?'99+':x.ahead}</span>`;
-  if(x.state==='wait'&&x.ls.isEnded)return `<span class="wb-bd n">завершено</span>`;
+  if(x.ser&&x.ls.isEnded)return `<span class="wb-bd e">завершено</span>`;
   return '';
 }
-function _wbStatus(x){
+const _wbDate=s=>{const d=new Date(s+'T00:00:00');return `${d.getDate()} ${_WB_MON[d.getMonth()]}`;};
+function _wbLast(x){ /* «Вийшла S38·E6 · вчора» (fresh) or «· 8 лист.» */
+  if(!x.ser||!x.las||!x.ls.lastAiredDate)return '';
+  const n=-_wbDays(x.ls.lastAiredDate),w=n<=14?_wbAgo(x.ls.lastAiredDate):_wbDate(x.ls.lastAiredDate)+(n>300?' '+x.ls.lastAiredDate.slice(0,4):'');
+  return `<span class="wb-a${x.state==='new'?' g':''}">Вийшла ${_wbEp(x.las,x.lae)} · ${w}</span>`;
+}
+function _wbNext(x){ /* «Далі S38·E7 · нд, 15 лист.» / «Серіал завершено» / «Нова серія: дата невідома» */
+  if(!x.ser)return '';
+  if(x.nd)return `<span class="wb-a b">Далі ${_wbEp(x.ls.nextEpSeason,x.ls.nextEpNum)} · ${_wbDow(x.nd)}, ${_wbDate(x.nd)}${_wbDays(x.nd)<=7?' · '+_wbWhen(x.nd):''}</span>`;
+  if(x.ls.isEnded)return `<span class="wb-a end">■ Серіал завершено</span>`;
+  if(x.ls.lastAiredSeason)return `<span class="wb-a">Триває · дата невідома</span>`;
+  return `<span class="wb-a">Дані ефіру завантажуються…</span>`;
+}
+function _wbStatus(x){return `<div class="wb-air">${_wbLast(x)}${_wbNext(x)}</div>`;}
+function _wbStatusOld(x){
   if(x.state==='new'||x.state==='go')return `<div class="wb-st${x.state==='new'?' g':''}">Вийшла ${_wbEp(x.las,x.lae)} · ${_wbAgo(x.ls.lastAiredDate)} · ще ${x.ahead} ${_wbPl(x.ahead,'серія','серії','серій')}</div>`;
   if(x.nd)return `<div class="wb-st b">Наступна ${_wbEp(x.ls.nextEpSeason,x.ls.nextEpNum)} · ${_wbWhen(x.nd)}, ${_wbDow(x.nd)}</div>`;
   if(x.ser&&x.ls.isEnded)return `<div class="wb-st">Серіал завершено</div>`;
@@ -68,10 +82,10 @@ function _wbTile(x){
   const sub=x.ser?`<b>сезон ${x.s} з ${x.tot}</b> · ${x.state==='new'||x.state==='go'?`ще ${x.ahead>99?'99+':x.ahead} ${_wbPl(x.ahead,'серія','серії','серій')}`:x.ls.isEnded?'завершено':'наздогнав'}`:'фільм';
   return `<div class="wb-t" id="wb-${esc(i.id)}" data-act="wbOpen" data-args="${A(i.id)}" role="button" tabindex="0" aria-label="${esc(tn(i))}">
     <div class="wb-pp"><img src="${posterSrc(i.poster)}" data-pf="${esc(i.imdbID)}" alt="" loading="lazy">${_wbBadge(x)}${x.demo?'<i class="wb-demo">демо</i>':''}${pos}${x.ser?`<div class="wb-fill"><i style="width:${x.pct}%"></i></div>`:''}</div>
-    <b class="wb-n">${esc(tn(i))}</b><div class="wb-m">${_wbMeta(i)}</div><div class="wb-p">${sub}</div></div>`;
+    <b class="wb-n">${esc(tn(i))}</b><div class="wb-m">${_wbMeta(i)}</div><div class="wb-p">${sub}</div>${x.ser?`<div class="wb-air sm">${_wbNext(x)}</div>`:''}</div>`;
 }
 function _wbCard(x){
-  const i=x.i,l=x.state==='new'?`<span class="g">Вийшла ${_wbEp(x.las,x.lae)} · ${_wbAgo(x.ls.lastAiredDate)}</span>`:`<span class="b">${_wbEp(x.ls.nextEpSeason,x.ls.nextEpNum)} · ${_wbWhen(x.nd)}, ${_wbDow(x.nd)}</span>`;
+  const i=x.i,l=_wbLast(x)+_wbNext(x);
   return `<div class="wb-c" data-act="wbOpen" data-args="${A(i.id)}" role="button" tabindex="0"><img class="wb-cbg" src="${posterSrc(i.poster)}" alt=""><img class="wb-cp" src="${posterSrc(i.poster)}" alt="">
     <div class="wb-ci">${x.demo?'<i class="wb-demo">демо</i>':''}<b>${esc(tn(i))}</b>${l}</div></div>`;
 }
@@ -106,7 +120,7 @@ function wbOpen(id){
 }
 function wbClose(fromHistory){
   if(!document.body.classList.contains('wb-on'))return;
-  document.body.classList.remove('wb-on');_wbCur=null;
+  document.body.classList.remove('wb-on');_wbCur=null;const L=document.getElementById('wbSheet');if(L)L.innerHTML='';
   if(!fromHistory&&history.state?.wbSheet)history.back();
 }
 window.addEventListener('popstate',()=>wbClose(true));
@@ -122,15 +136,17 @@ function _wbSheetDraw(){
       <button class="wb-sq p" data-act="wbAdj" data-args="${A(i.id,1)}" aria-label="Плюс серія">${ic('plus')}</button></div>
     <div class="wb-prog"><div class="wb-bar"><i style="width:${x.pct}%"></i></div><div class="wb-pl"><span>Переглянуто ${x.pct}%${x.aired?` · ${x.seen} з ${x.aired} серій, що вийшли`:''}</span></div>
       ${x.tot>1&&x.tot<=40?`<div class="wb-segs" style="--n:${x.tot}">${segs}</div>`:''}</div>`:'';
-  L.innerHTML=`<div class="wb-dim" data-act="wbClose"></div><div class="wb-pan" role="dialog" aria-label="${esc(tn(i))}"><div class="wb-grab"></div>
-    <button class="wb-x" data-act="wbClose" aria-label="Закрити">${ic('x')}</button>
+  if(!L.querySelector('.wb-in'))L.innerHTML=`<div class="wb-dim" data-act="wbClose"></div><div class="wb-pan" role="dialog"><div class="wb-grab"></div>
+    <button class="wb-x" data-act="wbClose" aria-label="Закрити">${ic('x')}</button><div class="wb-in"></div></div>`;
+  L.querySelector('.wb-pan').setAttribute('aria-label',tn(i));
+  L.querySelector('.wb-in').innerHTML=`
     <div class="wb-hd"><img src="${posterSrc(i.poster)}" alt="" data-act="openTitle" data-args="${A(i.imdbID)}"><div>${x.demo?'<i class="wb-demo">демо</i>':''}
       <b class="wb-tt">${esc(tn(i))}</b>${tn(i)!==i.title?`<div class="wb-or">${esc(i.title)}</div>`:''}<div class="wb-mt">${_wbMeta(i,true)}</div>${_wbStatus(x)}</div></div>
     ${counter}
     <div class="wb-acts">${x.ser?`<button class="wb-b" data-act="wbDone" data-args="${A(i.id)}">${ic('check')}Весь серіал переглянуто</button>`:`<button class="wb-b" data-act="wbDone" data-args="${A(i.id)}">${ic('check')}Переглянуто</button>`}
       <button class="wb-b" data-act="wbCard" data-args="${A(i.imdbID)}">Картка</button>
       ${i.streamUrl&&safeUrl(i.streamUrl)?`<a class="wb-b sq" href="${esc(safeUrl(i.streamUrl))}" target="_blank" rel="noopener" aria-label="Дивитись">${ic('play')}</a>`:''}
-      <button class="wb-b sq" data-act="cardMenu" data-args="${A('$ev','watching',i.id)}" aria-label="Ще дії">${ic('dots')}</button></div></div>`;
+      <button class="wb-b sq" data-act="cardMenu" data-args="${A('$ev','watching',i.id)}" aria-label="Ще дії">${ic('dots')}</button></div>`;
 }
 function wbAdj(id,d){adj(id,'e',d);rWatching(true);}
 function wbDone(id){wbClose();mvToW(id);}
