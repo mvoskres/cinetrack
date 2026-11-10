@@ -198,7 +198,7 @@ function buildBar(t){
   const open=document.body.classList.contains('fs-on')&&_fs&&_fs.t===t;
   el.className='filter-row fbar';
   el.innerHTML=`
-    ${viewSeg(t)}
+    ${t==='watching'?'<div class="seg view-seg wb-tseg" id="wbTopSeg" role="tablist" aria-label="Що показати вгорі" hidden></div>':viewSeg(t)}
     <div class="local-search-wrap"><span class="local-search-icon">${ic('lsearch')}</span>
       <input class="local-search" type="text" placeholder="Знайти в списку" aria-label="Пошук у списку" value="${esc(f.q||'')}" data-input="lsearch" data-args="${A(`${t}`,'$value')}"><button type="button" class="ls-x" data-act="lsClear" data-args="[&quot;$el&quot;]" aria-label="Очистити пошук" title="Очистити">${ic('x')}</button>
     </div>

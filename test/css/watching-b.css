@@ -116,3 +116,8 @@ body.wb-on .wb-sh{display:block;position:fixed;inset:0;z-index:520;}
   .wb-sel button.on{color:var(--gold-ink);}
   .wb-sel button.on span{color:var(--gold-ink);}
 }
+
+/* computer: the selector lives in the toolbar (like the view switch); the phone keeps the big three-column one */
+.wb-tseg .wb-tn{margin-left:6px;font:600 .75em var(--sans);opacity:.65;}
+@media(min-width:701px){.wb-sel{display:none!important;}}
+@media(max-width:700px){.wb-tseg{display:none!important;}}

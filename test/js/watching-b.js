@@ -105,6 +105,9 @@ function rWatching(skipLive){
   if(!groups.some(g=>g[0]===_wbTop))_wbTop=groups[0]?.[0]||null;
   const cur=groups.find(g=>g[0]===_wbTop);
   c.className='wb';
+  /* computer: the same choice sits in the toolbar, styled like Сітка/Список/Полиці on the other lists */
+  const ts=document.getElementById('wbTopSeg');
+  if(ts){ts.hidden=!cur;ts.innerHTML=cur?groups.map(([k,l,a])=>`<button class="seg-b${k===_wbTop?' on':''}" role="tab" aria-selected="${k===_wbTop}" data-act="wbTopSet" data-args="${A(k)}">${l}<span class="wb-tn">${a.length}</span></button>`).join(''):'';}
   c.innerHTML=(cur?`<div class="wb-sel" style="--n:${groups.length}" role="tablist" aria-label="Що показати вгорі">${groups.map(([k,l,a])=>`<button role="tab" aria-selected="${k===_wbTop}" class="${k===_wbTop?'on':''}" data-act="wbTopSet" data-args="${A(k)}">${l}<span>${a.length}</span></button>`).join('')}</div>
       <div class="wb-cs">${cur[2].map(_wbCard).join('')}</div>`:'')
     +`<div class="wb-h"><b>Усі</b><span>${list.length}</span></div><div class="wb-g">${ordered.map(_wbTile).join('')}</div>`;
