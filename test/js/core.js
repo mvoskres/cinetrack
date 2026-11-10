@@ -279,9 +279,10 @@ function fsRender(){
   const ch=(dim,val,label,n,extra='')=>{const on=st[dim].includes(val);return `<button type="button" class="fsh-chip${on?' on':''}${extra}" aria-pressed="${on}" data-k="${dim}:${esc(val)}" data-act="fsTog" data-args="${A(`${dim}`,`${uriSafe(val)}`)}">${esc(label)}${n!=null?`<span class="num">${n}</span>`:''}</button>`;};
   const grp=(title,body)=>`<section class="fsh-grp"><h3 class="fsh-lbl">${title}</h3><div class="fsh-chips">${body}</div></section>`;
   let h='';
-  if(t in VIEW_LISTS){const cur=viewOf(t);h+=grp('Вигляд',VIEWS.map(([k,l])=>`<button type="button" class="fsh-chip${cur===k?' on':''}" aria-pressed="${cur===k}" data-k="view:${k}" data-act="fsView" data-args="${A(`${k}`)}">${l}</button>`).join(''));}
+  const _fsPhone=matchMedia('(max-width:700px)').matches; /* view and sort sit in the toolbar on a computer, sort also on a phone */
+  if(t in VIEW_LISTS&&_fsPhone){const cur=viewOf(t);h+=grp('Вигляд',VIEWS.map(([k,l])=>`<button type="button" class="fsh-chip${cur===k?' on':''}" aria-pressed="${cur===k}" data-k="view:${k}" data-act="fsView" data-args="${A(`${k}`)}">${l}</button>`).join(''));}
   const opts=t==='watched'?S_W:S_ALL;
-  h+=grp('Сортування',opts.map(([v,l])=>`<button type="button" class="fsh-chip${st.sort===v?' on':''}" aria-pressed="${st.sort===v}" data-k="sort:${v}" data-act="fsSort" data-args="${A(`${v}`)}">${l}</button>`).join(''));
+  /* Сортування: the select in the toolbar (phone and computer) */
   const ck=Object.keys(CAT).filter(c=>cats[c]);
   if(ck.length>1)h+=grp('Тип',ck.map(c=>ch('cats',c,CAT[c],cats[c])).join(''));
   const gk=Object.keys(gc).sort((a,b)=>gc[b]-gc[a]||_gName(a).localeCompare(_gName(b),'uk'));
