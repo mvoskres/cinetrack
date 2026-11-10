@@ -78,11 +78,11 @@ function _wbMeta(i,full){
 function _wbTile(x){
   const i=x.i;
   const pos=x.ser?`<div class="wb-pos"><b>S${x.s}</b><span>·</span><b>E${x.e}</b></div>`:'';
-  const sub=x.ser?`<b>сезон ${x.s} з ${x.tot}</b> · ${x.state==='new'||x.state==='go'?`ще ${x.ahead>99?'99+':x.ahead} ${_wbPl(x.ahead,'серія','серії','серій')}`:x.ls.isEnded?'завершено':'наздогнав'}`:'фільм';
-  const run=!x.ser?'':x.ls.isEnded?'<span class="wb-run end">Завершено</span>':x.ls.lastAiredSeason?'<span class="wb-run on">Триває</span>':'';
+  const sub=x.ser?`<b>сезон ${x.s} з ${x.tot}</b>${x.state==='new'||x.state==='go'?' · ':''}${x.state==='new'||x.state==='go'?`ще ${x.ahead>99?'99+':x.ahead} ${_wbPl(x.ahead,'серія','серії','серій')}`:''}`:'фільм';
+  const run=!x.ser?'':x.ls.isEnded?'<span class="wb-run end">Завершено</span>':x.ls.lastAiredSeason?`<span class="wb-run on">Триває<small>${x.nd?`${_wbEp(x.ls.nextEpSeason,x.ls.nextEpNum)} · ${_wbDow(x.nd)}, ${_wbDate(x.nd)}`:'дата невідома'}</small></span>`:'';
   return `<div class="wb-t" id="wb-${esc(i.id)}" data-act="wbOpen" data-args="${A(i.id)}" role="button" tabindex="0" aria-label="${esc(tn(i))}">
-    <div class="wb-pp"><img src="${posterSrc(i.poster)}" data-pf="${esc(i.imdbID)}" alt="" loading="lazy">${_wbBadge(x)}${run}${x.demo?'<i class="wb-demo">демо</i>':''}${_tagPill(i)}${pos}${x.ser?`<div class="wb-fill"><i style="width:${x.pct}%"></i></div>`:''}</div>
-    <b class="wb-n">${esc(tn(i))}</b><div class="wb-m">${_wbMeta(i)}</div><div class="wb-p">${sub}</div>${x.nd?`<div class="wb-air sm">${_wbNext(x)}</div>`:''}</div>`;
+    <div class="wb-pp"><img src="${posterSrc(i.poster)}" data-pf="${esc(i.imdbID)}" alt="" loading="lazy"><div class="wb-tl">${_wbBadge(x)}${run}${_tagPill(i)}</div>${x.demo?'<i class="wb-demo">демо</i>':''}${pos}${x.ser?`<div class="wb-fill"><i style="width:${x.pct}%"></i></div>`:''}</div>
+    <b class="wb-n">${esc(tn(i))}</b><div class="wb-m">${_wbMeta(i)}</div><div class="wb-p">${sub}</div></div>`;
 }
 function _wbCard(x){
   const i=x.i,l=_wbLast(x)+_wbNext(x);
