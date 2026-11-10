@@ -45,7 +45,6 @@ function _wbInfo(i){
 const _wbEp=(s,e)=>`S${s}·E${e}`;
 function _wbBadge(x){
   if(x.state==='new')return `<span class="wb-bd g">${_wbAgo(x.ls.lastAiredDate)}</span>`;
-  if(x.state==='wait'&&x.nd)return `<span class="wb-bd b">${_wbWhen(x.nd)}</span>`;
   if(x.state==='go')return `<span class="wb-bd n">ще ${x.ahead>99?'99+':x.ahead}</span>`;
     return '';
 }
