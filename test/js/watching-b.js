@@ -122,7 +122,7 @@ function wbClose(fromHistory){
   document.body.classList.remove('wb-on');_wbCur=null;const L=document.getElementById('wbSheet');if(L)L.innerHTML='';
   if(!fromHistory&&history.state?.wbSheet)history.back();
 }
-window.addEventListener('popstate',()=>wbClose(true));
+window.addEventListener('popstate',()=>{if(!history.state?.wbSheet)wbClose(true);}); /* Back from a sheet on top (tags) lands on our entry: stay */
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('wb-on'))wbClose();});
 function _wbSheetDraw(){
   const L=document.getElementById('wbSheet'),i=watching.find(w=>w.id===_wbCur);
@@ -150,4 +150,4 @@ function _wbSheetDraw(){
 }
 function wbAdj(id,d){adj(id,'e',d);rWatching(true);}
 function wbDone(id){wbClose();mvToW(id);}
-function wbCard(imdbID){wbClose();openTitle(imdbID);}
+function wbCard(imdbID){openTitle(imdbID);} /* the card opens over the sheet; closing it shows the sheet again */

@@ -100,7 +100,7 @@ function tagClose(fromHistory){
   document.body.classList.remove('tg-on');_tgId=null;const L=document.getElementById('tgSheet');if(L)L.innerHTML='';
   if(!fromHistory&&history.state?.tgSheet)history.back();
 }
-window.addEventListener('popstate',()=>tagClose(true));
+window.addEventListener('popstate',()=>{if(!history.state?.tgSheet)tagClose(true);});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('tg-on')){e.stopPropagation();tagClose();}},true);
 function _tgDraw(){
   const L=document.getElementById('tgSheet'),it=findItem(_tgId);if(!L||!it){tagClose();return;}
