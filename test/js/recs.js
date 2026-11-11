@@ -341,7 +341,20 @@ async function recAct(k,action){
   const it=_recFind(k);if(!it)return;
   if(action==='hide'){
     hidden.push({imdbID:it.imdbID||'',tmdb:k,title:it.title,year:it.year,poster:it.poster?`https://image.tmdb.org/t/p/w342${it.poster}`:''});
-    save();_recDrop(k);toast(`«${it.title}» більше не пропонуватиметься`,'',2600);return;
+    const snap={sh:_recs?JSON.stringify(_recs.shelves):null,gs:_recGenreState?JSON.stringify(_recGenreState.items):null},hEntry=hidden[hidden.length-1];
+    save();_recDrop(k);
+    /* a mis-tap on «−» is easy on a phone: the toast offers «Скасувати» for 6 s, which puts the title back in its place */
+    document.querySelectorAll('.toast').forEach(t=>t.remove());
+    const el=document.createElement('div');el.className='toast undo';el.setAttribute('role','status');el.setAttribute('aria-live','polite');
+    const lbl=document.createElement('span');lbl.textContent=`«${it.title}» більше не пропонуватиметься`;
+    const btn=document.createElement('button');btn.className='t-undo';btn.innerHTML=ic('undo')+'Скасувати';
+    const tm=setTimeout(()=>el.remove(),6000);
+    btn.onclick=()=>{clearTimeout(tm);el.remove();
+      const i=hidden.indexOf(hEntry);if(i>-1){hidden.splice(i,1);save();}
+      if(snap.sh&&_recs)_recs.shelves=JSON.parse(snap.sh);
+      if(snap.gs&&_recGenreState)_recGenreState.items=JSON.parse(snap.gs);
+      _recsSave();renderRecs();};
+    el.append(lbl,btn);document.body.appendChild(el);return;
   }
   let imdb=it.imdbID||_resolveCache[k]?.imdbID;
   if(!imdb){
