@@ -1879,7 +1879,10 @@ body.srch-on{overflow:hidden;}
     clip-path:inset(calc(100% - 70px) 0 0 0 round 24px);transition:clip-path .32s cubic-bezier(.3,.7,.2,1);pointer-events:none;contain:layout paint;}
   .dock .dk-row{pointer-events:auto;}
   body.nav-on{overflow:hidden;}
-  body.nav-on .dock{clip-path:inset(0 0 0 0 round 24px);pointer-events:auto;}
+  body.nav-on .dock{clip-path:inset(0 0 0 0 round 24px);pointer-events:auto;
+    height:calc(100dvh - 24px - env(safe-area-inset-bottom,0px));} /* open: the whole visible screen, also with the address bar hidden (svh is the small one) */
+  body::after{content:"";position:fixed;inset:0;z-index:455;background:rgba(10,12,15,.9);opacity:0;pointer-events:none;transition:opacity .25s;}
+  body.nav-on::after{opacity:1;} /* dark backdrop: the page does not show in the gaps above and below the open menu */
   .dk-wall{grid-template-columns:repeat(6,1fr);inset:-12% -30%;}
   .dk-shade{background:linear-gradient(180deg,rgba(15,18,22,.7) 0%,rgba(15,18,22,.82) 25%,rgba(15,18,22,.93) 55%,rgba(15,18,22,.95) 100%);}
   .dk-wall{transition:opacity .3s;}
