@@ -48,7 +48,7 @@ body.wb-on .wb-sh{display:block;position:fixed;inset:0;z-index:520;}
 .wb-dim{position:absolute;inset:0;background:rgba(0,0,0,.6);}
 .wb-pan{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(520px,calc(100% - 32px));max-height:calc(100% - 40px);overflow-y:auto;overscroll-behavior:contain;background:var(--ink-2);border:1px solid #343c47;border-radius:24px;padding:22px 22px 20px;}
 @media(max-width:700px){
-  .wb-pan{left:0;right:0;top:auto;bottom:0;transform:none;width:auto;max-height:88%;border-radius:26px 26px 0 0;border-width:1px 0 0;padding:6px 18px calc(18px + env(safe-area-inset-bottom,0px));animation:wbUp .26s cubic-bezier(.3,.7,.2,1);}
+  .wb-pan{left:0;right:0;top:auto;bottom:0;transform:none;width:auto;max-height:88%;border-radius:26px 26px 0 0;border-width:1px 0 0;padding:6px 18px 18px;animation:wbUp .26s cubic-bezier(.3,.7,.2,1);}
 }
 @keyframes wbUp{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
 @media(prefers-reduced-motion:reduce){.wb-pan{animation:none;}}

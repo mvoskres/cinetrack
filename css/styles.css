@@ -1207,7 +1207,7 @@ kbd{display:inline-block;font:500 .7rem var(--mono);border:1px solid var(--borde
   .st-bg{padding:0;align-items:stretch;}
   .st-modal{max-width:none;max-height:none;height:100%;border-radius:0;border:none;}
   .st-head{padding-top:max(.8rem,env(safe-area-inset-top));}
-  .st-body{padding-bottom:max(1.25rem,env(safe-area-inset-bottom));}
+  .st-body{padding-bottom:1.25rem;}
 }
 @supports(height:100dvh){@media(max-width:560px){.st-modal{height:100dvh;}}}
 
@@ -2050,7 +2050,7 @@ details.cl-ver>summary .st-hint{margin-left:auto;}
   .fsh-card{left:0!important;right:0;bottom:0;top:auto!important;width:auto!important;max-height:85vh!important;max-height:85dvh!important;border-radius:20px 20px 0 0;border-width:1px 0 0;animation:fshUp .22s ease-out;}
   .fsh-grab{display:block;width:40px;height:4px;border-radius:2px;background:var(--border-3);margin:8px auto 0;}
   .fsh-hd{padding-top:.4rem;}
-  .fsh-ft{padding-bottom:calc(.7rem + env(safe-area-inset-bottom,0px));}
+  .fsh-ft{padding-bottom:.7rem;}
   .fsh-go{max-width:none;}
   body.fs-on{overflow:hidden;}
 }
@@ -2063,7 +2063,10 @@ details.cl-ver>summary .st-hint{margin-left:auto;}
 
 /* the title card locks the page scroll (on a computer; see the phone rule below) */
 body.ts-on{overflow:hidden;}
-/* phone: the page under a sheet / menu / card is NOT locked with overflow:hidden — on Android Chrome that brings the
+/* NO env(safe-area-inset-*) in a sheet's padding: on Android Chrome (135+) that pattern makes Chrome bring back the
+   bottom gesture-bar «chin»; after the sheet closes Chrome is left with the page height of a shown address bar while
+   the bar is hidden, and taps on the bottom dock land ~56px off (found on the phone 11.11.2026, version 1.29.4).
+   phone: the page under a sheet / menu / card is NOT locked with overflow:hidden — on Android Chrome that brings the
    address bar back, which shoves the bottom dock up and leaves its taps landing in the old place. ui.js cancels the
    finger drags that would scroll the page instead. */
-@media(max-width:700px){html body.nav-on,html body.wb-on,html body.fs-on,html body.tg-on,html body.srch-on,html body.ts-on{overflow:visible;}}
+@media(max-width:700px){html body.nav-on,html body.wb-on,html body.fs-on,html body.tg-on,html body.srch-on,html body.ts-on{overflow-x:hidden;overflow-y:auto;}} /* = the normal body values: no change at all */
