@@ -46,7 +46,7 @@
 }
 /* ─── RESET ──────────────────────────────────────── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html{height:100%;}
+html{height:100%;scrollbar-gutter:stable;} /* the scrollbar's place is kept when a sheet/card locks the page: the tiles behind do not change size */
 body{
   background:var(--ink);
   color:var(--text);
@@ -2060,3 +2060,10 @@ details.cl-ver>summary .st-hint{margin-left:auto;}
   .fbar .fbar-sort{width:44px;max-width:44px;min-width:44px;padding:0;color:transparent;text-indent:-999px;-webkit-appearance:none;appearance:none;background-position:center;background-size:18px;}
   .fbar .fbar-sort option{color:var(--text);background:var(--ink-2);text-indent:0;}
 }
+
+/* the title card locks the page scroll (on a computer; see the phone rule below) */
+body.ts-on{overflow:hidden;}
+/* phone: the page under a sheet / menu / card is NOT locked with overflow:hidden — on Android Chrome that brings the
+   address bar back, which shoves the bottom dock up and leaves its taps landing in the old place. ui.js cancels the
+   finger drags that would scroll the page instead. */
+@media(max-width:700px){html body.nav-on,html body.wb-on,html body.fs-on,html body.tg-on,html body.srch-on,html body.ts-on{overflow:visible;}}

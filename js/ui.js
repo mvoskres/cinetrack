@@ -7,7 +7,8 @@ try{history.scrollRestoration='manual';}catch(e){} /* closing the menu/search go
 let _ovPushed=false;
 function _ovPush(){if(!_ovPushed){try{history.pushState({ctOv:1},'');_ovPushed=true;}catch(e){}}}
 function _ovPop(){if(_ovPushed&&!document.body.classList.contains('nav-on')&&!document.body.classList.contains('srch-on')&&!document.body.classList.contains('fs-on')){_ovPushed=false;history.back();}}
-window.addEventListener('popstate',()=>{_ovPushed=false;navClose(true);searchClose(true);if(typeof fsClose==='function')fsClose(true);});
+window.addEventListener('popstate',()=>{if(history.state?.ctOv)return; /* landed on our own entry (a late «back» of a closed sheet): the menu/search stays */
+  _ovPushed=false;navClose(true);searchClose(true);if(typeof fsClose==='function')fsClose(true);});
 
 function navOpen(){_dockWall();if(typeof fsClose==='function')fsClose(true);document.body.classList.add('nav-on');document.querySelector('.dk-mb')?.setAttribute('aria-expanded','true');_ovPush();}
 function navClose(fromHistory){
@@ -93,6 +94,27 @@ function _dockWall(){
 }
 (function(){const go=()=>('requestIdleCallback' in window?requestIdleCallback(_dockWall,{timeout:2500}):setTimeout(_dockWall,500));
   if(document.readyState==='complete')go();else addEventListener('load',go,{once:true});})();
+
+/* ── PHONE SCROLL LOCK ──
+   While a sheet, the menu, the search or a title card is open, the page under it must not scroll. overflow:hidden on
+   the body does that, but on Android Chrome it also brings the address bar back: the bottom dock jumps up and its taps
+   keep landing in the old place. So on a phone the body keeps scrolling and a drag that would move the page is
+   cancelled here; a drag inside something that can still scroll that way (the sheet, the card, chip rows) goes through. */
+const _LOCKS=['nav-on','wb-on','fs-on','tg-on','srch-on','ts-on'];
+let _lkX=0,_lkY=0;
+document.addEventListener('touchstart',e=>{const t=e.touches[0];if(t){_lkX=t.clientX;_lkY=t.clientY;}},{passive:true,capture:true});
+document.addEventListener('touchmove',e=>{
+  if(!e.cancelable||e.defaultPrevented||e.touches.length!==1)return;
+  const cl=document.body.classList;if(!_LOCKS.some(c=>cl.contains(c))||!matchMedia('(max-width:700px)').matches)return;
+  const t=e.touches[0],dx=t.clientX-_lkX,dy=t.clientY-_lkY,hor=Math.abs(dx)>Math.abs(dy);
+  for(let el=e.target;el&&el!==document.body&&el!==document.documentElement;el=el.parentElement){
+    const cs=getComputedStyle(el);
+    if(hor){
+      if(el.scrollWidth>el.clientWidth+1&&/auto|scroll/.test(cs.overflowX)&&((dx<0&&el.scrollLeft+el.clientWidth<el.scrollWidth-1)||(dx>0&&el.scrollLeft>0)))return;
+    }else if(el.scrollHeight>el.clientHeight+1&&/auto|scroll/.test(cs.overflowY)&&((dy<0&&el.scrollTop+el.clientHeight<el.scrollHeight-1)||(dy>0&&el.scrollTop>0)))return;
+  }
+  e.preventDefault();
+},{passive:false});
 
 /* ── SHEET SWIPE (phone): pull a bottom sheet down to close it; from the grab bar / header, a swipe up runs `up` ──
    The sheet follows the finger; a short or slow pull springs back. Content that is scrolled keeps scrolling. */

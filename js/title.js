@@ -32,7 +32,7 @@ async function _tsOpen(ref,push){
   const bg=document.getElementById('titleSheet');
   if(push){if(bg.classList.contains('hidden'))_tsStack=[];_tsStack.push(ref);}
   if(bg.classList.contains('hidden'))_tsPrev=document.activeElement; /* closeTitle puts focus back there */
-  bg.classList.remove('hidden');document.body.style.overflow='hidden';
+  bg.classList.remove('hidden');document.body.classList.add('ts-on');
   const body=document.getElementById('tsBody');
   body.innerHTML=`${_tsTopBar()}<div class="spinner">Завантажую деталі…</div>`;
   body.parentElement.scrollTop=0;
@@ -48,7 +48,7 @@ async function _tsOpen(ref,push){
 }
 let _tsPrev=null;
 function closeTitle(){
-  document.getElementById('titleSheet').classList.add('hidden');document.body.style.overflow='';_tsStack=[];_tsCur=null;_refreshVisibleTab();
+  document.getElementById('titleSheet').classList.add('hidden');document.body.classList.remove('ts-on');_tsStack=[];_tsCur=null;_refreshVisibleTab();
   const p=_tsPrev;_tsPrev=null;if(p&&p.isConnected&&typeof p.focus==='function')p.focus({preventScroll:true});
   searchResume(); /* opened from the search: back to the same results */
 }
