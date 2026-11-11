@@ -145,7 +145,10 @@ function sheetSwipe(pan,{close,up,handle,scroller}){
     if(!mode){t0=0;return;}
     const v=Math.abs(dy)/Math.max(1,Date.now()-t0),m=mode;mode=null;t0=0;
     pan.style.transition='transform .22s cubic-bezier(.3,.7,.2,1)';
-    if(m==='down'&&(dy>110||(dy>40&&v>.6))){pan.style.transform='translateY(100%)';setTimeout(()=>{pan.style.transform='';pan.style.transition='';close();},200);return;}
+    if(m==='down'&&(dy>110||(dy>40&&v>.6))){
+      /* the sheet still slides away for 0.2 s: taps already go through it (a quick tap on the dock used to land on the dimmer) */
+      const root=pan.parentElement;if(root)root.style.pointerEvents='none';
+      pan.style.transform='translateY(100%)';setTimeout(()=>{pan.style.transform='';pan.style.transition='';if(root)root.style.pointerEvents='';close();},200);return;}
     pan.style.transform='';setTimeout(()=>{pan.style.transition='';},230);
     if(m==='up'&&(dy<-50||(dy<-25&&v>.5)))up();
   };
