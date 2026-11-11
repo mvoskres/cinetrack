@@ -28,6 +28,7 @@ function searchOpen(){
   if(!document.body.classList.contains('srch-on')){L.hidden=false;document.body.classList.add('srch-on');_ovPush();}
   _srchFit();
   const si=document.getElementById('searchInput');if(si){si.focus({preventScroll:true});si.select();}
+  _seRender();_seShow();
 }
 /* phone keyboard: the browser pans the visible area under the keyboard and a plain fixed layer slides off the top.
    The layer follows window.visualViewport instead, so its search line stays on screen while typing. */
@@ -94,6 +95,53 @@ function _dockWall(){
 }
 (function(){const go=()=>('requestIdleCallback' in window?requestIdleCallback(_dockWall,{timeout:2500}):setTimeout(_dockWall,500));
   if(document.readyState==='complete')go();else addEventListener('load',go,{once:true});})();
+
+/* ── SEARCH: empty state (1.30) ──
+   With nothing typed the search layer shows recent queries (remembered when a result is opened or added),
+   recently added titles and the people you follow. Every result not in the lists has «+ Додати» under it. */
+const _SE_KEY='ct_srch_recent';
+const _seRecent=()=>_lsJSON(_SE_KEY,[]);
+function _seRemember(){
+  const q=document.getElementById('searchInput')?.value.trim();if(!q)return;
+  const r=[q,..._seRecent().filter(x=>x.toLowerCase()!==q.toLowerCase())].slice(0,8);
+  _lsSet(_SE_KEY,JSON.stringify(r));
+}
+function _seRender(){
+  let el=document.getElementById('srchEmpty');
+  if(!el){el=document.createElement('div');el.id='srchEmpty';el.className='se';document.getElementById('suggestions')?.after(el);}
+  const rec=_seRecent();
+  const ts=x=>typeof x.addedAt==='number'?x.addedAt:Date.parse(x.addedAt)||0;
+  const added=[...watching,...watched,...planned].filter(x=>x.addedAt&&x.poster&&x.poster!=='N/A').sort((a,b)=>ts(b)-ts(a)).slice(0,6);
+  const ppl=(typeof _trackedPeople!=='undefined'?_trackedPeople:[]).filter(p=>p.profile).slice(0,10);
+  el.innerHTML=(rec.length?`<section class="se-s"><div class="se-h"><h3>Ти шукав</h3><button class="rd-lnk" data-act="seClear">Очистити</button></div>
+      <div class="se-q">${rec.map(q=>`<button class="se-c" data-act="seRun" data-args="${A(q)}">${ic('search')}<span>${esc(q)}</span></button>`).join('')}</div></section>`:'')
+    +(added.length?`<section class="se-s"><div class="se-h"><h3>Нещодавно додане</h3></div><div class="suggestions se-g">${added.map(i=>`<div class="sug-item" data-act="seOpen" data-args="${A(i.imdbID)}">
+      <div class="sug-p"><img class="sug-img" src="${posterSrc(i.poster)}" alt="" loading="lazy" data-fb>${_ownBadge(i.imdbID)}</div>
+      <div class="sug-title">${esc(tn(i))}</div><div class="sug-meta">${[_wbYear(i),catLabel(i.customCategory||i.type).toLowerCase()].filter(Boolean).join(' · ')}</div></div>`).join('')}</div></section>`:'')
+    +(ppl.length?`<section class="se-s"><div class="se-h"><h3>Люди, за якими стежиш</h3></div><div class="se-p">${ppl.map(p=>`<button class="se-f" data-act="seFace" data-args="${A(p.id,p.name,p.profile)}"><img src="${_tsImg(p.profile,'w185')}" alt="" loading="lazy"><span>${esc(p.name)}</span></button>`).join('')}</div></section>`:'');
+}
+function _seShow(){const q=document.getElementById('searchInput')?.value.trim();const el=document.getElementById('srchEmpty');if(el)el.hidden=!!q;
+  document.getElementById('srchHint')?.toggleAttribute('hidden',!q&&!!el?.innerHTML.trim());}
+function seRun(q){const i=document.getElementById('searchInput');if(!i)return;i.value=q;handleSearch();i.focus({preventScroll:true});}
+function seClear(){_lsSet(_SE_KEY,'[]');_seRender();_seShow();}
+function seOpen(imdb){searchSuspend();openTitle(imdb);}
+function seFace(id,name,profile){searchClose();_tsPerson(id,name,profile);}
+function sugAdd(ev,mt,id){
+  ev.stopPropagation();
+  openMenu(ev,[{icon:'check',label:'Переглянуто',fn:'sugAddAs',args:[mt,id,'watched']},{icon:'play',label:'Дивлюсь',fn:'sugAddAs',args:[mt,id,'watching']},
+    {icon:'bookmark',label:'Запланувати',fn:'sugAddAs',args:[mt,id,'planned']}]);
+}
+async function sugAddAs(mt,id,list){
+  _seRemember();
+  let imdb='';
+  try{const d=await tmdbFetch(`/${mt}/${id}/external_ids`);imdb=d?.imdb_id||'';
+    if(imdb){_resolveCache[mt+':'+id]={imdbID:imdb,ended:mt==='movie',ts:Date.now()};_resolveCacheSave();}}
+  catch(e){toast('Не вдалося зв\'язатися з TMDB, спробуй ще раз','err');return;}
+  if(!imdb){toast('Цього тайтлу немає на IMDb, тож додати його не вийде','err',3600);return;}
+  const fn={watched:addW,watching:addWn,planned:addPl}[list];
+  try{await fn(imdb);}catch(e){toast('Не вдалося додати: немає зв\'язку з OMDb','err');return;}
+  _ownIdx=null;const q=document.getElementById('searchInput')?.value.trim();if(q)doSearch(q);
+}
 
 /* ── PHONE SCROLL LOCK ──
    While a sheet, the menu, the search or a title card is open, the page under it must not scroll. overflow:hidden on

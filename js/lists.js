@@ -25,7 +25,7 @@ function goTab(id,btn){
 
 /* ── SEARCH ── */
 let _st2;
-function handleSearch(){const q=document.getElementById('searchInput').value.trim();if(q.length<1){hideSug();document.querySelector('#srch .search-wrap')?.classList.remove('loading');return;}clearTimeout(_st2);document.querySelector('#srch .search-wrap').classList.add('loading');_st2=setTimeout(()=>doSearch(q),340);}
+function handleSearch(){const q=document.getElementById('searchInput').value.trim();_seShow();if(q.length<1){hideSug();document.querySelector('#srch .search-wrap')?.classList.remove('loading');return;}clearTimeout(_st2);document.querySelector('#srch .search-wrap').classList.add('loading');_st2=setTimeout(()=>doSearch(q),340);}
 const _sCache={};
 /* TMDB answers in Ukrainian and does not spend the 1000/day OMDb quota */
 async function doSearch(q){
@@ -68,17 +68,19 @@ async function _tmdbSearch(q){
   document.querySelector('#srch .search-wrap').classList.remove('loading');
   box.innerHTML=titles.map(r=>{
     const t=r.title||r.name||'',o=r.original_title||r.original_name||'',y=(r.release_date||r.first_air_date||'').slice(0,4);
+    const own=_ownBadge(_tmdbOwnedId(r.media_type,r.id));
     return `<div class="sug-item" data-act="_sugOpen" data-args="${A(r.media_type,r.id)}">
-      <div class="sug-p"><img class="sug-img" src="${_tsImg(r.poster_path,'w185')||blank()}" alt="" loading="lazy" data-fb>${_ownBadge(_tmdbOwnedId(r.media_type,r.id))}</div>
-      <div class="sug-title">${esc(t)}</div><div class="sug-meta">${y?`${esc(y)} · `:''}${(r.media_type==='tv'?CAT.series:CAT.movie).toLowerCase()}</div>${o&&o!==t?`<div class="sug-orig">${esc(o)}</div>`:''}</div>`;
+      <div class="sug-p"><img class="sug-img" src="${_tsImg(r.poster_path,'w185')||blank()}" alt="" loading="lazy" data-fb>${own}</div>
+      <div class="sug-title">${esc(t)}</div><div class="sug-meta">${y?`${esc(y)} · `:''}${(r.media_type==='tv'?CAT.series:CAT.movie).toLowerCase()}</div>${o&&o!==t?`<div class="sug-orig">${esc(o)}</div>`:''}
+      ${own?'':`<button class="sug-add" data-act="sugAdd" data-args="${A('$ev',r.media_type,r.id)}">${ic('plus')}Додати</button>`}</div>`;
   }).join('')+people.map(p=>`<div class="sug-item" data-act="_sugPerson" data-args="${A(p.id,p.name,p.profile_path||'')}">
       <div class="sug-p round"><img class="sug-img" src="${_tsImg(p.profile_path,'w185')}" alt="" loading="lazy" data-fb></div>
       <div class="sug-title">${esc(p.name)}</div><div class="sug-meta">${p.known_for_department==='Directing'?'режисер':'актор'} · фільмографія</div></div>`).join('');
   _sugSync('searchInput','suggestions');
   return true;
 }
-function _sugOpen(mt,id){searchSuspend();openTitleTmdb(mt,id);}
-function _sugPerson(id,name,profile){searchClose();_tsPerson(id,name,profile);}
+function _sugOpen(mt,id){_seRemember();searchSuspend();openTitleTmdb(mt,id);}
+function _sugPerson(id,name,profile){_seRemember();searchClose();_tsPerson(id,name,profile);}
 async function _omdbSearch(q){
   try{
     let r=_sCache[q];
