@@ -10,3 +10,7 @@ test*.html
 *.log
 __pycache__/
 .env*
+
+# tools: fixtures are committed, run artefacts are not
+!tools/fixtures/*.json
+tools/_out/

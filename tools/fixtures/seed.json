@@ -1,0 +1,7164 @@
+{
+"_doc": "Детермінований набір для tools/check.py. Вигаданий ключ, без особистих даних. Поля bump/touch отримують «сьогодні» (замороженого годинника).",
+"ls": {
+"ct_apikey": "labfake0",
+"ct_tmdbkey": "labfaketmdbkey000000000000000000",
+"ct_watched": [
+{
+"id": 1780339021382,
+"imdbID": "tt0093773",
+"title": "Predator",
+"poster": "https://m.media-amazon.com/images/M/MV5BOWEzMDI0MTUtMjQ0Yy00MGRhLWI4YjAtZTgzZTM3NTYxZGJkXkEyXkFqcGc@._V1_QL75_UX380_CR0,2,380,562_.jpg",
+"year": "1987",
+"type": "movie",
+"genre": "Action, Adventure, Horror",
+"country": "United States, Mexico",
+"imdbUrl": "https://www.imdb.com/title/tt0093773/",
+"imdbRating": "7.8",
+"customCategory": "movie",
+"rating": 8,
+"comment": "",
+"addedAt": 1780339021382,
+"runtime": 107,
+"tags": [
+"улюблене"
+]
+},
+{
+"id": 1792669677794,
+"imdbID": "tt0100403",
+"title": "Predator 2",
+"poster": "https://m.media-amazon.com/images/M/MV5BNjFjMjRkYWUtNmI4YS00ZmMwLWFiMmYtNWViY2RjZjMyODQ4XkEyXkFqcGc@._V1_QL75_UX380_CR0,1,380,562_.jpg",
+"year": "1990",
+"type": "movie",
+"genre": "Action, Horror, Sci-Fi",
+"country": "United States",
+"imdbUrl": "https://www.imdb.com/title/tt0100403/",
+"imdbRating": "6.3",
+"runtime": 108,
+"customCategory": "movie",
+"rating": 6,
+"comment": "",
+"addedAt": 1792669677794,
+"tags": [
+"улюблене",
+"з друзями"
+]
+},
+{
+"id": 1793105228545,
+"imdbID": "tt0362165",
+"title": "Son of the Mask",
+"poster": "https://image.tmdb.org/t/p/w342/Adgnfhm9B8YAQmC0osuP4zO9SRc.jpg",
+"year": "2005",
+"type": "movie",
+"genre": "Fantasy, Comedy, Family, Adventure",
+"country": "United States, Germany",
+"imdbUrl": "https://www.imdb.com/title/tt0362165/",
+"imdbRating": "2.3",
+"runtime": 94,
+"customCategory": "movie",
+"rating": 0,
+"comment": "",
+"addedAt": 1793105228545
+},
+{
+"id": 1779713551832,
+"imdbID": "tt35466672",
+"title": "Malcolm in the Middle: Life's Still Unfair",
+"poster": "https://m.media-amazon.com/images/M/MV5BOGQ4MDU3MWItOWQzMC00ZWExLTk5OWQtYTk3MGM0YzJjMjIzXkEyXkFqcGc@._V1_QL75_UX380_CR0,0,380,562_.jpg",
+"year": "2026",
+"type": "series",
+"genre": "Comedy, Drama",
+"country": "United States",
+"imdbUrl": "https://www.imdb.com/title/tt35466672/",
+"imdbRating": "7.0",
+"customCategory": "series",
+"rating": 9,
+"comment": "Топ",
+"addedAt": 1779713551832
+},
+{
+"id": 1778219263802,
+"imdbID": "tt0210418",
+"title": "Digimon Adventure",
+"poster": "https://m.media-amazon.com/images/M/MV5BZmZjN2I2OGEtMzJkMS00Y2I2LWI0ZGQtMjExNzY0Mzk1YjEwXkEyXkFqcGc@._V1_SX300.jpg",
+"year": "1999–2000",
+"type": "series",
+"genre": "Animation, Action, Adventure",
+"country": "Japan",
+"imdbUrl": "https://www.imdb.com/title/tt0210418/",
+"imdbRating": "7.4",
+"customCategory": "anime",
+"rating": 8,
+"comment": "",
+"addedAt": 1778219263802,
+"totalSeasons": 4
+},
+{
+"id": 1777662084466,
+"imdbID": "tt11126994",
+"title": "Arcane",
+"poster": "https://m.media-amazon.com/images/M/MV5BYjA2NzhlMDItNWRmZC00MzRjLWE3ZjAtZjBlZDAwOWY2ODdjXkEyXkFqcGc@._V1_QL75_UX380_CR0,0,380,562_.jpg",
+"year": "2021–2024",
+"type": "series",
+"genre": "Animation, Action, Adventure",
+"imdbUrl": "https://www.imdb.com/title/tt11126994/",
+"customCategory": "cartoon",
+"rating": 10,
+"comment": "Супер. Вартий перегляду",
+"addedAt": 1777662084466,
+"country": "United States, France",
+"imdbRating": "9.0",
+"tags": [
+"з друзями"
+]
+}
+],
+"ct_watching": [
+{
+"id": 1777660639690,
+"imdbID": "tt10986410",
+"title": "Ted Lasso",
+"poster": "https://m.media-amazon.com/images/M/MV5BZmI3YWVhM2UtNDZjMC00YTIzLWI2NGUtZWIxODZkZjVmYTg1XkEyXkFqcGc@._V1_SX300.jpg",
+"year": "2020–",
+"type": "series",
+"genre": "Comedy, Drama, Sport",
+"imdbUrl": "https://www.imdb.com/title/tt10986410/",
+"totalSeasons": 4,
+"season": 3,
+"episode": 12,
+"addedAt": 1777660639690,
+"country": "United States, United Kingdom",
+"imdbRating": "8.8",
+"liveStatus": {
+"isEnded": false,
+"src": "tvmaze",
+"lastAiredSeason": 4,
+"lastAiredEp": "10",
+"lastAiredDate": "2026-10-07",
+"nextEpSeason": null,
+"nextEpNum": null,
+"nextEpDate": null,
+"_cachedAt": 1793106834512
+},
+"customCategory": "series",
+"tvmazeId": 44458,
+"seasonEps": {
+"1": 10,
+"2": 12,
+"3": 12,
+"4": 10
+}
+}
+],
+"ct_planned": [
+{
+"id": 1793105203560,
+"imdbID": "tt14513804",
+"title": "Captain America: Brave New World",
+"poster": "https://image.tmdb.org/t/p/w342/pzIddUEMWhWzfvLI3TwxUG2wGoi.jpg",
+"year": "2025",
+"type": "movie",
+"genre": "Action, Thriller, Sci-Fi",
+"country": "United States",
+"imdbUrl": "https://www.imdb.com/title/tt14513804/",
+"imdbRating": "5.6",
+"runtime": 119,
+"customCategory": "movie",
+"addedAt": 1793105203560
+},
+{
+"id": 1780429380915,
+"imdbID": "tt7587890",
+"title": "The Rookie",
+"poster": "https://m.media-amazon.com/images/M/MV5BMzc2MDdkZDUtZjZlYy00MGMyLWJkNzUtMTMxY2FkZjZjYmEyXkEyXkFqcGc@._V1_QL75_UY562_CR35,0,380,562_.jpg",
+"year": "2018–",
+"type": "series",
+"genre": "Action, Crime, Drama",
+"country": "United States",
+"imdbUrl": "https://www.imdb.com/title/tt7587890/",
+"imdbRating": "8.0",
+"customCategory": "series",
+"addedAt": 1780429380915
+}
+],
+"ct_hidden": [
+{
+"imdbID": "tt34385135",
+"tmdb": "movie:1375646",
+"title": "Colony",
+"year": "2026",
+"poster": "https://image.tmdb.org/t/p/w342/enz3WLx5QU1FUyhXZld04QWIc6N.jpg"
+}
+],
+"ct_trackedpeople": [
+{
+"id": 18897,
+"name": "Jackie Chan",
+"profile": "/nraZoTzwJQPHspAVsKfgl3RXKKa.jpg",
+"dept": "Acting"
+}
+],
+"ct_collcache": {
+"tt0093773": {
+"collId": 399,
+"collName": "Predator Collection",
+"collPoster": "/mm2t5dd1QFxtX6X56Z9U5ucsIb1.jpg",
+"ts": 1783115996305
+},
+"tt0100403": {
+"collId": 399,
+"collName": "Predator Collection",
+"collPoster": "/mm2t5dd1QFxtX6X56Z9U5ucsIb1.jpg",
+"ts": 1792670010984
+},
+"tt0362165": {
+"collId": 43072,
+"collName": "The Mask Collection",
+"collPoster": "/h0qeHjvUBb1J9J7fvRtVdfsy0qL.jpg",
+"ts": 1793106903225
+},
+"tt14513804": {
+"collId": 131295,
+"collName": "Captain America Collection",
+"collPoster": "/2tOgiY533JSFp7OrVlkeRJvsZpI.jpg",
+"ts": 1793106903262
+},
+"tt11866324": {
+"collId": 399,
+"collName": "Predator Collection",
+"collPoster": "/mm2t5dd1QFxtX6X56Z9U5ucsIb1.jpg",
+"ts": 1783116002360
+}
+},
+"ct_colldetails": {
+"399": {
+"name": "Predator Collection",
+"poster": "/mm2t5dd1QFxtX6X56Z9U5ucsIb1.jpg",
+"ts": 1792663170009,
+"parts": [
+{
+"id": 106,
+"title": "Predator",
+"year": "1987",
+"date": "1987-06-12",
+"poster": "/k3mW4qfJo6SKqe6laRyNGnbB9n5.jpg",
+"vote": 7.6,
+"imdbID": "tt0093773",
+"imdbRating": "7.8"
+},
+{
+"id": 169,
+"title": "Predator 2",
+"year": "1990",
+"date": "1990-11-21",
+"poster": "/83X4VwY9sdSJykskmsplIVG0a4h.jpg",
+"vote": 6.3,
+"imdbID": "tt0100403",
+"imdbRating": "6.3"
+},
+{
+"id": 34851,
+"title": "Predators",
+"year": "2010",
+"date": "2010-07-07",
+"poster": "/wdniP8NDaJIydi1hMxhpbJMUfr6.jpg",
+"vote": 6.3,
+"imdbID": "tt1424381",
+"imdbRating": "6.4"
+},
+{
+"id": 346910,
+"title": "The Predator",
+"year": "2018",
+"date": "2018-09-05",
+"poster": "/a3eWGF6YPF7No5Rbtjc8QpDvz7l.jpg",
+"vote": 5.6,
+"imdbID": "tt3829266",
+"imdbRating": "5.3"
+},
+{
+"id": 766507,
+"title": "Prey",
+"year": "2022",
+"date": "2022-08-05",
+"poster": "/2FKjLRt7oK1bRRIrxgWmthbBdFh.jpg",
+"vote": 7.6,
+"imdbID": "tt11866324",
+"imdbRating": "7.1"
+},
+{
+"id": 1242898,
+"title": "Predator: Badlands",
+"year": "2025",
+"date": "2025-11-05",
+"poster": "/pHpq9yNUIo6aDoCXEBzjSolywgz.jpg",
+"vote": 7.8,
+"imdbID": "tt31227572",
+"imdbRating": "7.2"
+}
+]
+},
+"43072": {
+"name": "The Mask Collection",
+"poster": "/h0qeHjvUBb1J9J7fvRtVdfsy0qL.jpg",
+"ts": 1792733448220,
+"parts": [
+{
+"id": 10214,
+"title": "Son of the Mask",
+"year": "2005",
+"date": "2005-02-11",
+"poster": "/Adgnfhm9B8YAQmC0osuP4zO9SRc.jpg",
+"vote": 4.2,
+"imdbID": "tt0362165"
+},
+{
+"id": 854,
+"title": "The Mask",
+"year": "1994",
+"date": "1994-07-29",
+"poster": "/jPC2eYub74zwf2tPGVtzSlBW6Oy.jpg",
+"vote": 7,
+"imdbID": "tt0110475",
+"imdbRating": "7.0"
+}
+]
+},
+"131295": {
+"name": "Captain America Collection",
+"poster": "/2tOgiY533JSFp7OrVlkeRJvsZpI.jpg",
+"ts": 1792664273484,
+"parts": [
+{
+"id": 100402,
+"title": "Captain America: The Winter Soldier",
+"year": "2014",
+"date": "2014-03-20",
+"poster": "/tVFRpFw3xTedgPGqxW0AOI8Qhh0.jpg",
+"vote": 7.7,
+"imdbID": "tt1843866",
+"imdbRating": "7.7"
+},
+{
+"id": 271110,
+"title": "Captain America: Civil War",
+"year": "2016",
+"date": "2016-04-27",
+"poster": "/rAGiXaUfPzY7CDEyNKUofk3Kw2e.jpg",
+"vote": 7.5,
+"imdbID": "tt3498820",
+"imdbRating": "7.8"
+},
+{
+"id": 1771,
+"title": "Captain America: The First Avenger",
+"year": "2011",
+"date": "2011-07-22",
+"poster": "/vSNxAJTlD0r02V9sPYpOjqDZXUK.jpg",
+"vote": 7,
+"imdbID": "tt0458339",
+"imdbRating": "6.9"
+},
+{
+"id": 822119,
+"title": "Captain America: Brave New World",
+"year": "2025",
+"date": "2025-02-12",
+"poster": "/pzIddUEMWhWzfvLI3TwxUG2wGoi.jpg",
+"vote": 6,
+"imdbID": "tt14513804",
+"imdbRating": "5.6"
+}
+]
+}
+},
+"ct_personcache": {
+"18897": {
+"cast": [
+{
+"id": 2109,
+"title": "Rush Hour",
+"release_date": "1998-09-18",
+"media_type": "movie",
+"character": "Lee",
+"order": 0,
+"poster_path": "/nwPhAsfnb7f46bZkWLG7IRP5HXr.jpg",
+"vote_average": 7.089,
+"vote_count": 5982,
+"genre_ids": [
+28,
+35,
+80
+],
+"original_language": "en"
+},
+{
+"id": 10204,
+"title": "Around the World in 80 Days",
+"release_date": "2004-06-16",
+"media_type": "movie",
+"character": "Passepartout / Lau Xing",
+"order": 0,
+"poster_path": "/bBiMw6Jtg8tSTcEq8jFV7qk9TRW.jpg",
+"vote_average": 6,
+"vote_count": 2805,
+"genre_ids": [
+28,
+12,
+35
+],
+"original_language": "en"
+},
+{
+"id": 10044,
+"title": "My Lucky Stars",
+"release_date": "1985-02-10",
+"media_type": "movie",
+"character": "Muscles",
+"order": 1,
+"poster_path": "/dZzHBIcJsld2XMvwR75OZGf4NM2.jpg",
+"vote_average": 6.636,
+"vote_count": 264,
+"genre_ids": [
+28,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 1729,
+"title": "The Forbidden Kingdom",
+"release_date": "2008-04-17",
+"media_type": "movie",
+"character": "Old Hop / Lu Yan",
+"order": 0,
+"poster_path": "/z8chF1Z7hyuSVqLYTgElkQZh2VB.jpg",
+"vote_average": 6.7,
+"vote_count": 2018,
+"genre_ids": [
+28,
+12,
+14
+],
+"original_language": "en"
+},
+{
+"id": 10257,
+"title": "The Twins Effect II",
+"release_date": "2004-08-12",
+"media_type": "movie",
+"character": "Lord of Armour",
+"order": 10,
+"poster_path": "/4UNGA2zrHgHmQQ8LY7S8uEKL3Dv.jpg",
+"vote_average": 5.3,
+"vote_count": 110,
+"genre_ids": [
+28,
+12,
+35,
+14,
+10749
+],
+"original_language": "cn"
+},
+{
+"id": 10610,
+"title": "The Medallion",
+"release_date": "2003-08-15",
+"media_type": "movie",
+"character": "Eddie Yang",
+"order": 0,
+"poster_path": "/lbjFWKfe8WdS8Pj6WVPlyEKeVEo.jpg",
+"vote_average": 5.652,
+"vote_count": 1263,
+"genre_ids": [
+53,
+14,
+28,
+35
+],
+"original_language": "en"
+},
+{
+"id": 10622,
+"title": "Mr. Nice Guy",
+"release_date": "1997-01-31",
+"media_type": "movie",
+"character": "Jackie",
+"order": 0,
+"poster_path": "/wAAt2gvbkbeefzjd06GPfkdfUho.jpg",
+"vote_average": 6.568,
+"vote_count": 792,
+"genre_ids": [
+80,
+28,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 10348,
+"title": "Thunderbolt",
+"release_date": "1995-08-05",
+"media_type": "movie",
+"character": "Jackie",
+"order": 0,
+"poster_path": "/6NAxYuSf4sSThBQWKp4vcGhhAoN.jpg",
+"vote_average": 6.5,
+"vote_count": 341,
+"genre_ids": [
+28,
+53
+],
+"original_language": "cn"
+},
+{
+"id": 10753,
+"title": "Police Story 2",
+"release_date": "1988-08-13",
+"media_type": "movie",
+"character": "Sergeant Chan Ka-Kui",
+"order": 0,
+"poster_path": "/kjq1FXtHh9i2sIuM0JaoYf43FDU.jpg",
+"vote_average": 7.103,
+"vote_count": 667,
+"genre_ids": [
+28,
+80,
+53
+],
+"original_language": "cn"
+},
+{
+"id": 10771,
+"title": "The Tuxedo",
+"release_date": "2002-09-27",
+"media_type": "movie",
+"character": "Jimmy Tong",
+"order": 0,
+"poster_path": "/lTMnOx7E2zEzIGY0og1KkfgYMhY.jpg",
+"vote_average": 5.748,
+"vote_count": 2264,
+"genre_ids": [
+53,
+28,
+35,
+878
+],
+"original_language": "en"
+},
+{
+"id": 20083,
+"title": "Shinjuku Incident",
+"release_date": "2009-03-22",
+"media_type": "movie",
+"character": "Steelhead",
+"order": 0,
+"poster_path": "/8zWliijoTsk3kUdUJpbjqWgV617.jpg",
+"vote_average": 6.646,
+"vote_count": 335,
+"genre_ids": [
+18,
+28,
+53,
+80
+],
+"original_language": "cn"
+},
+{
+"id": 10951,
+"title": "Gorgeous",
+"release_date": "1999-02-12",
+"media_type": "movie",
+"character": "C.N. Chan",
+"order": 1,
+"poster_path": "/oZzsnCPFfGg9uoRLRwQLZxju4d.jpg",
+"vote_average": 6.5,
+"vote_count": 451,
+"genre_ids": [
+12,
+28,
+35,
+10749
+],
+"original_language": "cn"
+},
+{
+"id": 10974,
+"title": "Armour of God",
+"release_date": "1986-08-16",
+"media_type": "movie",
+"character": "Jackie",
+"order": 0,
+"poster_path": "/phCpGqCSBWJqutKxj73COACrlPt.jpg",
+"vote_average": 7.041,
+"vote_count": 690,
+"genre_ids": [
+12,
+28,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 10975,
+"title": "Operation Condor",
+"release_date": "1991-02-07",
+"media_type": "movie",
+"character": "Jackie / Asian Hawk / Condor",
+"order": 0,
+"poster_path": "/25kyDgsGz1HzW4SqJTylhBaU5sW.jpg",
+"vote_average": 7.333,
+"vote_count": 678,
+"genre_ids": [
+28,
+12,
+80,
+53
+],
+"original_language": "cn"
+},
+{
+"id": 11134,
+"title": "Police Story 3: Super Cop",
+"release_date": "1992-07-04",
+"media_type": "movie",
+"character": "Kevin Chan Ka-Kui / Lin Fu-Sheng",
+"order": 0,
+"poster_path": "/mUJOyCd4g0pNsU8thYI7UGrIpkl.jpg",
+"vote_average": 6.941,
+"vote_count": 612,
+"genre_ids": [
+28,
+80,
+53
+],
+"original_language": "cn"
+},
+{
+"id": 11198,
+"title": "City Hunter",
+"release_date": "1993-01-14",
+"media_type": "movie",
+"character": "Ryo Saeba",
+"order": 0,
+"poster_path": "/r34w8z6H08lKMfCAXsYLr47ORD2.jpg",
+"vote_average": 6.578,
+"vote_count": 479,
+"genre_ids": [
+28,
+12,
+35,
+10749
+],
+"original_language": "cn"
+},
+{
+"id": 11205,
+"title": "Wheels on Meals",
+"release_date": "1984-08-17",
+"media_type": "movie",
+"character": "Thomas",
+"order": 0,
+"poster_path": "/zCii0fXuI7xzroEEG1KBJDlqu0O.jpg",
+"vote_average": 6.9,
+"vote_count": 459,
+"genre_ids": [
+10749,
+28,
+35,
+80
+],
+"original_language": "cn"
+},
+{
+"id": 5174,
+"title": "Rush Hour 3",
+"release_date": "2007-08-08",
+"media_type": "movie",
+"character": "Yan Naing Lee",
+"order": 0,
+"poster_path": "/mp9CzKxLa2i7yblMXUrzVfGqsCo.jpg",
+"vote_average": 6.502,
+"vote_count": 3902,
+"genre_ids": [
+28,
+35,
+80
+],
+"original_language": "en"
+},
+{
+"id": 5175,
+"title": "Rush Hour 2",
+"release_date": "2001-08-03",
+"media_type": "movie",
+"character": "Yan Naing Lee",
+"order": 0,
+"poster_path": "/aBQf2vMiCINeVC9v6BGVYKXurTh.jpg",
+"vote_average": 6.783,
+"vote_count": 4833,
+"genre_ids": [
+28,
+35,
+80
+],
+"original_language": "en"
+},
+{
+"id": 11230,
+"title": "Drunken Master",
+"release_date": "1978-10-05",
+"media_type": "movie",
+"character": "Wong Fei-hung",
+"order": 0,
+"poster_path": "/cf43J2SH8tECZVl9N5n0Q6Ckche.jpg",
+"vote_average": 7.394,
+"vote_count": 1191,
+"genre_ids": [
+28,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 11537,
+"title": "Snake in the Eagle's Shadow",
+"release_date": "1978-03-01",
+"media_type": "movie",
+"character": "Chien Fu",
+"order": 0,
+"poster_path": "/oCt4990zVSNILSU0Q6DStmdbpIA.jpg",
+"vote_average": 7.3,
+"vote_count": 379,
+"genre_ids": [
+28,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 21519,
+"title": "Project A",
+"release_date": "1983-12-22",
+"media_type": "movie",
+"character": "Sgt. Dragon Ma Yue Lung",
+"order": 0,
+"poster_path": "/AvTu2bmJbVZGXPxdx6VllGXCtLG.jpg",
+"vote_average": 7.282,
+"vote_count": 601,
+"genre_ids": [
+28,
+12,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 21521,
+"title": "Project A - Part II",
+"release_date": "1987-07-25",
+"media_type": "movie",
+"character": "Sgt. Dragon Ma Yue Lung",
+"order": 0,
+"poster_path": "/oY6wOuPmeeDoKjPdPlMwwmDCYmA.jpg",
+"vote_average": 7.1,
+"vote_count": 357,
+"genre_ids": [
+28,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 21537,
+"title": "Eagle Shadow Fist",
+"release_date": "1973-01-12",
+"media_type": "movie",
+"character": "Shi Tzer",
+"order": 1,
+"poster_path": "/xOxoM1mr6ePsOMXDdv5zBHkjZsn.jpg",
+"vote_average": 5.6,
+"vote_count": 38,
+"genre_ids": [
+28,
+18,
+36
+],
+"original_language": "cn"
+},
+{
+"id": 11286,
+"title": "The Cannonball Run",
+"release_date": "1981-06-19",
+"media_type": "movie",
+"character": "Subaru Driver #1",
+"order": 9,
+"poster_path": "/yDO1xRq4LOAv720xqJHHEVz5Sr9.jpg",
+"vote_average": 6.153,
+"vote_count": 732,
+"genre_ids": [
+28,
+35,
+10751
+],
+"original_language": "en"
+},
+{
+"id": 11563,
+"title": "The Young Master",
+"release_date": "1980-02-09",
+"media_type": "movie",
+"character": "Lung",
+"order": 0,
+"poster_path": "/sSZwTKQgY9pudxFOqxKCSf8r5qF.jpg",
+"vote_average": 7,
+"vote_count": 259,
+"genre_ids": [
+28,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 6038,
+"title": "Shanghai Knights",
+"release_date": "2003-02-06",
+"media_type": "movie",
+"character": "Chon Wang",
+"order": 0,
+"poster_path": "/vVNQStMlZS9mn2AKBEpadRunHgt.jpg",
+"vote_average": 6.135,
+"vote_count": 2527,
+"genre_ids": [
+12,
+35,
+37
+],
+"original_language": "en"
+},
+{
+"id": 21733,
+"title": "Dragons Forever",
+"release_date": "1988-02-11",
+"media_type": "movie",
+"character": "Jackie Lung",
+"order": 0,
+"poster_path": "/lt94C482UqyVlq1UdK5nvXukaw7.jpg",
+"vote_average": 7.248,
+"vote_count": 326,
+"genre_ids": [
+28,
+35,
+10749
+],
+"original_language": "cn"
+},
+{
+"id": 23172,
+"title": "The Spy Next Door",
+"release_date": "2010-01-15",
+"media_type": "movie",
+"character": "Bob Ho",
+"order": 0,
+"poster_path": "/nJJrceb2xHGIA0irADX0JvWSIHT.jpg",
+"vote_average": 5.9,
+"vote_count": 1468,
+"genre_ids": [
+28,
+35,
+10751
+],
+"original_language": "en"
+},
+{
+"id": 11636,
+"title": "New Police Story",
+"release_date": "2004-09-23",
+"media_type": "movie",
+"character": "Senior Inspector Chan Kwok Wing",
+"order": 0,
+"poster_path": "/kWUTyIao0b8DxVrO6L0LnpJVYWV.jpg",
+"vote_average": 7.162,
+"vote_count": 862,
+"genre_ids": [
+28,
+53,
+80,
+18
+],
+"original_language": "cn"
+},
+{
+"id": 11653,
+"title": "The Myth",
+"release_date": "2005-05-11",
+"media_type": "movie",
+"character": "General Meng Yi / Dr. Jack Chan",
+"order": 0,
+"poster_path": "/iBDFnLkTZZxQlbb6IIeYkufnPCY.jpg",
+"vote_average": 6.411,
+"vote_count": 437,
+"genre_ids": [
+28,
+12,
+35,
+18,
+14
+],
+"original_language": "zh"
+},
+{
+"id": 11847,
+"title": "The Accidental Spy",
+"release_date": "2001-01-18",
+"media_type": "movie",
+"character": "Buck Yuan",
+"order": 0,
+"poster_path": "/fPW4Qn9wm82uOexHMB3TC8x6lRU.jpg",
+"vote_average": 5.993,
+"vote_count": 548,
+"genre_ids": [
+28,
+35,
+53
+],
+"original_language": "cn"
+},
+{
+"id": 11950,
+"title": "Cannonball Run II",
+"release_date": "1984-06-29",
+"media_type": "movie",
+"character": "Jackie",
+"order": 12,
+"poster_path": "/sdXjbUcdESA5CKCyez6A29c2vq3.jpg",
+"vote_average": 5.4,
+"vote_count": 363,
+"genre_ids": [
+28,
+35
+],
+"original_language": "en"
+},
+{
+"id": 8584,
+"title": "Shanghai Noon",
+"release_date": "2000-05-26",
+"media_type": "movie",
+"character": "Chon Wang",
+"order": 0,
+"poster_path": "/b0WwWRcDiDahkah5vZ0KjB4N9ZZ.jpg",
+"vote_average": 6.422,
+"vote_count": 2887,
+"genre_ids": [
+12,
+35,
+37
+],
+"original_language": "en"
+},
+{
+"id": 8697,
+"title": "Who Am I?",
+"release_date": "1998-01-17",
+"media_type": "movie",
+"character": "Who Am I",
+"order": 0,
+"poster_path": "/9YDKLbBmWGpxG5bO3TBawtNNOAr.jpg",
+"vote_average": 7.18,
+"vote_count": 1051,
+"genre_ids": [
+12,
+28,
+35,
+53
+],
+"original_language": "cn"
+},
+{
+"id": 25074,
+"title": "Miracles: The Canton Godfather",
+"release_date": "1989-06-15",
+"media_type": "movie",
+"character": "Charlie Chen-Wah",
+"order": 0,
+"poster_path": "/70OnveJQzlYji1TOoODNGrU9Mjj.jpg",
+"vote_average": 7.1,
+"vote_count": 188,
+"genre_ids": [
+80,
+28,
+35,
+18
+],
+"original_language": "cn"
+},
+{
+"id": 12207,
+"title": "The Legend of Drunken Master",
+"release_date": "1994-02-03",
+"media_type": "movie",
+"character": "Wong Fei-hung",
+"order": 0,
+"poster_path": "/xqUBrSBtPYLvCtfqHF5sapU6Div.jpg",
+"vote_average": 7.472,
+"vote_count": 1150,
+"genre_ids": [
+28,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 25539,
+"title": "Winners & Sinners",
+"release_date": "1983-07-07",
+"media_type": "movie",
+"character": "Policeman #7086",
+"order": 6,
+"poster_path": "/ngFYme3fGnwkssHkPXZr3peI6iW.jpg",
+"vote_average": 6.976,
+"vote_count": 233,
+"genre_ids": [
+28,
+12,
+35,
+80
+],
+"original_language": "cn"
+},
+{
+"id": 25676,
+"title": "Rob-B-Hood",
+"release_date": "2006-09-28",
+"media_type": "movie",
+"character": "Thongs",
+"order": 0,
+"poster_path": "/aJZ8i1KEy5Kdc6hXNlLiHOlhdTA.jpg",
+"vote_average": 6.966,
+"vote_count": 708,
+"genre_ids": [
+18,
+28,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 9056,
+"title": "Police Story",
+"release_date": "1985-12-14",
+"media_type": "movie",
+"character": "Sergeant 'Kevin' Chan Ka-Kui",
+"order": 0,
+"poster_path": "/1eFB0Iy1TMU4VO5hMcoCE064JAT.jpg",
+"vote_average": 7.561,
+"vote_count": 1117,
+"genre_ids": [
+28,
+80,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 9502,
+"title": "Kung Fu Panda",
+"release_date": "2008-06-04",
+"media_type": "movie",
+"character": "Monkey (voice)",
+"order": 11,
+"poster_path": "/wWt4JYXTg5Wr3xBW2phBrMKgp3x.jpg",
+"vote_average": 7.343,
+"vote_count": 13121,
+"genre_ids": [
+28,
+16,
+35,
+10751
+],
+"original_language": "en"
+},
+{
+"id": 33542,
+"title": "Rumble in the Bronx",
+"release_date": "1995-01-21",
+"media_type": "movie",
+"character": "Keung",
+"order": 0,
+"poster_path": "/1nAfchiXHQB3iyhK8fCJJEnNs5A.jpg",
+"vote_average": 6.86,
+"vote_count": 1238,
+"genre_ids": [
+80,
+28,
+35,
+53
+],
+"original_language": "cn"
+},
+{
+"id": 9404,
+"title": "Police Story 4: First Strike",
+"release_date": "1996-02-10",
+"media_type": "movie",
+"character": "Chan Ka-Kui",
+"order": 0,
+"poster_path": "/dOZJQTn8Ys57pH5trpG5y9DaUBq.jpg",
+"vote_average": 6.513,
+"vote_count": 558,
+"genre_ids": [
+28,
+12,
+35,
+80,
+18,
+53
+],
+"original_language": "cn"
+},
+{
+"id": 13099,
+"title": "Gen-X Cops",
+"release_date": "1999-06-18",
+"media_type": "movie",
+"character": "Poor Fisherman (Cameo)",
+"order": 32,
+"poster_path": "/2URAvYZ67Wwo7iceIfTHl050luM.jpg",
+"vote_average": 5.4,
+"vote_count": 69,
+"genre_ids": [
+28,
+35,
+80,
+53
+],
+"original_language": "cn"
+},
+{
+"id": 614930,
+"title": "Teenage Mutant Ninja Turtles: Mutant Mayhem",
+"release_date": "2023-07-31",
+"media_type": "movie",
+"character": "Splinter (voice)",
+"order": 11,
+"poster_path": "/gyh0eECE2IqrW8GWl3KoHBfc45j.jpg",
+"vote_average": 7.225,
+"vote_count": 1691,
+"genre_ids": [
+16,
+35,
+28,
+878
+],
+"original_language": "en"
+},
+{
+"id": 1100119,
+"title": "New Police Story 2",
+"release_date": "",
+"media_type": "movie",
+"character": "",
+"order": 1,
+"poster_path": null,
+"vote_average": 0,
+"vote_count": 0,
+"genre_ids": [
+28,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 40829,
+"title": "Shaolin Wooden Men",
+"release_date": "1976-10-10",
+"media_type": "movie",
+"character": "Little Mute",
+"order": 0,
+"poster_path": "/uFbYnHPb5YGgce3Un0bgBgbt8DI.jpg",
+"vote_average": 6.8,
+"vote_count": 148,
+"genre_ids": [
+28
+],
+"original_language": "zh"
+},
+{
+"id": 40863,
+"title": "Jackie Chan: My Stunts",
+"release_date": "1999-03-30",
+"media_type": "movie",
+"character": "Self",
+"order": 0,
+"poster_path": "/aSIkVfhD1MvI4r1pVhJIIPttpgJ.jpg",
+"vote_average": 7.2,
+"vote_count": 62,
+"genre_ids": [
+99
+],
+"original_language": "cn"
+},
+{
+"id": 35138,
+"title": "Little Big Soldier",
+"release_date": "2010-02-14",
+"media_type": "movie",
+"character": "The Liang soldier",
+"order": 0,
+"poster_path": "/uCSQnopQPIw58RKTfzoRYxq9It5.jpg",
+"vote_average": 6.876,
+"vote_count": 354,
+"genre_ids": [
+28,
+35,
+12
+],
+"original_language": "zh"
+},
+{
+"id": 35170,
+"title": "Snake & Crane Arts of Shaolin",
+"release_date": "1978-03-08",
+"media_type": "movie",
+"character": "Hsu Yin-Fung",
+"order": 0,
+"poster_path": "/r4okXfWfTdnZESaEkBeFnAJrTmI.jpg",
+"vote_average": 6.5,
+"vote_count": 94,
+"genre_ids": [
+28,
+18
+],
+"original_language": "cn"
+},
+{
+"id": 40572,
+"title": "How Bruce Lee Changed the World",
+"release_date": "2009-05-17",
+"media_type": "movie",
+"character": "Self",
+"order": 4,
+"poster_path": "/7Ogaw7mCHBPocOzYCl0Rc6UAAc3.jpg",
+"vote_average": 7.9,
+"vote_count": 34,
+"genre_ids": [
+99
+],
+"original_language": "en"
+},
+{
+"id": 36682,
+"title": "Hapkido",
+"release_date": "1972-10-01",
+"media_type": "movie",
+"character": "Black Bear Student (uncredited)",
+"order": 16,
+"poster_path": "/uT1OV1HZShs1j01D7RY342F0ivX.jpg",
+"vote_average": 6.9,
+"vote_count": 55,
+"genre_ids": [
+28,
+18
+],
+"original_language": "zh"
+},
+{
+"id": 38034,
+"title": "The Heroine",
+"release_date": "1973-04-26",
+"media_type": "movie",
+"character": "Gang Leader",
+"order": 9,
+"poster_path": "/1LfkWHskx9ESxdt5NbxzLeEfWBJ.jpg",
+"vote_average": 4.1,
+"vote_count": 73,
+"genre_ids": [
+28,
+80
+],
+"original_language": "cn"
+},
+{
+"id": 45197,
+"title": "The 7 Tyrants of Jiangnan",
+"release_date": "1962-12-05",
+"media_type": "movie",
+"character": "Kid",
+"order": 13,
+"poster_path": "/61t8Pc8irMj3ZUm60uLbmWoJbQl.jpg",
+"vote_average": 6.6,
+"vote_count": 6,
+"genre_ids": [
+28
+],
+"original_language": "cn"
+},
+{
+"id": 38425,
+"title": "Fantasy Mission Force",
+"release_date": "1983-02-13",
+"media_type": "movie",
+"character": "Sammy",
+"order": 0,
+"poster_path": "/irKjRoSKk8cywZ9UbYfFF5kmJrU.jpg",
+"vote_average": 4.8,
+"vote_count": 59,
+"genre_ids": [
+28,
+12,
+35,
+80,
+53
+],
+"original_language": "zh"
+},
+{
+"id": 917319,
+"title": "Good Night Beijing",
+"release_date": "2021-12-10",
+"media_type": "movie",
+"character": "Uncle Chen",
+"order": 4,
+"poster_path": "/7svHUceTi15bgFB8yupvgtNa0K.jpg",
+"vote_average": 3.3,
+"vote_count": 3,
+"genre_ids": [
+10749
+],
+"original_language": "zh"
+},
+{
+"id": 45408,
+"title": "The Protector",
+"release_date": "1985-06-15",
+"media_type": "movie",
+"character": "Billy Wong",
+"order": 0,
+"poster_path": "/ri2yctGQr4DPLBODZZ2Ky2yqBoL.jpg",
+"vote_average": 5.9,
+"vote_count": 215,
+"genre_ids": [
+28,
+80
+],
+"original_language": "en"
+},
+{
+"id": 38575,
+"title": "The Karate Kid",
+"release_date": "2010-06-10",
+"media_type": "movie",
+"character": "Mr. Han",
+"order": 1,
+"poster_path": "/b1RBy3l297N0c7PHjlz35cClWju.jpg",
+"vote_average": 6.568,
+"vote_count": 6765,
+"genre_ids": [
+28,
+12,
+18,
+10751
+],
+"original_language": "en"
+},
+{
+"id": 45682,
+"title": "Looking for Jackie",
+"release_date": "2009-07-03",
+"media_type": "movie",
+"character": "Jackie Chan",
+"order": 1,
+"poster_path": "/ds8xP7319zuPMa09kxzkIPBsHVL.jpg",
+"vote_average": 4.3,
+"vote_count": 67,
+"genre_ids": [
+28,
+35,
+10751
+],
+"original_language": "zh"
+},
+{
+"id": 16407,
+"title": "Dragon Lord",
+"release_date": "1982-01-21",
+"media_type": "movie",
+"character": "Ho Wan-Lung",
+"order": 0,
+"poster_path": "/qjQhm2jwV4DSTauOydFJVhVyMS3.jpg",
+"vote_average": 6.5,
+"vote_count": 165,
+"genre_ids": [
+28,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 46111,
+"title": "Killer Meteors",
+"release_date": "1976-08-21",
+"media_type": "movie",
+"character": "Immortal Meteor Wa Wu-Bin",
+"order": 1,
+"poster_path": "/kvQUJhLhfIVc1EB0wrofAy4Cohg.jpg",
+"vote_average": 4.83,
+"vote_count": 56,
+"genre_ids": [
+28,
+53
+],
+"original_language": "zh"
+},
+{
+"id": 46124,
+"title": "Dragon Fist",
+"release_date": "1979-04-21",
+"media_type": "movie",
+"character": "Tong Huo-Wan",
+"order": 0,
+"poster_path": "/4bTvTDjcbxdf8NvGTRacr9wM2jh.jpg",
+"vote_average": 6.3,
+"vote_count": 92,
+"genre_ids": [
+28,
+53
+],
+"original_language": "zh"
+},
+{
+"id": 46122,
+"title": "Jackie Chan: My Story",
+"release_date": "1998-07-17",
+"media_type": "movie",
+"character": "Self",
+"order": 0,
+"poster_path": "/kJnVff7qqEWeRZbILeZLW6fsn62.jpg",
+"vote_average": 6.3,
+"vote_count": 43,
+"genre_ids": [
+99
+],
+"original_language": "en"
+},
+{
+"id": 38955,
+"title": "Supercop 2",
+"release_date": "1993-10-21",
+"media_type": "movie",
+"character": "Inspector Chan Ka-Kui",
+"order": 12,
+"poster_path": "/wYGXe2BRIyNX2z7Y6UdQoiw8yfk.jpg",
+"vote_average": 5.724,
+"vote_count": 107,
+"genre_ids": [
+28,
+80,
+53,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 17457,
+"title": "The Twins Effect",
+"release_date": "2003-03-08",
+"media_type": "movie",
+"character": "Jackie Fong",
+"order": 4,
+"poster_path": "/frwUWEGWFiIlYekPRuZFG5N250Q.jpg",
+"vote_average": 6.1,
+"vote_count": 194,
+"genre_ids": [
+28,
+35,
+27
+],
+"original_language": "cn"
+},
+{
+"id": 1116465,
+"title": "A Legend",
+"release_date": "2024-07-05",
+"media_type": "movie",
+"character": "Professor Fang/Zhao Zhan",
+"order": 0,
+"poster_path": "/xCem4v2nLhV53ti2mIvxKImM3xo.jpg",
+"vote_average": 6.8,
+"vote_count": 171,
+"genre_ids": [
+28,
+12,
+14
+],
+"original_language": "zh"
+},
+{
+"id": 18666,
+"title": "New Fist of Fury",
+"release_date": "1976-07-08",
+"media_type": "movie",
+"character": "Lung",
+"order": 0,
+"poster_path": "/7Uk4Crwwuz3OHeEtOZIRxFSgSxY.jpg",
+"vote_average": 6,
+"vote_count": 100,
+"genre_ids": [
+28,
+53
+],
+"original_language": "zh"
+},
+{
+"id": 18707,
+"title": "Twinkle, Twinkle Lucky Stars",
+"release_date": "1985-08-15",
+"media_type": "movie",
+"character": "Muscles",
+"order": 2,
+"poster_path": "/ojeCl4Qw4CmMP7jjpiJU4ZlbsV.jpg",
+"vote_average": 6.465,
+"vote_count": 171,
+"genre_ids": [
+28,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 18735,
+"title": "Magnificent Bodyguards",
+"release_date": "1978-04-27",
+"media_type": "movie",
+"character": "Ting Chung",
+"order": 0,
+"poster_path": "/w2kb6XyPQjG9bSjitoSDgUATVfc.jpg",
+"vote_average": 6.1,
+"vote_count": 45,
+"genre_ids": [
+28
+],
+"original_language": "zh"
+},
+{
+"id": 49444,
+"title": "Kung Fu Panda 2",
+"release_date": "2011-05-25",
+"media_type": "movie",
+"character": "Monkey (voice)",
+"order": 4,
+"poster_path": "/mtqqD00vB4PGRt20gWtGqFhrkd0.jpg",
+"vote_average": 7.088,
+"vote_count": 8227,
+"genre_ids": [
+16,
+10751,
+35,
+28
+],
+"original_language": "en"
+},
+{
+"id": 18741,
+"title": "Fearless Hyena 2",
+"release_date": "1983-03-04",
+"media_type": "movie",
+"character": "Ching Lung (Stone)",
+"order": 0,
+"poster_path": "/wZgp7NKoJMrvDvsqYBXyRtzF2Qj.jpg",
+"vote_average": 5.8,
+"vote_count": 88,
+"genre_ids": [
+28,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 18760,
+"title": "Spiritual Kung Fu",
+"release_date": "1978-11-23",
+"media_type": "movie",
+"character": "Yi-Lang",
+"order": 0,
+"poster_path": "/5NwhAvXqaVDacl3fvXlfsYXt8Dw.jpg",
+"vote_average": 6.029,
+"vote_count": 105,
+"genre_ids": [
+28
+],
+"original_language": "cn"
+},
+{
+"id": 18758,
+"title": "To Kill with Intrigue",
+"release_date": "1977-07-22",
+"media_type": "movie",
+"character": "Cao Lei",
+"order": 0,
+"poster_path": "/n4tHrGkapp4LIN5kyj8IvjoYaUf.jpg",
+"vote_average": 5.611,
+"vote_count": 63,
+"genre_ids": [
+28,
+18
+],
+"original_language": "zh"
+},
+{
+"id": 18767,
+"title": "Island of Fire",
+"release_date": "1991-03-28",
+"media_type": "movie",
+"character": "Da Chui / Steve",
+"order": 2,
+"poster_path": "/1sGDNO8HlpcVmXpBxOAKEV270cI.jpg",
+"vote_average": 6.258,
+"vote_count": 151,
+"genre_ids": [
+28,
+80,
+18
+],
+"original_language": "cn"
+},
+{
+"id": 18763,
+"title": "Heart of Dragon",
+"release_date": "1985-09-14",
+"media_type": "movie",
+"character": "Fung / Ah Tad / Tat",
+"order": 0,
+"poster_path": "/hmMI1yb0yrpri1aanEjijdfxVL1.jpg",
+"vote_average": 7.031,
+"vote_count": 209,
+"genre_ids": [
+28,
+35,
+80,
+18,
+53
+],
+"original_language": "cn"
+},
+{
+"id": 18764,
+"title": "Twin Dragons",
+"release_date": "1992-01-15",
+"media_type": "movie",
+"character": "Ma Yau (John Ma) / Bok Min (Boomer)",
+"order": 0,
+"poster_path": "/tm153lMrHy6HykEYwoP0EI3dQ8k.jpg",
+"vote_average": 6.9,
+"vote_count": 474,
+"genre_ids": [
+28,
+35,
+80
+],
+"original_language": "cn"
+},
+{
+"id": 18857,
+"title": "Crime Story",
+"release_date": "1993-06-24",
+"media_type": "movie",
+"character": "Inspector Eddie Chan",
+"order": 0,
+"poster_path": "/1LzBLlptRC7ogT8OPi8cb0NrDQb.jpg",
+"vote_average": 6.8,
+"vote_count": 218,
+"genre_ids": [
+28,
+80,
+53,
+18
+],
+"original_language": "cn"
+},
+{
+"id": 18867,
+"title": "Half a Loaf of Kung Fu",
+"release_date": "1978-06-30",
+"media_type": "movie",
+"character": "Master Chang",
+"order": 0,
+"poster_path": "/lH11m3LC8itFSTWzkS4xVYL6nB.jpg",
+"vote_average": 6.2,
+"vote_count": 95,
+"genre_ids": [
+35,
+28
+],
+"original_language": "zh"
+},
+{
+"id": 50152,
+"title": "Traces of a Dragon: Jackie Chan & His Lost Family",
+"release_date": "2003-08-22",
+"media_type": "movie",
+"character": "Jackie Chan",
+"order": 0,
+"poster_path": "/wl51NY4kyq5gOjOxWZiZH3dNEua.jpg",
+"vote_average": 7,
+"vote_count": 6,
+"genre_ids": [
+99
+],
+"original_language": "zh"
+},
+{
+"id": 931102,
+"title": "Ride On",
+"release_date": "2023-04-07",
+"media_type": "movie",
+"character": "Luo Zhilong",
+"order": 0,
+"poster_path": "/7cVHSVDEltw7dO9t9ixClpQqekm.jpg",
+"vote_average": 7.16,
+"vote_count": 431,
+"genre_ids": [
+28,
+35,
+18
+],
+"original_language": "zh"
+},
+{
+"id": 69482,
+"title": "All in the Family",
+"release_date": "1975-02-08",
+"media_type": "movie",
+"character": "Hsiao Tang",
+"order": 12,
+"poster_path": "/lgRHKgvfkVNOoNiln8apMlLHQvp.jpg",
+"vote_average": 6.4,
+"vote_count": 12,
+"genre_ids": [
+35
+],
+"original_language": "en"
+},
+{
+"id": 19267,
+"title": "The Big Brawl",
+"release_date": "1980-08-18",
+"media_type": "movie",
+"character": "Jerry Kwan",
+"order": 0,
+"poster_path": "/jFl2hmGWFX9mw0NvOOn08Zr8bn5.jpg",
+"vote_average": 5.9,
+"vote_count": 203,
+"genre_ids": [
+28,
+35
+],
+"original_language": "en"
+},
+{
+"id": 1123344,
+"title": "The Invincible Fighter: The Jackie Chan Story",
+"release_date": "1996-06-25",
+"media_type": "movie",
+"character": "阿龙",
+"order": 0,
+"poster_path": "/pZ1C7QIspPCYD66ixkKi8hbO9m7.jpg",
+"vote_average": 0,
+"vote_count": 0,
+"genre_ids": [
+99
+],
+"original_language": "cn"
+},
+{
+"id": 19274,
+"title": "Fearless Hyena",
+"release_date": "1979-02-17",
+"media_type": "movie",
+"character": "Chan",
+"order": 0,
+"poster_path": "/bmQR6gtoBJHUkgALLb1eGruKPll.jpg",
+"vote_average": 6.7,
+"vote_count": 186,
+"genre_ids": [
+28,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 55292,
+"title": "Shaolin",
+"release_date": "2011-01-20",
+"media_type": "movie",
+"character": "Wudao",
+"order": 3,
+"poster_path": "/stvd0u2Pmy2VjdZHbFIEvCwDzRV.jpg",
+"vote_average": 6.843,
+"vote_count": 426,
+"genre_ids": [
+28,
+18
+],
+"original_language": "zh"
+},
+{
+"id": 937692,
+"title": "Someone Will Know Me",
+"release_date": "1988-01-01",
+"media_type": "movie",
+"character": "Self (uncredited)",
+"order": 4,
+"poster_path": "/p50RQd9lB1GHSgSP4BKTA7cuLyE.jpg",
+"vote_average": 0,
+"vote_count": 0,
+"genre_ids": [
+99
+],
+"original_language": "en"
+},
+{
+"id": 76349,
+"title": "1911",
+"release_date": "2011-09-23",
+"media_type": "movie",
+"character": "Huang Xing",
+"order": 0,
+"poster_path": "/k93DWz849jCsHW7rIbeUAIxewpr.jpg",
+"vote_average": 5.7,
+"vote_count": 170,
+"genre_ids": [
+12,
+18,
+28,
+36,
+10752
+],
+"original_language": "zh"
+},
+{
+"id": 126314,
+"title": "Final Cut: Ladies and Gentlemen",
+"release_date": "2012-02-04",
+"media_type": "movie",
+"character": "(archive footage)",
+"order": 10,
+"poster_path": "/tcHQiTS7pQUbwKrmGeW4reZuTxg.jpg",
+"vote_average": 7.484,
+"vote_count": 92,
+"genre_ids": [
+18,
+10749
+],
+"original_language": "hu"
+},
+{
+"id": 98567,
+"title": "Chinese Zodiac",
+"release_date": "2012-12-20",
+"media_type": "movie",
+"character": "Jackie / Asian Hawk",
+"order": 0,
+"poster_path": "/zlC6cN9dYIT6FjQVx026s9pFLIu.jpg",
+"vote_average": 6.186,
+"vote_count": 933,
+"genre_ids": [
+28,
+12
+],
+"original_language": "cn"
+},
+{
+"id": 1146173,
+"title": "\"Moon rises in the Bay Area\" 2023 Greater Bay Area Film and Music Gala",
+"release_date": "2023-06-29",
+"media_type": "movie",
+"character": "",
+"order": 0,
+"poster_path": "/vODmB0oWYFB7Z06WJICQFdmLRiI.jpg",
+"vote_average": 6.4,
+"vote_count": 5,
+"genre_ids": [
+10402
+],
+"original_language": "zh"
+},
+{
+"id": 1160956,
+"title": "Panda Plan",
+"release_date": "2024-10-01",
+"media_type": "movie",
+"character": "Jackie",
+"order": 0,
+"poster_path": "/8iMPQl13q89jQhaA5nXb6UiT0t0.jpg",
+"vote_average": 6.9,
+"vote_count": 317,
+"genre_ids": [
+28,
+35
+],
+"original_language": "zh"
+},
+{
+"id": 1011477,
+"title": "Karate Kid: Legends",
+"release_date": "2025-05-08",
+"media_type": "movie",
+"character": "Mr. Han",
+"order": 0,
+"poster_path": "/c90Lt7OQGsOmhv6x4JoFdoHzw5l.jpg",
+"vote_average": 6.976,
+"vote_count": 1331,
+"genre_ids": [
+28,
+12,
+18
+],
+"original_language": "en"
+},
+{
+"id": 320979,
+"title": "Impetuous Love in Action",
+"release_date": "2014-05-23",
+"media_type": "movie",
+"character": "",
+"order": 14,
+"poster_path": "/qrE5lKpMJ3nSTqQIcTne3Ic63dg.jpg",
+"vote_average": 6.5,
+"vote_count": 4,
+"genre_ids": [
+28,
+35
+],
+"original_language": "zh"
+},
+{
+"id": 174108,
+"title": "Pom Pom",
+"release_date": "1984-02-22",
+"media_type": "movie",
+"character": "Motorcycle Cop / Skater",
+"order": 20,
+"poster_path": "/613fiyaVDRGMDo354I3YrfThrZk.jpg",
+"vote_average": 6.4,
+"vote_count": 17,
+"genre_ids": [
+28,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 976183,
+"title": "Jackie Chan's Green Heroes",
+"release_date": "2018-04-18",
+"media_type": "movie",
+"character": "Self",
+"order": 0,
+"poster_path": "/8v3yktc1HomrtoVmTwPzVLBkeX0.jpg",
+"vote_average": 0,
+"vote_count": 0,
+"genre_ids": [
+10770,
+99
+],
+"original_language": "en"
+},
+{
+"id": 86275,
+"title": "The Black Tavern",
+"release_date": "1972-12-16",
+"media_type": "movie",
+"character": "Servant (uncredited)",
+"order": 34,
+"poster_path": "/ySjUQjYTX8Me1r6eDCfKuqfZBZr.jpg",
+"vote_average": 6,
+"vote_count": 12,
+"genre_ids": [
+28,
+18
+],
+"original_language": "zh"
+},
+{
+"id": 107840,
+"title": "The Golden Lion",
+"release_date": "1975-12-21",
+"media_type": "movie",
+"character": "Golden Lion Gang Member",
+"order": 30,
+"poster_path": "/yDhyIfEfUmabNv0UATQR9nxMfKH.jpg",
+"vote_average": 7.2,
+"vote_count": 6,
+"genre_ids": [
+28,
+18
+],
+"original_language": "zh"
+},
+{
+"id": 219572,
+"title": "Police Story: Lockdown",
+"release_date": "2013-12-24",
+"media_type": "movie",
+"character": "Zhong Wen",
+"order": 0,
+"poster_path": "/iYukEgKMbbWr05s4nIvGqYGt84z.jpg",
+"vote_average": 6.218,
+"vote_count": 443,
+"genre_ids": [
+28,
+80,
+18
+],
+"original_language": "zh"
+},
+{
+"id": 245592,
+"title": "None But the Brave",
+"release_date": "1973-05-09",
+"media_type": "movie",
+"character": "Japanese",
+"order": 19,
+"poster_path": "/vMkwrt30p09NH4XdQ1RSf6N7sqw.jpg",
+"vote_average": 6.3,
+"vote_count": 7,
+"genre_ids": [
+28,
+18
+],
+"original_language": "zh"
+},
+{
+"id": 247954,
+"title": "As the Light Goes Out",
+"release_date": "2014-01-02",
+"media_type": "movie",
+"character": "Fireman in TV adv. - Jackie Chan",
+"order": 13,
+"poster_path": "/5HKm1a5k8oAY12mHpn5spXypXxy.jpg",
+"vote_average": 6.2,
+"vote_count": 64,
+"genre_ids": [
+18,
+28
+],
+"original_language": "cn"
+},
+{
+"id": 53168,
+"title": "King of Comedy",
+"release_date": "1999-02-08",
+"media_type": "movie",
+"character": "Stunt Double on Set (uncredited)",
+"order": 18,
+"poster_path": "/dmJWvKNgeCrIwJH6AapdSMiZHop.jpg",
+"vote_average": 7.4,
+"vote_count": 219,
+"genre_ids": [
+35,
+18,
+10749
+],
+"original_language": "cn"
+},
+{
+"id": 998413,
+"title": "Celebrating Hong Kong's 25th Anniversary of the Return of the Motherland",
+"release_date": "2022-07-01",
+"media_type": "movie",
+"character": "",
+"order": 8,
+"poster_path": "/jiFvQitShlpGAjHHZPrErEFi577.jpg",
+"vote_average": 0,
+"vote_count": 0,
+"genre_ids": [
+99,
+10402
+],
+"original_language": "zh"
+},
+{
+"id": 270774,
+"title": "Skiptrace",
+"release_date": "2016-07-21",
+"media_type": "movie",
+"character": "Bennie Chan",
+"order": 0,
+"poster_path": "/jki396PIIGja0NoFjUq1AdBbMGc.jpg",
+"vote_average": 5.8,
+"vote_count": 795,
+"genre_ids": [
+28,
+12,
+80,
+35
+],
+"original_language": "en"
+},
+{
+"id": 130473,
+"title": "The Brutal Boxer",
+"release_date": "1972-10-04",
+"media_type": "movie",
+"character": "Thug",
+"order": 6,
+"poster_path": "/opKxJAcrfAEYxMnUYP3cIFUabjd.jpg",
+"vote_average": 5.1,
+"vote_count": 9,
+"genre_ids": [
+18,
+28
+],
+"original_language": "zh"
+},
+{
+"id": 1212471,
+"title": "Robin Williams: Laugh Until You Cry",
+"release_date": "2022-03-30",
+"media_type": "movie",
+"character": "Self",
+"order": 2,
+"poster_path": "/nnNmRLcAeugdaBvVaZHv31xm3tJ.jpg",
+"vote_average": 9.3,
+"vote_count": 3,
+"genre_ids": [
+99
+],
+"original_language": "en"
+},
+{
+"id": 351719,
+"title": "Fire Dragon",
+"release_date": "1983-09-02",
+"media_type": "movie",
+"character": "Sammy (archive footage)",
+"order": 6,
+"poster_path": "/4JuRNKiNdP4ZO6WI3x3llmCoENN.jpg",
+"vote_average": 5.2,
+"vote_count": 6,
+"genre_ids": [
+28
+],
+"original_language": "zh"
+},
+{
+"id": 1016254,
+"title": "The Making of Who Am I",
+"release_date": "1998-01-01",
+"media_type": "movie",
+"character": "Self",
+"order": 0,
+"poster_path": "/jxn5w9UnMg3IoICWDXEscX2Cjso.jpg",
+"vote_average": 6,
+"vote_count": 1,
+"genre_ids": [
+99
+],
+"original_language": "zh"
+},
+{
+"id": 600025,
+"title": "Come Home Gary Glitter",
+"release_date": "2005-12-05",
+"media_type": "movie",
+"character": "Self",
+"order": 3,
+"poster_path": "/rSEDeEJdlwCIoHTZlqDbHyd0rPn.jpg",
+"vote_average": 8,
+"vote_count": 1,
+"genre_ids": [
+99
+],
+"original_language": "en"
+},
+{
+"id": 300168,
+"title": "Dragon Blade",
+"release_date": "2015-02-19",
+"media_type": "movie",
+"character": "Huo Han",
+"order": 0,
+"poster_path": "/hrEbZNZQ385i4snYWyCDpYrEofO.jpg",
+"vote_average": 6.417,
+"vote_count": 659,
+"genre_ids": [
+12,
+36,
+28,
+14
+],
+"original_language": "zh"
+},
+{
+"id": 50151,
+"title": "Top Fighter",
+"release_date": "1995-06-15",
+"media_type": "movie",
+"character": "Self",
+"order": 0,
+"poster_path": "/7ox6gdXTuyJi0sQCBP1VFCJCg8r.jpg",
+"vote_average": 6.6,
+"vote_count": 13,
+"genre_ids": [
+99,
+28
+],
+"original_language": "en"
+},
+{
+"id": 25626,
+"title": "The Founding of a Republic",
+"release_date": "2009-09-17",
+"media_type": "movie",
+"character": "Reporter",
+"order": 8,
+"poster_path": "/97DSzO3TL5MjEJ7jg08ahdXrOTD.jpg",
+"vote_average": 5.3,
+"vote_count": 70,
+"genre_ids": [
+18,
+36
+],
+"original_language": "zh"
+},
+{
+"id": 74266,
+"title": "The Blade Spares None",
+"release_date": "1971-04-30",
+"media_type": "movie",
+"character": "Prince's Fighter in the Forest",
+"order": 18,
+"poster_path": "/9cYTW8RWiS6Xvi3Qsd5LdXPslqx.jpg",
+"vote_average": 8,
+"vote_count": 2,
+"genre_ids": [
+18,
+28
+],
+"original_language": "zh"
+},
+{
+"id": 50147,
+"title": "Naughty Boys",
+"release_date": "1986-07-25",
+"media_type": "movie",
+"character": "Prisoner",
+"order": 19,
+"poster_path": "/4Vlyl1NUBPz9vZL4yF8Zv4p7fs3.jpg",
+"vote_average": 5.2,
+"vote_count": 15,
+"genre_ids": [
+28,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 48294,
+"title": "Fist to Fist",
+"release_date": "1973-09-01",
+"media_type": "movie",
+"character": "Guard",
+"order": 28,
+"poster_path": "/7UMY0m7JWkgXSp7UDtacgbGMq2v.jpg",
+"vote_average": 6.6,
+"vote_count": 11,
+"genre_ids": [
+28
+],
+"original_language": "cn"
+},
+{
+"id": 1241792,
+"title": "Henan Spring Festival Gala 2024",
+"release_date": "2024-02-07",
+"media_type": "movie",
+"character": "演唱",
+"order": 3,
+"poster_path": "/xMl9EZdI4hqvsCt5E9iWURB7vY5.jpg",
+"vote_average": 9,
+"vote_count": 3,
+"genre_ids": [
+10402
+],
+"original_language": "zh"
+},
+{
+"id": 187432,
+"title": "Facets of Love",
+"release_date": "1973-04-05",
+"media_type": "movie",
+"character": "Xiao Liu",
+"order": 31,
+"poster_path": "/7gECoDdL1qv0jPZs7baL2GRMPVG.jpg",
+"vote_average": 7.2,
+"vote_count": 5,
+"genre_ids": [
+18,
+10749,
+36
+],
+"original_language": "zh"
+},
+{
+"id": 165343,
+"title": "Masters of the Martial Arts Presented by Wesley Snipes",
+"release_date": "1998-08-18",
+"media_type": "movie",
+"character": "Self",
+"order": 1,
+"poster_path": "/71ybAjosGUER1a1IqZEO74CraEm.jpg",
+"vote_average": 9,
+"vote_count": 4,
+"genre_ids": [
+99
+],
+"original_language": "en"
+},
+{
+"id": 118483,
+"title": "The Art of Action: Martial Arts in the Movies",
+"release_date": "2002-06-01",
+"media_type": "movie",
+"character": "Self - Interviewee",
+"order": 1,
+"poster_path": "/6iAptuGwI1q64tsAgiaQ9tVxMTj.jpg",
+"vote_average": 5.8,
+"vote_count": 14,
+"genre_ids": [
+99
+],
+"original_language": "en"
+},
+{
+"id": 78149,
+"title": "An Alan Smithee Film: Burn, Hollywood, Burn",
+"release_date": "1998-02-27",
+"media_type": "movie",
+"character": "Jackie Chan",
+"order": 6,
+"poster_path": "/KSGv5uV6SJS7mUMlttvLfWA6Lv.jpg",
+"vote_average": 3.9,
+"vote_count": 58,
+"genre_ids": [
+35
+],
+"original_language": "en"
+},
+{
+"id": 377447,
+"title": "Railroad Tigers",
+"release_date": "2016-12-23",
+"media_type": "movie",
+"character": "Ma Yuan",
+"order": 0,
+"poster_path": "/1aSkP9geZCbqIoxjF7Jy9dT8UfY.jpg",
+"vote_average": 6.1,
+"vote_count": 159,
+"genre_ids": [
+28,
+12,
+35,
+10751,
+10752
+],
+"original_language": "zh"
+},
+{
+"id": 374699,
+"title": "Jackie Chan's Hong Kong Tour",
+"release_date": "2001-01-01",
+"media_type": "movie",
+"character": "Self - Narrator",
+"order": 0,
+"poster_path": "/hlv18qCZqteB3JvZPhl02Dc9OBQ.jpg",
+"vote_average": 7,
+"vote_count": 3,
+"genre_ids": [
+99
+],
+"original_language": "en"
+},
+{
+"id": 379149,
+"title": "The Foreigner",
+"release_date": "2017-09-28",
+"media_type": "movie",
+"character": "Quan Ngoc Minh",
+"order": 1,
+"poster_path": "/rwM4hzrmc5HiWfQD9ls9DL4QgGl.jpg",
+"vote_average": 6.982,
+"vote_count": 3074,
+"genre_ids": [
+28,
+53,
+80
+],
+"original_language": "en"
+},
+{
+"id": 50146,
+"title": "The Golden Lotus",
+"release_date": "1974-01-17",
+"media_type": "movie",
+"character": "Pear Hawker Yun",
+"order": 10,
+"poster_path": "/woB42KiNtESKv9O0h5yOYBYzm0m.jpg",
+"vote_average": 7,
+"vote_count": 73,
+"genre_ids": [
+10749,
+28,
+18
+],
+"original_language": "zh"
+},
+{
+"id": 383785,
+"title": "Kung Fu Yoga",
+"release_date": "2017-01-27",
+"media_type": "movie",
+"character": "Dr. Jack Chan",
+"order": 0,
+"poster_path": "/rL6XM4fsr1cM5mN2flEhQ8jQter.jpg",
+"vote_average": 5.873,
+"vote_count": 450,
+"genre_ids": [
+35,
+9648,
+10751,
+28,
+12
+],
+"original_language": "zh"
+},
+{
+"id": 140300,
+"title": "Kung Fu Panda 3",
+"release_date": "2016-01-23",
+"media_type": "movie",
+"character": "Monkey (voice)",
+"order": 5,
+"poster_path": "/oajNi4Su39WAByHI6EONu8G8HYn.jpg",
+"vote_average": 6.94,
+"vote_count": 6840,
+"genre_ids": [
+16,
+28,
+12,
+35,
+10751
+],
+"original_language": "en"
+},
+{
+"id": 46114,
+"title": "Jackie Chan and the 36 Crazy Fist",
+"release_date": "1977-01-01",
+"media_type": "movie",
+"character": "Man in Opening Scene",
+"order": 14,
+"poster_path": "/b7zAv5Pbt1zJ9Jg90W6iustsB7g.jpg",
+"vote_average": 5.4,
+"vote_count": 21,
+"genre_ids": [
+28,
+35
+],
+"original_language": "zh"
+},
+{
+"id": 50154,
+"title": "A Kid from Tibet",
+"release_date": "1992-01-10",
+"media_type": "movie",
+"character": "Man at Airport",
+"order": 16,
+"poster_path": "/9bVHHXTFD9UES7AUf6MeL2aLyqE.jpg",
+"vote_average": 6,
+"vote_count": 11,
+"genre_ids": [
+14,
+28
+],
+"original_language": "cn"
+},
+{
+"id": 274862,
+"title": "The Lego Ninjago Movie",
+"release_date": "2017-09-21",
+"media_type": "movie",
+"character": "Master Wu / Mr. Liu (voice)",
+"order": 8,
+"poster_path": "/vUo0pNXGhp2ffTJxiStWt6fHL7F.jpg",
+"vote_average": 6.5,
+"vote_count": 1219,
+"genre_ids": [
+16,
+35,
+12,
+28,
+10751
+],
+"original_language": "en"
+},
+{
+"id": 1313181,
+"title": "Jackie Chan: Down to Earth",
+"release_date": "",
+"media_type": "movie",
+"character": "Self",
+"order": 0,
+"poster_path": null,
+"vote_average": 0,
+"vote_count": 0,
+"genre_ids": [
+99
+],
+"original_language": "en"
+},
+{
+"id": 54861,
+"title": "Freedom Strikes a Blow",
+"release_date": "1973-03-05",
+"media_type": "movie",
+"character": "Liang's Thug (uncredited)",
+"order": 19,
+"poster_path": "/cspCpdH5KNnkRx5iLijCrFfC01m.jpg",
+"vote_average": 5.4,
+"vote_count": 16,
+"genre_ids": [
+28
+],
+"original_language": "cn"
+},
+{
+"id": 149640,
+"title": "The Awaken Punch",
+"release_date": "1973-05-23",
+"media_type": "movie",
+"character": "Thug",
+"order": 16,
+"poster_path": "/n88eVGeDtc1s4ApUoLttdNYXPck.jpg",
+"vote_average": 6.1,
+"vote_count": 7,
+"genre_ids": [
+28
+],
+"original_language": "cn"
+},
+{
+"id": 107899,
+"title": "Lady of Steel",
+"release_date": "1970-02-27",
+"media_type": "movie",
+"character": "Beggar Kid (uncredited)",
+"order": 16,
+"poster_path": "/pqfAPY6SFubb7pdc1OREk9Vhwqd.jpg",
+"vote_average": 6.1,
+"vote_count": 18,
+"genre_ids": [
+28,
+12
+],
+"original_language": "zh"
+},
+{
+"id": 127461,
+"title": "Fist of Unicorn",
+"release_date": "1973-03-01",
+"media_type": "movie",
+"character": "Thug",
+"order": 36,
+"poster_path": "/24vaDsQQrzH4rwkYhGJVVLlavhQ.jpg",
+"vote_average": 5,
+"vote_count": 19,
+"genre_ids": [
+28
+],
+"original_language": "zh"
+},
+{
+"id": 50148,
+"title": "No End of Surprises",
+"release_date": "1975-12-05",
+"media_type": "movie",
+"character": "Secretary Chen",
+"order": 0,
+"poster_path": "/nfa1AnVuK3JCJzuubkMdpaaGIbq.jpg",
+"vote_average": 8,
+"vote_count": 2,
+"genre_ids": [
+18
+],
+"original_language": "cn"
+},
+{
+"id": 9461,
+"title": "Enter the Dragon",
+"release_date": "1973-08-17",
+"media_type": "movie",
+"character": "Guard (uncredited)",
+"order": 14,
+"poster_path": "/fyrh2ULEcmLpGTVLPQqFW45hqr5.jpg",
+"vote_average": 7.414,
+"vote_count": 2187,
+"genre_ids": [
+28
+],
+"original_language": "en"
+},
+{
+"id": 299041,
+"title": "The Himalayan",
+"release_date": "1976-02-20",
+"media_type": "movie",
+"character": "Tseng's Man",
+"order": 15,
+"poster_path": "/qoDuwsruZNDLyirZKoRLVkcUfKs.jpg",
+"vote_average": 4.9,
+"vote_count": 8,
+"genre_ids": [
+18,
+28
+],
+"original_language": "zh"
+},
+{
+"id": 417321,
+"title": "The Master: A LEGO Ninjago Short",
+"release_date": "2016-09-22",
+"media_type": "movie",
+"character": "Master Wu (Voice)",
+"order": 0,
+"poster_path": "/y9o53sSsiZHjFeOwghViw99KnAI.jpg",
+"vote_average": 6.4,
+"vote_count": 31,
+"genre_ids": [
+16,
+35,
+28,
+10751
+],
+"original_language": "en"
+},
+{
+"id": 428045,
+"title": "Iron Mask",
+"release_date": "2019-08-16",
+"media_type": "movie",
+"character": "Master",
+"order": 4,
+"poster_path": "/nM6Mf4UIp8Uw6Jgw40WlY9OnQOS.jpg",
+"vote_average": 6.075,
+"vote_count": 577,
+"genre_ids": [
+28,
+12,
+10751,
+14
+],
+"original_language": "ru"
+},
+{
+"id": 118545,
+"title": "Cinema Hong Kong: Kung Fu",
+"release_date": "2003-01-01",
+"media_type": "movie",
+"character": "Self",
+"order": 0,
+"poster_path": "/itZn7x7TpRltlfZF4Xz9eHqfomK.jpg",
+"vote_average": 7.1,
+"vote_count": 8,
+"genre_ids": [
+99,
+10770
+],
+"original_language": "cn"
+},
+{
+"id": 457332,
+"title": "Hidden Strike",
+"release_date": "2023-07-06",
+"media_type": "movie",
+"character": "Dragon Luo",
+"order": 0,
+"poster_path": "/zsbolOkw8RhTU4DKOrpf4M7KCmi.jpg",
+"vote_average": 6.867,
+"vote_count": 1109,
+"genre_ids": [
+28,
+35,
+53,
+12
+],
+"original_language": "en"
+},
+{
+"id": 93412,
+"title": "Golden Chicken 2",
+"release_date": "2003-12-24",
+"media_type": "movie",
+"character": "Self (archive footage) (uncredited)",
+"order": 17,
+"poster_path": "/hgJLMYPpOKiwKQmQzHVuEaS91RW.jpg",
+"vote_average": 7,
+"vote_count": 19,
+"genre_ids": [
+18,
+35,
+10749
+],
+"original_language": "cn"
+},
+{
+"id": 52730,
+"title": "Golden Chicken",
+"release_date": "2002-12-26",
+"media_type": "movie",
+"character": "Self (archive footage) (uncredited)",
+"order": 12,
+"poster_path": "/qS60E7qVvNl56nAeAt0wFSCmoRw.jpg",
+"vote_average": 6.5,
+"vote_count": 39,
+"genre_ids": [
+35,
+18
+],
+"original_language": "cn"
+},
+{
+"id": 460003,
+"title": "The Story of Qin Xiang-Lian",
+"release_date": "1964-07-18",
+"media_type": "movie",
+"character": "Brother Dong",
+"order": 4,
+"poster_path": "/lNyxRQR5ffeyrdCSRRkHjgUGksn.jpg",
+"vote_average": 8,
+"vote_count": 2,
+"genre_ids": [
+18,
+36
+],
+"original_language": "zh"
+},
+{
+"id": 187473,
+"title": "Village of Tigers",
+"release_date": "1974-01-12",
+"media_type": "movie",
+"character": "Bandit",
+"order": 36,
+"poster_path": "/xtBQ2Uofc85PGprPfkl4KgW4sCI.jpg",
+"vote_average": 7.2,
+"vote_count": 7,
+"genre_ids": [
+28,
+18
+],
+"original_language": "zh"
+},
+{
+"id": 107891,
+"title": "Ambush",
+"release_date": "1973-01-05",
+"media_type": "movie",
+"character": "",
+"order": 31,
+"poster_path": "/y50us6V6SRAL6fL4UWixpvkr658.jpg",
+"vote_average": 5.8,
+"vote_count": 11,
+"genre_ids": [
+28,
+12,
+27
+],
+"original_language": "zh"
+},
+{
+"id": 460079,
+"title": "The Eighteen Darts (Part 1)",
+"release_date": "1966-08-23",
+"media_type": "movie",
+"character": "Seven Little Tigers",
+"order": 0,
+"poster_path": "/hojgzSazmlGej5x6GZyOeSZFvv3.jpg",
+"vote_average": 0,
+"vote_count": 0,
+"genre_ids": [
+18
+],
+"original_language": "cn"
+},
+{
+"id": 460080,
+"title": "The Eighteen Darts (Part 2)",
+"release_date": "1966-08-30",
+"media_type": "movie",
+"character": "Seven Little Tigers",
+"order": 0,
+"poster_path": "/1fuAZbhK0Kw15RrkpAGgMY7HBxj.jpg",
+"vote_average": 0,
+"vote_count": 0,
+"genre_ids": [
+18
+],
+"original_language": "cn"
+},
+{
+"id": 460648,
+"title": "Bleeding Steel",
+"release_date": "2017-12-18",
+"media_type": "movie",
+"character": "Lin Dong",
+"order": 0,
+"poster_path": "/vL1KMUr0Jj6kEZ5YPZO7VQBZMLl.jpg",
+"vote_average": 6,
+"vote_count": 593,
+"genre_ids": [
+878,
+28,
+12,
+53
+],
+"original_language": "zh"
+},
+{
+"id": 11713,
+"title": "Fist of Fury",
+"release_date": "1972-03-22",
+"media_type": "movie",
+"character": "Student (uncredited)",
+"order": 19,
+"poster_path": "/dlcipCOa9hlfBBz7kCAyjsf3q0E.jpg",
+"vote_average": 7.2,
+"vote_count": 1124,
+"genre_ids": [
+18,
+28,
+53
+],
+"original_language": "zh"
+},
+{
+"id": 187447,
+"title": "Supermen Against the Orient",
+"release_date": "1973-11-29",
+"media_type": "movie",
+"character": "(uncredited)",
+"order": 51,
+"poster_path": "/udmuurv6bXVmPMkIg8iSqieDt7S.jpg",
+"vote_average": 5.4,
+"vote_count": 9,
+"genre_ids": [
+28,
+35
+],
+"original_language": "it"
+},
+{
+"id": 231173,
+"title": "The Heavenly Kings",
+"release_date": "2006-06-23",
+"media_type": "movie",
+"character": "Jackie Chan",
+"order": 3,
+"poster_path": "/8JGW91cBehqD5w8Joch1JXpdb0D.jpg",
+"vote_average": 6,
+"vote_count": 5,
+"genre_ids": [
+35,
+10402
+],
+"original_language": "cn"
+},
+{
+"id": 464642,
+"title": "Magic & Me",
+"release_date": "2006-01-01",
+"media_type": "movie",
+"character": "Self",
+"order": 0,
+"poster_path": "/5ZdwRXS62eseTo6yhHW7kTVBrwc.jpg",
+"vote_average": 0,
+"vote_count": 0,
+"genre_ids": [
+35,
+99
+],
+"original_language": "cn"
+},
+{
+"id": 243919,
+"title": "Personal Tailor",
+"release_date": "2013-12-19",
+"media_type": "movie",
+"character": "Pan-Pacific Host",
+"order": 7,
+"poster_path": "/ruaZ7fM9jddXdO3g5AQCt8aAxSg.jpg",
+"vote_average": 4.86,
+"vote_count": 57,
+"genre_ids": [
+35,
+18
+],
+"original_language": "zh"
+},
+{
+"id": 307466,
+"title": "The Legend of Silk Boy",
+"release_date": "2010-01-01",
+"media_type": "movie",
+"character": "Xu Rongcun [voice]",
+"order": 0,
+"poster_path": "/e1xQblpHG6jVSthc7RVPZ4KR77a.jpg",
+"vote_average": 4,
+"vote_count": 5,
+"genre_ids": [
+16
+],
+"original_language": "zh"
+},
+{
+"id": 167679,
+"title": "The Life of Bruce Lee",
+"release_date": "1994-01-01",
+"media_type": "movie",
+"character": "Self - Actor",
+"order": 0,
+"poster_path": "/dXCuW2urSFcNAxLtxhwxqQePZUB.jpg",
+"vote_average": 7.2,
+"vote_count": 8,
+"genre_ids": [
+99
+],
+"original_language": "en"
+},
+{
+"id": 468299,
+"title": "Jackie Chan - From Stuntman to Superstar",
+"release_date": "1996-08-30",
+"media_type": "movie",
+"character": "Self",
+"order": 0,
+"poster_path": "/iVRYqQeud5Qonn2CPFMkqkGBEPS.jpg",
+"vote_average": 7.4,
+"vote_count": 7,
+"genre_ids": [
+99
+],
+"original_language": "en"
+},
+{
+"id": 50393,
+"title": "Kung Fu Panda Holiday",
+"release_date": "2010-11-26",
+"media_type": "movie",
+"character": "Monkey (voice)",
+"order": 9,
+"poster_path": "/vJv3pI8pyS13rLjy0ok7a3BiE0a.jpg",
+"vote_average": 7.02,
+"vote_count": 396,
+"genre_ids": [
+16,
+10751,
+10770,
+35,
+14
+],
+"original_language": "en"
+},
+{
+"id": 167675,
+"title": "The Path of the Dragon",
+"release_date": "1998-01-01",
+"media_type": "movie",
+"character": "Self",
+"order": 0,
+"poster_path": "/v226fUcRti1KmkfbpFPTNdAH0wH.jpg",
+"vote_average": 6.8,
+"vote_count": 10,
+"genre_ids": [
+99,
+36
+],
+"original_language": "en"
+},
+{
+"id": 335777,
+"title": "The Nut Job 2: Nutty by Nature",
+"release_date": "2017-08-11",
+"media_type": "movie",
+"character": "Mr. Feng (voice)",
+"order": 10,
+"poster_path": "/xOfdQHNF9TlrdujyAjiKfUhxSXy.jpg",
+"vote_average": 6.2,
+"vote_count": 488,
+"genre_ids": [
+16,
+10751,
+12,
+35
+],
+"original_language": "en"
+},
+{
+"id": 493203,
+"title": "Eastern Heroes: The Video Magazine - Volume 1",
+"release_date": "1995-07-22",
+"media_type": "movie",
+"character": "Self",
+"order": 1,
+"poster_path": "/aewFVSvTTBcMyGLzgfePScUL5ye.jpg",
+"vote_average": 9,
+"vote_count": 2,
+"genre_ids": [
+99
+],
+"original_language": "en"
+},
+{
+"id": 493226,
+"title": "Jackie Chan's Global Friendship Tour",
+"release_date": "2006-05-01",
+"media_type": "movie",
+"character": "Self",
+"order": 0,
+"poster_path": "/6oYj2niQFO3wgH7762eP50e7Dp0.jpg",
+"vote_average": 5,
+"vote_count": 1,
+"genre_ids": [
+99
+],
+"original_language": "en"
+},
+{
+"id": 64919,
+"title": "Augustin, King of Kung-Fu",
+"release_date": "1999-08-25",
+"media_type": "movie",
+"character": "[archive footage]",
+"order": 4,
+"poster_path": "/tKzm2brQ1mO7gkRtIbQodBSAljh.jpg",
+"vote_average": 7.1,
+"vote_count": 18,
+"genre_ids": [
+35
+],
+"original_language": "fr"
+},
+{
+"id": 494734,
+"title": "Namiya",
+"release_date": "2017-12-29",
+"media_type": "movie",
+"character": "Namiya",
+"order": 0,
+"poster_path": "/yp092mac1DtWFBG9yXd7BLWeeDM.jpg",
+"vote_average": 5.7,
+"vote_count": 27,
+"genre_ids": [
+14,
+18,
+10751
+],
+"original_language": "zh"
+},
+{
+"id": 515737,
+"title": "Hong Kong Superstars",
+"release_date": "2001-01-01",
+"media_type": "movie",
+"character": "Self",
+"order": 1,
+"poster_path": "/111XsXPuG5mfL6QzZFOywXq9zGW.jpg",
+"vote_average": 10,
+"vote_count": 2,
+"genre_ids": [
+99
+],
+"original_language": "en"
+},
+{
+"id": 167684,
+"title": "Bruce Lee: The Legend Lives On",
+"release_date": "1999-01-01",
+"media_type": "movie",
+"character": "Self (uncredited)",
+"order": 0,
+"poster_path": "/2jbCyoSCJpUadaLNvxXbjK25XTu.jpg",
+"vote_average": 8,
+"vote_count": 2,
+"genre_ids": [
+99
+],
+"original_language": "en"
+},
+{
+"id": 512901,
+"title": "The Knight of Shadows: Between Yin and Yang",
+"release_date": "2019-02-05",
+"media_type": "movie",
+"character": "Pu Songling",
+"order": 0,
+"poster_path": "/x2n0On0tEvlPiXVqajPYbPYJtn0.jpg",
+"vote_average": 5.6,
+"vote_count": 152,
+"genre_ids": [
+28,
+12,
+10751,
+14,
+10749
+],
+"original_language": "zh"
+},
+{
+"id": 311494,
+"title": "Jackie Chan Adventures: The Search for the Talismans",
+"release_date": "2001-01-01",
+"media_type": "movie",
+"character": "",
+"order": 0,
+"poster_path": "/zkBHxQBkebgPhsdeckyKobsJIAZ.jpg",
+"vote_average": 8,
+"vote_count": 6,
+"genre_ids": [
+16
+],
+"original_language": "en"
+},
+{
+"id": 21522,
+"title": "Enter the Phoenix",
+"release_date": "2004-04-08",
+"media_type": "movie",
+"character": "Mr. Chan",
+"order": 13,
+"poster_path": "/wwGS2UMI635naMjZUnCbvc0xRdY.jpg",
+"vote_average": 6.4,
+"vote_count": 45,
+"genre_ids": [
+53,
+28,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 601493,
+"title": "The Climbers",
+"release_date": "2019-09-30",
+"media_type": "movie",
+"character": "Old Yang Guang",
+"order": 8,
+"poster_path": "/l3rBX4qPCqkoMq3bjamyKmAkcoG.jpg",
+"vote_average": 6.3,
+"vote_count": 65,
+"genre_ids": [
+12,
+28,
+18,
+36
+],
+"original_language": "zh"
+},
+{
+"id": 34800,
+"title": "The Cub Tiger from Kwang Tung",
+"release_date": "1973-03-31",
+"media_type": "movie",
+"character": "Hsiao Hu",
+"order": 0,
+"poster_path": "/3Qf9OEhcYM3zW5e9ZGtJ6IQ53sY.jpg",
+"vote_average": 5.228,
+"vote_count": 79,
+"genre_ids": [
+28,
+35,
+18
+],
+"original_language": "cn"
+},
+{
+"id": 383944,
+"title": "The Moment: Fifty Years of Golden Horse",
+"release_date": "2016-03-04",
+"media_type": "movie",
+"character": "Self",
+"order": 2,
+"poster_path": "/rIiFfZNJRTPxkQcywNNFXFAnz7I.jpg",
+"vote_average": 0,
+"vote_count": 0,
+"genre_ids": [
+99
+],
+"original_language": "zh"
+},
+{
+"id": 38099,
+"title": "Hand of Death",
+"release_date": "1976-07-15",
+"media_type": "movie",
+"character": "Little Tan",
+"order": 2,
+"poster_path": "/sbfkPstyOmJrxuL1CNBEWaHUbCN.jpg",
+"vote_average": 6.63,
+"vote_count": 100,
+"genre_ids": [
+28
+],
+"original_language": "zh"
+},
+{
+"id": 604822,
+"title": "Vanguard",
+"release_date": "2020-01-22",
+"media_type": "movie",
+"character": "Tang Huanting",
+"order": 0,
+"poster_path": "/mKvw1Ic9enfFlCPBNJGiejRPMUO.jpg",
+"vote_average": 6.4,
+"vote_count": 627,
+"genre_ids": [
+28,
+12,
+35,
+80,
+53
+],
+"original_language": "zh"
+},
+{
+"id": 600014,
+"title": "Iron Fists and Kung Fu Kicks",
+"release_date": "2019-08-14",
+"media_type": "movie",
+"character": "Self (archive footage)",
+"order": 58,
+"poster_path": "/1t0SsQqmfYVuD3MBCIB4muGllAP.jpg",
+"vote_average": 6.7,
+"vote_count": 63,
+"genre_ids": [
+99,
+36
+],
+"original_language": "en"
+},
+{
+"id": 731838,
+"title": "A Touch of Beijing",
+"release_date": "2008-01-01",
+"media_type": "movie",
+"character": "Self / Host",
+"order": 0,
+"poster_path": "/gDmnA95gssN6wdVPAegjo5vVEty.jpg",
+"vote_average": 10,
+"vote_count": 1,
+"genre_ids": [
+12,
+36,
+99
+],
+"original_language": "en"
+},
+{
+"id": 363209,
+"title": "The Angry River",
+"release_date": "1971-05-12",
+"media_type": "movie",
+"character": "Thug in black",
+"order": 10,
+"poster_path": "/bbXbsYwg6Jp4rhQjSoCgMeEyt3Y.jpg",
+"vote_average": 7,
+"vote_count": 7,
+"genre_ids": [
+14,
+12
+],
+"original_language": "zh"
+},
+{
+"id": 782463,
+"title": "Beijing 2008 Olympic Closing Ceremony",
+"release_date": "2008-08-24",
+"media_type": "movie",
+"character": "Self",
+"order": 9,
+"poster_path": "/qV2pcpXAC75Ey05wlzdNEzuyIIU.jpg",
+"vote_average": 8.6,
+"vote_count": 5,
+"genre_ids": [
+99
+],
+"original_language": "zh"
+},
+{
+"id": 814772,
+"title": "All U Need Is Love",
+"release_date": "2021-04-22",
+"media_type": "movie",
+"character": "Supervisor of the Epidemic Prevention Operation Unit",
+"order": 17,
+"poster_path": "/iGirOKELOFhffdjjWj0ahhtOaIw.jpg",
+"vote_average": 4,
+"vote_count": 8,
+"genre_ids": [
+35
+],
+"original_language": "cn"
+},
+{
+"id": 464593,
+"title": "Earth: One Amazing Day",
+"release_date": "2017-08-04",
+"media_type": "movie",
+"character": "Narrator (voice)",
+"order": 1,
+"poster_path": "/7uZdJrpFDrsUddy5mG17lDBNxGx.jpg",
+"vote_average": 7.7,
+"vote_count": 196,
+"genre_ids": [
+99
+],
+"original_language": "en"
+},
+{
+"id": 849058,
+"title": "Jackie Chan Edition: Seine spektakulärsten Kämpfe",
+"release_date": "2009-07-30",
+"media_type": "movie",
+"character": "er selbst",
+"order": 0,
+"poster_path": "/o6ngB3tSD9aSsxI2mjNnKeZfjRz.jpg",
+"vote_average": 5,
+"vote_count": 1,
+"genre_ids": [
+99
+],
+"original_language": "de"
+},
+{
+"id": 82980,
+"title": "The Bloody Fists",
+"release_date": "1972-05-17",
+"media_type": "movie",
+"character": "Policeman",
+"order": 27,
+"poster_path": "/yGcK2mhpJHfXt6TP1fHkkwdwM6u.jpg",
+"vote_average": 5.4,
+"vote_count": 18,
+"genre_ids": [
+28
+],
+"original_language": "cn"
+},
+{
+"id": 1360427,
+"title": "\"Bay Area Rising Moon\" The Greater Bay Area Film Concert 2024",
+"release_date": "2024-09-22",
+"media_type": "movie",
+"character": "歌手",
+"order": 0,
+"poster_path": "/cLGeDOL6g1zPkLDoYwpojYag8pF.jpg",
+"vote_average": 0,
+"vote_count": 0,
+"genre_ids": [
+10402
+],
+"original_language": "zh"
+},
+{
+"id": 59090,
+"title": "Late Night with Conan O'Brien: 10th Anniversary Special",
+"release_date": "2003-09-14",
+"media_type": "movie",
+"character": "Self",
+"order": 24,
+"poster_path": "/oXxFmtRb8Dqp7gLByBRtqNAXGoH.jpg",
+"vote_average": 7,
+"vote_count": 14,
+"genre_ids": [
+35,
+10770,
+99
+],
+"original_language": "en"
+},
+{
+"id": 786624,
+"title": "Kung Fu Panda:  The Awesome Secrets Collection",
+"release_date": "2013-08-27",
+"media_type": "movie",
+"character": "Monkey (voice)",
+"order": 12,
+"poster_path": "/cCoscBHWxefxGDUewzHH5CCyVfc.jpg",
+"vote_average": 8,
+"vote_count": 4,
+"genre_ids": [
+16,
+10751
+],
+"original_language": "en"
+},
+{
+"id": 44154,
+"title": "A Touch of Zen",
+"release_date": "1970-07-10",
+"media_type": "movie",
+"character": "Stunt Extra (uncredited)",
+"order": 32,
+"poster_path": "/pgveqayMFUIZbFqN87ghiKmmxt3.jpg",
+"vote_average": 7.607,
+"vote_count": 239,
+"genre_ids": [
+28,
+12,
+14
+],
+"original_language": "zh"
+},
+{
+"id": 1373247,
+"title": "Chop Socky: Cinema Hong Kong",
+"release_date": "2003-10-04",
+"media_type": "movie",
+"character": "Self",
+"order": 0,
+"poster_path": "/4YE3W0Mtp5hksGkjQB6wKD8HfEC.jpg",
+"vote_average": 3,
+"vote_count": 1,
+"genre_ids": [
+99
+],
+"original_language": "en"
+},
+{
+"id": 1419406,
+"title": "The Shadow's Edge",
+"release_date": "2025-08-16",
+"media_type": "movie",
+"character": "Wong Tak Chung",
+"order": 0,
+"poster_path": "/cHKo3m8N1fwvEy2ZEr0xGmmMODV.jpg",
+"vote_average": 8.343,
+"vote_count": 1559,
+"genre_ids": [
+28,
+80,
+18,
+53
+],
+"original_language": "zh"
+},
+{
+"id": 1421552,
+"title": "Panda Plan: The Magical Tribe",
+"release_date": "2026-02-17",
+"media_type": "movie",
+"character": "Jackie",
+"order": 0,
+"poster_path": "/ph8CrRJIW8ORoaJUCFLGYYFNywr.jpg",
+"vote_average": 6.611,
+"vote_count": 27,
+"genre_ids": [
+28,
+35,
+10751,
+14
+],
+"original_language": "zh"
+},
+{
+"id": 1443906,
+"title": "Making Rush Hour 3",
+"release_date": "2007-12-26",
+"media_type": "movie",
+"character": "Self",
+"order": 3,
+"poster_path": null,
+"vote_average": 0,
+"vote_count": 0,
+"genre_ids": [
+99
+],
+"original_language": "en"
+},
+{
+"id": 1443991,
+"title": "A Piece of the Action: Behind the Scenes of Rush Hour",
+"release_date": "1999-03-02",
+"media_type": "movie",
+"character": "Self",
+"order": 2,
+"poster_path": "/umAuxNSZ1p4HqBJktXOt7MeMFJm.jpg",
+"vote_average": 7.5,
+"vote_count": 2,
+"genre_ids": [
+99
+],
+"original_language": "en"
+},
+{
+"id": 1497280,
+"title": "Crossing the World With Ease",
+"release_date": "1992-01-01",
+"media_type": "movie",
+"character": "",
+"order": 3,
+"poster_path": "/143BaOW1EMN3bayUxBmP6XFx6pC.jpg",
+"vote_average": 0,
+"vote_count": 0,
+"genre_ids": [],
+"original_language": "cn"
+},
+{
+"id": 1553966,
+"title": "“湾区升明月”2025大湾区电影音乐晚会",
+"release_date": "2025-09-28",
+"media_type": "movie",
+"character": "",
+"order": 0,
+"poster_path": "/tsXfMsanVYwJS8HnpsGqq9bW8gq.jpg",
+"vote_average": 0,
+"vote_count": 0,
+"genre_ids": [
+10402
+],
+"original_language": "zh"
+},
+{
+"id": 1567614,
+"title": "Armour of God IV: Ultimatum",
+"release_date": "",
+"media_type": "movie",
+"character": "Jackie / Asian Hawk",
+"order": 0,
+"poster_path": "/sYePhjujLCMcH8n5HjXyrvhAk0n.jpg",
+"vote_average": 0,
+"vote_count": 0,
+"genre_ids": [
+28,
+35
+],
+"original_language": "kk"
+},
+{
+"id": 860578,
+"title": "Jackie Chan: Building an Icon",
+"release_date": "2021-08-04",
+"media_type": "movie",
+"character": "Self",
+"order": 0,
+"poster_path": "/bSSGZLWKWt4RAf68mMgjUMfZIRw.jpg",
+"vote_average": 7.5,
+"vote_count": 13,
+"genre_ids": [
+99
+],
+"original_language": "fr"
+},
+{
+"id": 44645,
+"title": "Bruce Lee, the Legend",
+"release_date": "1984-01-01",
+"media_type": "movie",
+"character": "Self",
+"order": 13,
+"poster_path": "/fdD3whXbdfHjlcDNt2oEy6jsxjD.jpg",
+"vote_average": 7.9,
+"vote_count": 114,
+"genre_ids": [
+99
+],
+"original_language": "en"
+},
+{
+"id": 1656020,
+"title": "Master with Cracked Fingers",
+"release_date": "1981-03-06",
+"media_type": "movie",
+"character": "Jackie",
+"order": 1,
+"poster_path": "/akk5OXRc1HNICQiEJhyZvpxasNx.jpg",
+"vote_average": 0,
+"vote_count": 0,
+"genre_ids": [
+28
+],
+"original_language": "en"
+},
+{
+"id": 1656097,
+"title": "Pawfect Agents",
+"release_date": "",
+"media_type": "movie",
+"character": "",
+"order": 0,
+"poster_path": null,
+"vote_average": 0,
+"vote_count": 0,
+"genre_ids": [
+28,
+35
+],
+"original_language": "zh"
+},
+{
+"id": 167688,
+"title": "The Unbeatable Bruce Lee",
+"release_date": "2001-12-18",
+"media_type": "movie",
+"character": "",
+"order": 4,
+"poster_path": "/k9XnCZgy3RYQPv66pdtJf61UOQ9.jpg",
+"vote_average": 8.4,
+"vote_count": 4,
+"genre_ids": [
+99
+],
+"original_language": "en"
+},
+{
+"id": 1667640,
+"title": "The Unbelievable",
+"release_date": "2013-05-23",
+"media_type": "movie",
+"character": "Mr. Z",
+"order": 0,
+"poster_path": null,
+"vote_average": 0,
+"vote_count": 0,
+"genre_ids": [
+28
+],
+"original_language": "en"
+},
+{
+"id": 1680933,
+"title": "信心中国：成龙和他的朋友们大型演唱会",
+"release_date": "2009-05-01",
+"media_type": "movie",
+"character": "",
+"order": 0,
+"poster_path": "/gl3eFq7EbNomAOtk4cVcttR1HP5.jpg",
+"vote_average": 5,
+"vote_count": 1,
+"genre_ids": [],
+"original_language": "zh"
+},
+{
+"id": 1156621,
+"title": "Teenage Mutant Ninja Turtles: Mutant Mayhem 2",
+"release_date": "2027-08-12",
+"media_type": "movie",
+"character": "Splinter (voice)",
+"order": 4,
+"poster_path": "/yukp9qq3JmgatfMSGnxdyn6jtRX.jpg",
+"vote_average": 0,
+"vote_count": 0,
+"genre_ids": [
+28,
+16,
+35,
+10751,
+878
+],
+"original_language": "en"
+},
+{
+"id": 1305715,
+"title": "Unexpected Family",
+"release_date": "2026-01-01",
+"media_type": "movie",
+"character": "",
+"order": 0,
+"poster_path": "/wRY7PwWWYkv6Wk6SG8q8OsLLPhB.jpg",
+"vote_average": 8,
+"vote_count": 47,
+"genre_ids": [
+35,
+18
+],
+"original_language": "zh"
+},
+{
+"id": 790079,
+"title": "Beijing",
+"release_date": "2009-06-17",
+"media_type": "movie",
+"character": "Self",
+"order": 1,
+"poster_path": "/nyygDihUpSY3nRCs5ePxZmuqCBs.jpg",
+"vote_average": 0,
+"vote_count": 0,
+"genre_ids": [],
+"original_language": "en"
+},
+{
+"id": 356568,
+"title": "The Best of the Martial Arts Films",
+"release_date": "1990-01-01",
+"media_type": "movie",
+"character": "Self",
+"order": 3,
+"poster_path": "/xzKbLbMUlinOPyaoLG7y7Vh1B8E.jpg",
+"vote_average": 8.8,
+"vote_count": 30,
+"genre_ids": [
+99,
+28
+],
+"original_language": "en"
+},
+{
+"id": 1440057,
+"title": "The Golden Hairpin Part 1",
+"release_date": "1963-08-28",
+"media_type": "movie",
+"character": "",
+"order": 4,
+"poster_path": "/k4l2sAqlkgACRIufBkgVZHD0Zhc.jpg",
+"vote_average": 9,
+"vote_count": 1,
+"genre_ids": [
+28
+],
+"original_language": "zh"
+},
+{
+"id": 1753260,
+"title": "The Golden Hairpin Part 2",
+"release_date": "1963-09-04",
+"media_type": "movie",
+"character": "",
+"order": 3,
+"poster_path": "/qEa374O2i5zGUa9zCBEz0P4xOL1.jpg",
+"vote_average": 0,
+"vote_count": 0,
+"genre_ids": [],
+"original_language": "cn"
+},
+{
+"id": 1359138,
+"title": "梅艳芳·10·思念·音乐·会",
+"release_date": "2013-12-30",
+"media_type": "movie",
+"character": "",
+"order": 3,
+"poster_path": "/zDQbppVNPnlPQZF3BD6xxDFPyDy.jpg",
+"vote_average": 0,
+"vote_count": 0,
+"genre_ids": [
+10402
+],
+"original_language": "zh"
+},
+{
+"id": 1678821,
+"title": "The Shadow's Edge Ⅱ",
+"release_date": "",
+"media_type": "movie",
+"character": "",
+"order": 0,
+"poster_path": null,
+"vote_average": 0,
+"vote_count": 0,
+"genre_ids": [
+28,
+80
+],
+"original_language": "zh"
+},
+{
+"id": 171,
+"name": "Martin",
+"first_air_date": "1992-08-27",
+"media_type": "tv",
+"character": "Jackie Chan",
+"episode_count": 2,
+"poster_path": "/inQQEpHiaSy8BEd9XEFF2W39vO0.jpg",
+"vote_average": 7.549,
+"vote_count": 142,
+"genre_ids": [
+35,
+18
+],
+"original_language": "en"
+},
+{
+"id": 3084,
+"name": "The Chinese Detective",
+"first_air_date": "1981-04-30",
+"media_type": "tv",
+"character": "",
+"episode_count": 1,
+"poster_path": "/zJW6pvBwuRnw6wCsv5pvGAdtm8k.jpg",
+"vote_average": 7.2,
+"vote_count": 5,
+"genre_ids": [
+18
+],
+"original_language": "en"
+},
+{
+"id": 4469,
+"name": "MADtv",
+"first_air_date": "1995-10-14",
+"media_type": "tv",
+"character": "Self",
+"episode_count": 1,
+"poster_path": "/4tXHrqYbETym7Def99MeXrpPyRA.jpg",
+"vote_average": 7.119,
+"vote_count": 143,
+"genre_ids": [
+35
+],
+"original_language": "en"
+},
+{
+"id": 1667,
+"name": "Saturday Night Live",
+"first_air_date": "1975-10-11",
+"media_type": "tv",
+"character": "Self - Host",
+"episode_count": 1,
+"poster_path": "/s1cZBqbMwAF3w8S3Yo0j5nr2Yuo.jpg",
+"vote_average": 6.869,
+"vote_count": 541,
+"genre_ids": [
+35,
+10763
+],
+"original_language": "en"
+},
+{
+"id": 40605,
+"name": "Die Harald Schmidt Show",
+"first_air_date": "1995-12-05",
+"media_type": "tv",
+"character": "Self",
+"episode_count": 1,
+"poster_path": "/lQcE1AzjDP5zJRUW76PMRn7ai9W.jpg",
+"vote_average": 7.4,
+"vote_count": 21,
+"genre_ids": [
+10764
+],
+"original_language": "de"
+},
+{
+"id": 240,
+"name": "Jackie Chan Adventures",
+"first_air_date": "2000-09-09",
+"media_type": "tv",
+"character": "Self",
+"episode_count": 95,
+"poster_path": "/by2GTFpd2BQ5uJxWPlfcmfrNrfB.jpg",
+"vote_average": 8.2,
+"vote_count": 898,
+"genre_ids": [
+10759,
+16,
+35,
+10765
+],
+"original_language": "en"
+},
+{
+"id": 10918,
+"name": "Wetten, dass..?",
+"first_air_date": "1981-02-14",
+"media_type": "tv",
+"character": "Self",
+"episode_count": 1,
+"poster_path": "/4i8719B3j4z5U5EI1mjw3sOjBWe.jpg",
+"vote_average": 5.6,
+"vote_count": 24,
+"genre_ids": [
+18,
+10764,
+35,
+10767
+],
+"original_language": "de"
+},
+{
+"id": 33238,
+"name": "Running Man",
+"first_air_date": "2010-07-11",
+"media_type": "tv",
+"character": "",
+"episode_count": 1,
+"poster_path": "/2Wmmu1MkqxJ48J7aySET9EKEjXz.jpg",
+"vote_average": 8.2,
+"vote_count": 223,
+"genre_ids": [
+35,
+10764
+],
+"original_language": "ko"
+},
+{
+"id": 1220,
+"name": "The Graham Norton Show",
+"first_air_date": "2007-02-22",
+"media_type": "tv",
+"character": "Self - Guest",
+"episode_count": 1,
+"poster_path": "/vrbqaBXB8AALynQzpWz6JdCPEJS.jpg",
+"vote_average": 7.249,
+"vote_count": 293,
+"genre_ids": [
+35,
+10767
+],
+"original_language": "en"
+},
+{
+"id": 5822,
+"name": "SMAP×SMAP",
+"first_air_date": "1996-04-15",
+"media_type": "tv",
+"character": "Skit Guest",
+"episode_count": 1,
+"poster_path": "/oXogyT6WvyLYVrxjJfiXKuBN1Ov.jpg",
+"vote_average": 8.5,
+"vote_count": 2,
+"genre_ids": [
+35
+],
+"original_language": "ja"
+},
+{
+"id": 235970,
+"name": "The 40th Anniversary of Chinese Film Since China's Reform and Opening-Up",
+"first_air_date": "2018-11-19",
+"media_type": "tv",
+"character": "Self",
+"episode_count": 2,
+"poster_path": "/5mI4A9bfB8IFTLVgfvcics8i4O3.jpg",
+"vote_average": 0,
+"vote_count": 0,
+"genre_ids": [
+99
+],
+"original_language": "zh"
+},
+{
+"id": 197477,
+"name": "Jackie Chan's Fantasia",
+"first_air_date": "2011-03-03",
+"media_type": "tv",
+"character": "Jackie Chan",
+"episode_count": 52,
+"poster_path": "/jD328BJJkyRPTwAGOFvsUndFWTD.jpg",
+"vote_average": 5,
+"vote_count": 1,
+"genre_ids": [
+16
+],
+"original_language": "zh"
+},
+{
+"id": 66488,
+"name": "Chelsea",
+"first_air_date": "2016-05-11",
+"media_type": "tv",
+"character": "Self - Musical Guest",
+"episode_count": 1,
+"poster_path": "/lDbyyKRDk5FmDY98eCc97gUEZod.jpg",
+"vote_average": 5.1,
+"vote_count": 80,
+"genre_ids": [
+10767,
+35
+],
+"original_language": "en"
+},
+{
+"id": 1503,
+"name": "The Rosie O'Donnell Show",
+"first_air_date": "1996-06-10",
+"media_type": "tv",
+"character": "Self - Guest",
+"episode_count": 1,
+"poster_path": "/rHHSx7kyLEHK48Y3LO3sNfclOT2.jpg",
+"vote_average": 4.1,
+"vote_count": 19,
+"genre_ids": [
+10767,
+10751,
+35
+],
+"original_language": "en"
+},
+{
+"id": 69831,
+"name": "Too Young to Die",
+"first_air_date": "2012-07-14",
+"media_type": "tv",
+"character": "Self (archive footage)",
+"episode_count": 1,
+"poster_path": "/6ZAfhPqskI732X7ilBzcBwu82qg.jpg",
+"vote_average": 7.2,
+"vote_count": 9,
+"genre_ids": [
+99
+],
+"original_language": "de"
+},
+{
+"id": 206296,
+"name": "Golden Horse Awards",
+"first_air_date": "1962-10-31",
+"media_type": "tv",
+"character": "Self",
+"episode_count": 2,
+"poster_path": "/q9H3q7q99hIwMFmxaA9pVD8jdoU.jpg",
+"vote_average": 9,
+"vote_count": 1,
+"genre_ids": [
+10767
+],
+"original_language": "zh"
+},
+{
+"id": 66465,
+"name": "The Kapil Sharma Show",
+"first_air_date": "2016-04-23",
+"media_type": "tv",
+"character": "Self",
+"episode_count": 1,
+"poster_path": "/fBPNBNFmcwhYXUpkW2Kb6jbeJOR.jpg",
+"vote_average": 7,
+"vote_count": 40,
+"genre_ids": [
+35,
+10767
+],
+"original_language": "hi"
+},
+{
+"id": 89607,
+"name": "Century Sonny",
+"first_air_date": "2006-01-01",
+"media_type": "tv",
+"character": "查理（配音）",
+"episode_count": 52,
+"poster_path": "/zVtBxN2VNBMBddQJX930IWZ9JYR.jpg",
+"vote_average": 10,
+"vote_count": 2,
+"genre_ids": [
+16,
+10759,
+10765,
+10762,
+10751
+],
+"original_language": "zh"
+},
+{
+"id": 216487,
+"name": "Memories Beyond Horizon",
+"first_air_date": "2022-12-17",
+"media_type": "tv",
+"character": "",
+"episode_count": 24,
+"poster_path": "/bc1MoKzS7UvNKZyPHVQEQwFnbP0.jpg",
+"vote_average": 5.4,
+"vote_count": 5,
+"genre_ids": [
+10764
+],
+"original_language": "zh"
+},
+{
+"id": 14614,
+"name": "TV total",
+"first_air_date": "1999-03-08",
+"media_type": "tv",
+"character": "Self",
+"episode_count": 2,
+"poster_path": "/sEWjTY6cvx5luyc1iOtT0YJGZYP.jpg",
+"vote_average": 6.1,
+"vote_count": 30,
+"genre_ids": [
+10767,
+35
+],
+"original_language": "de"
+},
+{
+"id": 88580,
+"name": "Trump Card",
+"first_air_date": "2016-01-29",
+"media_type": "tv",
+"character": "",
+"episode_count": 1,
+"poster_path": "/dJLq9SHSJ04sVghgStXR1ypGHDA.jpg",
+"vote_average": 6.3,
+"vote_count": 6,
+"genre_ids": [
+10764
+],
+"original_language": "zh"
+},
+{
+"id": 133103,
+"name": "The Incredibly Strange Film Show",
+"first_air_date": "1988-08-05",
+"media_type": "tv",
+"character": "Self",
+"episode_count": 1,
+"poster_path": "/1hQbyb8Sqcno6SzQYYPGfghtnzj.jpg",
+"vote_average": 8.3,
+"vote_count": 3,
+"genre_ids": [
+99
+],
+"original_language": "en"
+},
+{
+"id": 126152,
+"name": "Chef Nic",
+"first_air_date": "2014-07-12",
+"media_type": "tv",
+"character": "",
+"episode_count": 1,
+"poster_path": "/xMMcZYVdNox35OSBtkfg07oWdR9.jpg",
+"vote_average": 0,
+"vote_count": 0,
+"genre_ids": [
+10764
+],
+"original_language": "zh"
+},
+{
+"id": 223348,
+"name": "Voice",
+"first_air_date": "2012-08-27",
+"media_type": "tv",
+"character": "",
+"episode_count": 2,
+"poster_path": "/2URc4UHHkCytfaAwdWCJN0oUQNK.jpg",
+"vote_average": 9,
+"vote_count": 1,
+"genre_ids": [
+10767
+],
+"original_language": "zh"
+},
+{
+"id": 203600,
+"name": "Stand-up Comedy",
+"first_air_date": "2022-06-07",
+"media_type": "tv",
+"character": "",
+"episode_count": 1,
+"poster_path": "/ykcqWLNjvMDKXrNaIcMZBAX1MYc.jpg",
+"vote_average": 6,
+"vote_count": 4,
+"genre_ids": [
+10767
+],
+"original_language": "zh"
+},
+{
+"id": 46188,
+"name": "Vivement dimanche",
+"first_air_date": "1998-09-20",
+"media_type": "tv",
+"character": "Self",
+"episode_count": 1,
+"poster_path": "/nRrrsDkH1kYgjvTpirkwMqZFjc5.jpg",
+"vote_average": 3.6,
+"vote_count": 9,
+"genre_ids": [
+10767
+],
+"original_language": "fr"
+},
+{
+"id": 153202,
+"name": "Celebrity Talk Show",
+"first_air_date": "1989-03-10",
+"media_type": "tv",
+"character": "成龙",
+"episode_count": 3,
+"poster_path": "/h2uyanrviSRjgmBKEaEBTbIANAM.jpg",
+"vote_average": 9.5,
+"vote_count": 2,
+"genre_ids": [
+10767
+],
+"original_language": "cn"
+},
+{
+"id": 2525,
+"name": "TFI Friday",
+"first_air_date": "1996-02-09",
+"media_type": "tv",
+"character": "",
+"episode_count": 1,
+"poster_path": "/1g5f2OFtZmlGk1fL1zLb1OiKLXR.jpg",
+"vote_average": 7.1,
+"vote_count": 10,
+"genre_ids": [
+35
+],
+"original_language": "en"
+},
+{
+"id": 278070,
+"name": "星空下的傾情",
+"first_air_date": "1997-02-10",
+"media_type": "tv",
+"character": "",
+"episode_count": 13,
+"poster_path": "/avm1qHxuaN3u1Gf8ZebMCgE679G.jpg",
+"vote_average": 0,
+"vote_count": 0,
+"genre_ids": [
+10764
+],
+"original_language": "cn"
+},
+{
+"id": 290402,
+"name": "梅艷芳飛越舞台十載情",
+"first_air_date": "1991-07-28",
+"media_type": "tv",
+"character": "",
+"episode_count": 1,
+"poster_path": "/wsGtojBu5rJnsjaueodzLl0jucj.jpg",
+"vote_average": 0,
+"vote_count": 0,
+"genre_ids": [
+10764
+],
+"original_language": "cn"
+},
+{
+"id": 1514,
+"name": "The One Show",
+"first_air_date": "2006-08-14",
+"media_type": "tv",
+"character": "Self",
+"episode_count": 1,
+"poster_path": "/7QpzCej3Lwrsnx5A8FePYsUCIzf.jpg",
+"vote_average": 4.344,
+"vote_count": 32,
+"genre_ids": [
+10767
+],
+"original_language": "en"
+},
+{
+"id": 82873,
+"name": "The Kelly Clarkson Show",
+"first_air_date": "2019-09-09",
+"media_type": "tv",
+"character": "Self - Guest",
+"episode_count": 1,
+"poster_path": "/sBix25bie9UQFzbarN51DpFO5ky.jpg",
+"vote_average": 6.2,
+"vote_count": 73,
+"genre_ids": [
+10767
+],
+"original_language": "en"
+},
+{
+"id": 211374,
+"name": "Slå på ring",
+"first_air_date": "2001-11-08",
+"media_type": "tv",
+"character": "",
+"episode_count": 1,
+"poster_path": "/9fUcRfzBxsVLtIMrhZWKUEFCUbS.jpg",
+"vote_average": 10,
+"vote_count": 2,
+"genre_ids": [
+35
+],
+"original_language": "no"
+},
+{
+"id": 119007,
+"name": "CMG Spring Festival Gala",
+"first_air_date": "1983-02-12",
+"media_type": "tv",
+"character": "",
+"episode_count": 1,
+"poster_path": "/62BWfaPW3VQxsb2G5qsyGTW5KsW.jpg",
+"vote_average": 5.7,
+"vote_count": 7,
+"genre_ids": [
+10764,
+10767
+],
+"original_language": "zh"
+},
+{
+"id": 4573,
+"name": "Late Night with Conan O'Brien",
+"first_air_date": "1993-09-13",
+"media_type": "tv",
+"character": "Self - Guest",
+"episode_count": 1,
+"poster_path": "/gJZ1rhLLFpatuAeylJoUI82DKC7.jpg",
+"vote_average": 7.322,
+"vote_count": 169,
+"genre_ids": [
+35,
+10767
+],
+"original_language": "en"
+},
+{
+"id": 498,
+"name": "Late Show with David Letterman",
+"first_air_date": "1993-08-30",
+"media_type": "tv",
+"character": "Self - Guest",
+"episode_count": 1,
+"poster_path": "/fTBC5EpsgKmli9VQcJMtqQ08Qj4.jpg",
+"vote_average": 6.466,
+"vote_count": 175,
+"genre_ids": [
+10767,
+35
+],
+"original_language": "en"
+},
+{
+"id": 2224,
+"name": "The Daily Show",
+"first_air_date": "1996-07-22",
+"media_type": "tv",
+"character": "Self - Guest",
+"episode_count": 1,
+"poster_path": "/ixcfyK7it6FjRM36Te4OdblAq4X.jpg",
+"vote_average": 6.422,
+"vote_count": 672,
+"genre_ids": [
+10763,
+35
+],
+"original_language": "en"
+},
+{
+"id": 86342,
+"name": "Steve",
+"first_air_date": "2017-09-05",
+"media_type": "tv",
+"character": "Self",
+"episode_count": 1,
+"poster_path": "/wj9Nd4hJUhQTx9pkfwg7O4c9vj4.jpg",
+"vote_average": 6,
+"vote_count": 3,
+"genre_ids": [
+10767
+],
+"original_language": "en"
+},
+{
+"id": 322722,
+"name": "国乐无双",
+"first_air_date": "2026-05-23",
+"media_type": "tv",
+"character": "",
+"episode_count": 2,
+"poster_path": "/cCpfJSQw43gCr01JgtZi3sGWOKX.jpg",
+"vote_average": 0,
+"vote_count": 0,
+"genre_ids": [
+10764
+],
+"original_language": "zh"
+},
+{
+"id": 328072,
+"name": "A Century of Light and Shadow",
+"first_air_date": "2005-01-01",
+"media_type": "tv",
+"character": "Self",
+"episode_count": 8,
+"poster_path": "/6NsUyVSSEj7K46mwyyMeNcHDvLk.jpg",
+"vote_average": 0,
+"vote_count": 0,
+"genre_ids": [
+99
+],
+"original_language": "zh"
+},
+{
+"id": 338222,
+"name": "成龙电影合集",
+"first_air_date": "",
+"media_type": "tv",
+"character": "主演",
+"episode_count": 1,
+"poster_path": "/4ktoBAFGVCXEmq5Icm3otyz2vbq.jpg",
+"vote_average": 0,
+"vote_count": 0,
+"genre_ids": [],
+"original_language": "zh"
+}
+],
+"crew": [
+{
+"id": 10348,
+"title": "Thunderbolt",
+"release_date": "1995-08-05",
+"media_type": "movie",
+"job": "Producer",
+"poster_path": "/6NAxYuSf4sSThBQWKp4vcGhhAoN.jpg",
+"vote_average": 6.5,
+"vote_count": 341,
+"genre_ids": [
+28,
+53
+],
+"original_language": "cn"
+},
+{
+"id": 10348,
+"title": "Thunderbolt",
+"release_date": "1995-08-05",
+"media_type": "movie",
+"job": "Choreographer",
+"poster_path": "/6NAxYuSf4sSThBQWKp4vcGhhAoN.jpg",
+"vote_average": 6.5,
+"vote_count": 341,
+"genre_ids": [
+28,
+53
+],
+"original_language": "cn"
+},
+{
+"id": 10753,
+"title": "Police Story 2",
+"release_date": "1988-08-13",
+"media_type": "movie",
+"job": "Screenplay",
+"poster_path": "/kjq1FXtHh9i2sIuM0JaoYf43FDU.jpg",
+"vote_average": 7.103,
+"vote_count": 667,
+"genre_ids": [
+28,
+80,
+53
+],
+"original_language": "cn"
+},
+{
+"id": 10753,
+"title": "Police Story 2",
+"release_date": "1988-08-13",
+"media_type": "movie",
+"job": "Director",
+"poster_path": "/kjq1FXtHh9i2sIuM0JaoYf43FDU.jpg",
+"vote_average": 7.103,
+"vote_count": 667,
+"genre_ids": [
+28,
+80,
+53
+],
+"original_language": "cn"
+},
+{
+"id": 11134,
+"title": "Police Story 3: Super Cop",
+"release_date": "1992-07-04",
+"media_type": "movie",
+"job": "Executive Producer",
+"poster_path": "/mUJOyCd4g0pNsU8thYI7UGrIpkl.jpg",
+"vote_average": 6.941,
+"vote_count": 612,
+"genre_ids": [
+28,
+80,
+53
+],
+"original_language": "cn"
+},
+{
+"id": 10610,
+"title": "The Medallion",
+"release_date": "2003-08-15",
+"media_type": "movie",
+"job": "Executive Producer",
+"poster_path": "/lbjFWKfe8WdS8Pj6WVPlyEKeVEo.jpg",
+"vote_average": 5.652,
+"vote_count": 1263,
+"genre_ids": [
+53,
+14,
+28,
+35
+],
+"original_language": "en"
+},
+{
+"id": 10951,
+"title": "Gorgeous",
+"release_date": "1999-02-12",
+"media_type": "movie",
+"job": "Producer",
+"poster_path": "/oZzsnCPFfGg9uoRLRwQLZxju4d.jpg",
+"vote_average": 6.5,
+"vote_count": 451,
+"genre_ids": [
+12,
+28,
+35,
+10749
+],
+"original_language": "cn"
+},
+{
+"id": 10951,
+"title": "Gorgeous",
+"release_date": "1999-02-12",
+"media_type": "movie",
+"job": "Screenplay",
+"poster_path": "/oZzsnCPFfGg9uoRLRwQLZxju4d.jpg",
+"vote_average": 6.5,
+"vote_count": 451,
+"genre_ids": [
+12,
+28,
+35,
+10749
+],
+"original_language": "cn"
+},
+{
+"id": 10975,
+"title": "Operation Condor",
+"release_date": "1991-02-07",
+"media_type": "movie",
+"job": "Screenplay",
+"poster_path": "/25kyDgsGz1HzW4SqJTylhBaU5sW.jpg",
+"vote_average": 7.333,
+"vote_count": 678,
+"genre_ids": [
+28,
+12,
+80,
+53
+],
+"original_language": "cn"
+},
+{
+"id": 10974,
+"title": "Armour of God",
+"release_date": "1986-08-16",
+"media_type": "movie",
+"job": "Director",
+"poster_path": "/phCpGqCSBWJqutKxj73COACrlPt.jpg",
+"vote_average": 7.041,
+"vote_count": 690,
+"genre_ids": [
+12,
+28,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 10975,
+"title": "Operation Condor",
+"release_date": "1991-02-07",
+"media_type": "movie",
+"job": "Director",
+"poster_path": "/25kyDgsGz1HzW4SqJTylhBaU5sW.jpg",
+"vote_average": 7.333,
+"vote_count": 678,
+"genre_ids": [
+28,
+12,
+80,
+53
+],
+"original_language": "cn"
+},
+{
+"id": 21521,
+"title": "Project A - Part II",
+"release_date": "1987-07-25",
+"media_type": "movie",
+"job": "Director",
+"poster_path": "/oY6wOuPmeeDoKjPdPlMwwmDCYmA.jpg",
+"vote_average": 7.1,
+"vote_count": 357,
+"genre_ids": [
+28,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 21519,
+"title": "Project A",
+"release_date": "1983-12-22",
+"media_type": "movie",
+"job": "Director",
+"poster_path": "/AvTu2bmJbVZGXPxdx6VllGXCtLG.jpg",
+"vote_average": 7.282,
+"vote_count": 601,
+"genre_ids": [
+28,
+12,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 11563,
+"title": "The Young Master",
+"release_date": "1980-02-09",
+"media_type": "movie",
+"job": "Director",
+"poster_path": "/sSZwTKQgY9pudxFOqxKCSf8r5qF.jpg",
+"vote_average": 7,
+"vote_count": 259,
+"genre_ids": [
+28,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 11847,
+"title": "The Accidental Spy",
+"release_date": "2001-01-18",
+"media_type": "movie",
+"job": "Producer",
+"poster_path": "/fPW4Qn9wm82uOexHMB3TC8x6lRU.jpg",
+"vote_average": 5.993,
+"vote_count": 548,
+"genre_ids": [
+28,
+35,
+53
+],
+"original_language": "cn"
+},
+{
+"id": 11636,
+"title": "New Police Story",
+"release_date": "2004-09-23",
+"media_type": "movie",
+"job": "Executive Producer",
+"poster_path": "/kWUTyIao0b8DxVrO6L0LnpJVYWV.jpg",
+"vote_average": 7.162,
+"vote_count": 862,
+"genre_ids": [
+28,
+53,
+80,
+18
+],
+"original_language": "cn"
+},
+{
+"id": 11653,
+"title": "The Myth",
+"release_date": "2005-05-11",
+"media_type": "movie",
+"job": "Executive Producer",
+"poster_path": "/iBDFnLkTZZxQlbb6IIeYkufnPCY.jpg",
+"vote_average": 6.411,
+"vote_count": 437,
+"genre_ids": [
+28,
+12,
+35,
+18,
+14
+],
+"original_language": "zh"
+},
+{
+"id": 25676,
+"title": "Rob-B-Hood",
+"release_date": "2006-09-28",
+"media_type": "movie",
+"job": "Writer",
+"poster_path": "/aJZ8i1KEy5Kdc6hXNlLiHOlhdTA.jpg",
+"vote_average": 6.966,
+"vote_count": 708,
+"genre_ids": [
+18,
+28,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 9056,
+"title": "Police Story",
+"release_date": "1985-12-14",
+"media_type": "movie",
+"job": "Director",
+"poster_path": "/1eFB0Iy1TMU4VO5hMcoCE064JAT.jpg",
+"vote_average": 7.561,
+"vote_count": 1117,
+"genre_ids": [
+28,
+80,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 8584,
+"title": "Shanghai Noon",
+"release_date": "2000-05-26",
+"media_type": "movie",
+"job": "Executive Producer",
+"poster_path": "/b0WwWRcDiDahkah5vZ0KjB4N9ZZ.jpg",
+"vote_average": 6.422,
+"vote_count": 2887,
+"genre_ids": [
+12,
+35,
+37
+],
+"original_language": "en"
+},
+{
+"id": 8697,
+"title": "Who Am I?",
+"release_date": "1998-01-17",
+"media_type": "movie",
+"job": "Screenplay",
+"poster_path": "/9YDKLbBmWGpxG5bO3TBawtNNOAr.jpg",
+"vote_average": 7.18,
+"vote_count": 1051,
+"genre_ids": [
+12,
+28,
+35,
+53
+],
+"original_language": "cn"
+},
+{
+"id": 8697,
+"title": "Who Am I?",
+"release_date": "1998-01-17",
+"media_type": "movie",
+"job": "Director",
+"poster_path": "/9YDKLbBmWGpxG5bO3TBawtNNOAr.jpg",
+"vote_average": 7.18,
+"vote_count": 1051,
+"genre_ids": [
+12,
+28,
+35,
+53
+],
+"original_language": "cn"
+},
+{
+"id": 25074,
+"title": "Miracles: The Canton Godfather",
+"release_date": "1989-06-15",
+"media_type": "movie",
+"job": "Director",
+"poster_path": "/70OnveJQzlYji1TOoODNGrU9Mjj.jpg",
+"vote_average": 7.1,
+"vote_count": 188,
+"genre_ids": [
+80,
+28,
+35,
+18
+],
+"original_language": "cn"
+},
+{
+"id": 13099,
+"title": "Gen-X Cops",
+"release_date": "1999-06-18",
+"media_type": "movie",
+"job": "Executive Producer",
+"poster_path": "/2URAvYZ67Wwo7iceIfTHl050luM.jpg",
+"vote_average": 5.4,
+"vote_count": 69,
+"genre_ids": [
+28,
+35,
+80,
+53
+],
+"original_language": "cn"
+},
+{
+"id": 28366,
+"title": "House of Fury",
+"release_date": "2005-03-31",
+"media_type": "movie",
+"job": "Executive Producer",
+"poster_path": "/faRREdm64qKYE2BHO4EGtlmHXYr.jpg",
+"vote_average": 6.5,
+"vote_count": 71,
+"genre_ids": [
+28,
+35,
+10751
+],
+"original_language": "cn"
+},
+{
+"id": 35138,
+"title": "Little Big Soldier",
+"release_date": "2010-02-14",
+"media_type": "movie",
+"job": "Writer",
+"poster_path": "/uCSQnopQPIw58RKTfzoRYxq9It5.jpg",
+"vote_average": 6.876,
+"vote_count": 354,
+"genre_ids": [
+28,
+35,
+12
+],
+"original_language": "zh"
+},
+{
+"id": 40863,
+"title": "Jackie Chan: My Stunts",
+"release_date": "1999-03-30",
+"media_type": "movie",
+"job": "Director",
+"poster_path": "/aSIkVfhD1MvI4r1pVhJIIPttpgJ.jpg",
+"vote_average": 7.2,
+"vote_count": 62,
+"genre_ids": [
+99
+],
+"original_language": "cn"
+},
+{
+"id": 40863,
+"title": "Jackie Chan: My Stunts",
+"release_date": "1999-03-30",
+"media_type": "movie",
+"job": "Producer",
+"poster_path": "/aSIkVfhD1MvI4r1pVhJIIPttpgJ.jpg",
+"vote_average": 7.2,
+"vote_count": 62,
+"genre_ids": [
+99
+],
+"original_language": "cn"
+},
+{
+"id": 46122,
+"title": "Jackie Chan: My Story",
+"release_date": "1998-07-17",
+"media_type": "movie",
+"job": "Director",
+"poster_path": "/kJnVff7qqEWeRZbILeZLW6fsn62.jpg",
+"vote_average": 6.3,
+"vote_count": 43,
+"genre_ids": [
+99
+],
+"original_language": "en"
+},
+{
+"id": 9056,
+"title": "Police Story",
+"release_date": "1985-12-14",
+"media_type": "movie",
+"job": "Theme Song Performance",
+"poster_path": "/1eFB0Iy1TMU4VO5hMcoCE064JAT.jpg",
+"vote_average": 7.561,
+"vote_count": 1117,
+"genre_ids": [
+28,
+80,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 10618,
+"title": "Once Upon a Time in China II",
+"release_date": "1992-04-16",
+"media_type": "movie",
+"job": "Theme Song Performance",
+"poster_path": "/jvrQXnpgSpKXQ3fkz5p6RV8jZJa.jpg",
+"vote_average": 7.167,
+"vote_count": 300,
+"genre_ids": [
+28,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 10348,
+"title": "Thunderbolt",
+"release_date": "1995-08-05",
+"media_type": "movie",
+"job": "Theme Song Performance",
+"poster_path": "/6NAxYuSf4sSThBQWKp4vcGhhAoN.jpg",
+"vote_average": 6.5,
+"vote_count": 341,
+"genre_ids": [
+28,
+53
+],
+"original_language": "cn"
+},
+{
+"id": 16407,
+"title": "Dragon Lord",
+"release_date": "1982-01-21",
+"media_type": "movie",
+"job": "Director",
+"poster_path": "/qjQhm2jwV4DSTauOydFJVhVyMS3.jpg",
+"vote_average": 6.5,
+"vote_count": 165,
+"genre_ids": [
+28,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 68883,
+"title": "Rouge",
+"release_date": "1987-12-05",
+"media_type": "movie",
+"job": "Producer",
+"poster_path": "/q2wAAeGagOmqmqEkEgveLJYBj89.jpg",
+"vote_average": 7.427,
+"vote_count": 96,
+"genre_ids": [
+18,
+14,
+10749,
+9648
+],
+"original_language": "cn"
+},
+{
+"id": 19274,
+"title": "Fearless Hyena",
+"release_date": "1979-02-17",
+"media_type": "movie",
+"job": "Director",
+"poster_path": "/bmQR6gtoBJHUkgALLb1eGruKPll.jpg",
+"vote_average": 6.7,
+"vote_count": 186,
+"genre_ids": [
+28,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 76349,
+"title": "1911",
+"release_date": "2011-09-23",
+"media_type": "movie",
+"job": "Stunt Coordinator",
+"poster_path": "/k93DWz849jCsHW7rIbeUAIxewpr.jpg",
+"vote_average": 5.7,
+"vote_count": 170,
+"genre_ids": [
+12,
+18,
+28,
+36,
+10752
+],
+"original_language": "zh"
+},
+{
+"id": 6038,
+"title": "Shanghai Knights",
+"release_date": "2003-02-06",
+"media_type": "movie",
+"job": "Choreographer",
+"poster_path": "/vVNQStMlZS9mn2AKBEpadRunHgt.jpg",
+"vote_average": 6.135,
+"vote_count": 2527,
+"genre_ids": [
+12,
+35,
+37
+],
+"original_language": "en"
+},
+{
+"id": 6038,
+"title": "Shanghai Knights",
+"release_date": "2003-02-06",
+"media_type": "movie",
+"job": "Executive Producer",
+"poster_path": "/vVNQStMlZS9mn2AKBEpadRunHgt.jpg",
+"vote_average": 6.135,
+"vote_count": 2527,
+"genre_ids": [
+12,
+35,
+37
+],
+"original_language": "en"
+},
+{
+"id": 98567,
+"title": "Chinese Zodiac",
+"release_date": "2012-12-20",
+"media_type": "movie",
+"job": "Director",
+"poster_path": "/zlC6cN9dYIT6FjQVx026s9pFLIu.jpg",
+"vote_average": 6.186,
+"vote_count": 933,
+"genre_ids": [
+28,
+12
+],
+"original_language": "cn"
+},
+{
+"id": 98567,
+"title": "Chinese Zodiac",
+"release_date": "2012-12-20",
+"media_type": "movie",
+"job": "Writer",
+"poster_path": "/zlC6cN9dYIT6FjQVx026s9pFLIu.jpg",
+"vote_average": 6.186,
+"vote_count": 933,
+"genre_ids": [
+28,
+12
+],
+"original_language": "cn"
+},
+{
+"id": 98567,
+"title": "Chinese Zodiac",
+"release_date": "2012-12-20",
+"media_type": "movie",
+"job": "Producer",
+"poster_path": "/zlC6cN9dYIT6FjQVx026s9pFLIu.jpg",
+"vote_average": 6.186,
+"vote_count": 933,
+"genre_ids": [
+28,
+12
+],
+"original_language": "cn"
+},
+{
+"id": 274862,
+"title": "The Lego Ninjago Movie",
+"release_date": "2017-09-21",
+"media_type": "movie",
+"job": "Fight Choreographer",
+"poster_path": "/vUo0pNXGhp2ffTJxiStWt6fHL7F.jpg",
+"vote_average": 6.5,
+"vote_count": 1219,
+"genre_ids": [
+16,
+35,
+12,
+28,
+10751
+],
+"original_language": "en"
+},
+{
+"id": 18867,
+"title": "Half a Loaf of Kung Fu",
+"release_date": "1978-06-30",
+"media_type": "movie",
+"job": "Stunt Coordinator",
+"poster_path": "/lH11m3LC8itFSTWzkS4xVYL6nB.jpg",
+"vote_average": 6.2,
+"vote_count": 95,
+"genre_ids": [
+35,
+28
+],
+"original_language": "zh"
+},
+{
+"id": 18760,
+"title": "Spiritual Kung Fu",
+"release_date": "1978-11-23",
+"media_type": "movie",
+"job": "Stunt Coordinator",
+"poster_path": "/5NwhAvXqaVDacl3fvXlfsYXt8Dw.jpg",
+"vote_average": 6.029,
+"vote_count": 105,
+"genre_ids": [
+28
+],
+"original_language": "cn"
+},
+{
+"id": 976183,
+"title": "Jackie Chan's Green Heroes",
+"release_date": "2018-04-18",
+"media_type": "movie",
+"job": "Producer",
+"poster_path": "/8v3yktc1HomrtoVmTwPzVLBkeX0.jpg",
+"vote_average": 0,
+"vote_count": 0,
+"genre_ids": [
+10770,
+99
+],
+"original_language": "en"
+},
+{
+"id": 550205,
+"title": "Wish Dragon",
+"release_date": "2021-01-15",
+"media_type": "movie",
+"job": "Producer",
+"poster_path": "/lnPf6hzANL6pVQTxUlsNYSuhT5l.jpg",
+"vote_average": 7.8,
+"vote_count": 1577,
+"genre_ids": [
+16,
+10751,
+35,
+14,
+10749,
+12
+],
+"original_language": "en"
+},
+{
+"id": 457332,
+"title": "Hidden Strike",
+"release_date": "2023-07-06",
+"media_type": "movie",
+"job": "Producer",
+"poster_path": "/zsbolOkw8RhTU4DKOrpf4M7KCmi.jpg",
+"vote_average": 6.867,
+"vote_count": 1109,
+"genre_ids": [
+28,
+35,
+53,
+12
+],
+"original_language": "en"
+},
+{
+"id": 40829,
+"title": "Shaolin Wooden Men",
+"release_date": "1976-10-10",
+"media_type": "movie",
+"job": "Martial Arts Choreographer",
+"poster_path": "/uFbYnHPb5YGgce3Un0bgBgbt8DI.jpg",
+"vote_average": 6.8,
+"vote_count": 148,
+"genre_ids": [
+28
+],
+"original_language": "zh"
+},
+{
+"id": 300168,
+"title": "Dragon Blade",
+"release_date": "2015-02-19",
+"media_type": "movie",
+"job": "Producer",
+"poster_path": "/hrEbZNZQ385i4snYWyCDpYrEofO.jpg",
+"vote_average": 6.417,
+"vote_count": 659,
+"genre_ids": [
+12,
+36,
+28,
+14
+],
+"original_language": "zh"
+},
+{
+"id": 317877,
+"title": "The Shootout",
+"release_date": "1992-06-27",
+"media_type": "movie",
+"job": "Producer",
+"poster_path": "/5YR5wRs7OhKYCnhA9OJK0MVAjEP.jpg",
+"vote_average": 6.3,
+"vote_count": 7,
+"genre_ids": [
+28,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 1016254,
+"title": "The Making of Who Am I",
+"release_date": "1998-01-01",
+"media_type": "movie",
+"job": "Producer",
+"poster_path": "/jxn5w9UnMg3IoICWDXEscX2Cjso.jpg",
+"vote_average": 6,
+"vote_count": 1,
+"genre_ids": [
+99
+],
+"original_language": "zh"
+},
+{
+"id": 50147,
+"title": "Naughty Boys",
+"release_date": "1986-07-25",
+"media_type": "movie",
+"job": "Producer",
+"poster_path": "/4Vlyl1NUBPz9vZL4yF8Zv4p7fs3.jpg",
+"vote_average": 5.2,
+"vote_count": 15,
+"genre_ids": [
+28,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 10204,
+"title": "Around the World in 80 Days",
+"release_date": "2004-06-16",
+"media_type": "movie",
+"job": "Executive Producer",
+"poster_path": "/bBiMw6Jtg8tSTcEq8jFV7qk9TRW.jpg",
+"vote_average": 6,
+"vote_count": 2805,
+"genre_ids": [
+28,
+12,
+35
+],
+"original_language": "en"
+},
+{
+"id": 68868,
+"title": "The Inspector Wears Skirts",
+"release_date": "1988-06-03",
+"media_type": "movie",
+"job": "Stunt Coordinator",
+"poster_path": "/iArllGjB61rjqyCFP0o2F9yu2Vn.jpg",
+"vote_average": 6.214,
+"vote_count": 42,
+"genre_ids": [
+28,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 21733,
+"title": "Dragons Forever",
+"release_date": "1988-02-11",
+"media_type": "movie",
+"job": "Songs",
+"poster_path": "/lt94C482UqyVlq1UdK5nvXukaw7.jpg",
+"vote_average": 7.248,
+"vote_count": 326,
+"genre_ids": [
+28,
+35,
+10749
+],
+"original_language": "cn"
+},
+{
+"id": 20083,
+"title": "Shinjuku Incident",
+"release_date": "2009-03-22",
+"media_type": "movie",
+"job": "Executive Producer",
+"poster_path": "/8zWliijoTsk3kUdUJpbjqWgV617.jpg",
+"vote_average": 6.646,
+"vote_count": 335,
+"genre_ids": [
+18,
+28,
+53,
+80
+],
+"original_language": "cn"
+},
+{
+"id": 2109,
+"title": "Rush Hour",
+"release_date": "1998-09-18",
+"media_type": "movie",
+"job": "Stunt Coordinator",
+"poster_path": "/nwPhAsfnb7f46bZkWLG7IRP5HXr.jpg",
+"vote_average": 7.089,
+"vote_count": 5982,
+"genre_ids": [
+28,
+35,
+80
+],
+"original_language": "en"
+},
+{
+"id": 18758,
+"title": "To Kill with Intrigue",
+"release_date": "1977-07-22",
+"media_type": "movie",
+"job": "Stunt Coordinator",
+"poster_path": "/n4tHrGkapp4LIN5kyj8IvjoYaUf.jpg",
+"vote_average": 5.611,
+"vote_count": 63,
+"genre_ids": [
+28,
+18
+],
+"original_language": "zh"
+},
+{
+"id": 401712,
+"title": "Story of Kennedy Town",
+"release_date": "1990-11-16",
+"media_type": "movie",
+"job": "Producer",
+"poster_path": "/qqQ8abQa8Qyc9ugkbJM2pBJwvOa.jpg",
+"vote_average": 8,
+"vote_count": 2,
+"genre_ids": [
+28,
+10749
+],
+"original_language": "cn"
+},
+{
+"id": 187447,
+"title": "Supermen Against the Orient",
+"release_date": "1973-11-29",
+"media_type": "movie",
+"job": "Choreographer",
+"poster_path": "/udmuurv6bXVmPMkIg8iSqieDt7S.jpg",
+"vote_average": 5.4,
+"vote_count": 9,
+"genre_ids": [
+28,
+35
+],
+"original_language": "it"
+},
+{
+"id": 10622,
+"title": "Mr. Nice Guy",
+"release_date": "1997-01-31",
+"media_type": "movie",
+"job": "Stunt Coordinator",
+"poster_path": "/wAAt2gvbkbeefzjd06GPfkdfUho.jpg",
+"vote_average": 6.568,
+"vote_count": 792,
+"genre_ids": [
+80,
+28,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 10622,
+"title": "Mr. Nice Guy",
+"release_date": "1997-01-31",
+"media_type": "movie",
+"job": "Theme Song Performance",
+"poster_path": "/wAAt2gvbkbeefzjd06GPfkdfUho.jpg",
+"vote_average": 6.568,
+"vote_count": 792,
+"genre_ids": [
+80,
+28,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 449488,
+"title": "Read Lips",
+"release_date": "1980-09-18",
+"media_type": "movie",
+"job": "Producer",
+"poster_path": "/A7SOJOMhbh3WBimRYPj4MH9wf5N.jpg",
+"vote_average": 4.8,
+"vote_count": 12,
+"genre_ids": [
+35,
+28
+],
+"original_language": "cn"
+},
+{
+"id": 19274,
+"title": "Fearless Hyena",
+"release_date": "1979-02-17",
+"media_type": "movie",
+"job": "Screenplay",
+"poster_path": "/bmQR6gtoBJHUkgALLb1eGruKPll.jpg",
+"vote_average": 6.7,
+"vote_count": 186,
+"genre_ids": [
+28,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 19274,
+"title": "Fearless Hyena",
+"release_date": "1979-02-17",
+"media_type": "movie",
+"job": "Martial Arts Choreographer",
+"poster_path": "/bmQR6gtoBJHUkgALLb1eGruKPll.jpg",
+"vote_average": 6.7,
+"vote_count": 186,
+"genre_ids": [
+28,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 383785,
+"title": "Kung Fu Yoga",
+"release_date": "2017-01-27",
+"media_type": "movie",
+"job": "Executive Producer",
+"poster_path": "/rL6XM4fsr1cM5mN2flEhQ8jQter.jpg",
+"vote_average": 5.873,
+"vote_count": 450,
+"genre_ids": [
+35,
+9648,
+10751,
+28,
+12
+],
+"original_language": "zh"
+},
+{
+"id": 1100119,
+"title": "New Police Story 2",
+"release_date": "",
+"media_type": "movie",
+"job": "Executive Producer",
+"poster_path": null,
+"vote_average": 0,
+"vote_count": 0,
+"genre_ids": [
+28,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 457832,
+"title": "Reset",
+"release_date": "2017-06-28",
+"media_type": "movie",
+"job": "Producer",
+"poster_path": "/zwTonDtQstoMQHYEBCz8x8RvBJJ.jpg",
+"vote_average": 6.93,
+"vote_count": 115,
+"genre_ids": [
+28,
+878
+],
+"original_language": "zh"
+},
+{
+"id": 377447,
+"title": "Railroad Tigers",
+"release_date": "2016-12-23",
+"media_type": "movie",
+"job": "Executive Producer",
+"poster_path": "/1aSkP9geZCbqIoxjF7Jy9dT8UfY.jpg",
+"vote_average": 6.1,
+"vote_count": 159,
+"genre_ids": [
+28,
+12,
+35,
+10751,
+10752
+],
+"original_language": "zh"
+},
+{
+"id": 460648,
+"title": "Bleeding Steel",
+"release_date": "2017-12-18",
+"media_type": "movie",
+"job": "Executive Producer",
+"poster_path": "/vL1KMUr0Jj6kEZ5YPZO7VQBZMLl.jpg",
+"vote_average": 6,
+"vote_count": 593,
+"genre_ids": [
+878,
+28,
+12,
+53
+],
+"original_language": "zh"
+},
+{
+"id": 45472,
+"title": "Tempting Heart",
+"release_date": "1999-09-23",
+"media_type": "movie",
+"job": "Presenter",
+"poster_path": "/vFdczbjSjEGkqmeFFwgOu7DvW5o.jpg",
+"vote_average": 6,
+"vote_count": 20,
+"genre_ids": [
+18,
+10749
+],
+"original_language": "cn"
+},
+{
+"id": 155082,
+"title": "Angry Ranger",
+"release_date": "1991-09-14",
+"media_type": "movie",
+"job": "Producer",
+"poster_path": "/kWnt2I0ejMxZbv7cYh3wXb4KTpR.jpg",
+"vote_average": 7.4,
+"vote_count": 4,
+"genre_ids": [
+28
+],
+"original_language": "cn"
+},
+{
+"id": 16687,
+"title": "Wushu",
+"release_date": "2008-10-23",
+"media_type": "movie",
+"job": "Executive Producer",
+"poster_path": "/xims8UJUe91CPnwobdNwpy1kIMK.jpg",
+"vote_average": 6,
+"vote_count": 23,
+"genre_ids": [
+18,
+28
+],
+"original_language": "zh"
+},
+{
+"id": 47293,
+"title": "Everlasting Regret",
+"release_date": "2005-09-29",
+"media_type": "movie",
+"job": "Producer",
+"poster_path": "/xmeNvUoatxydM5AObmItOy9Lkbv.jpg",
+"vote_average": 5.9,
+"vote_count": 14,
+"genre_ids": [
+18,
+10749
+],
+"original_language": "zh"
+},
+{
+"id": 68004,
+"title": "Center Stage",
+"release_date": "1991-11-29",
+"media_type": "movie",
+"job": "Presenter",
+"poster_path": "/mrRQD7dJzZ39sgwhbsFQ8kK8UjT.jpg",
+"vote_average": 7.3,
+"vote_count": 95,
+"genre_ids": [
+18,
+10749,
+36
+],
+"original_language": "cn"
+},
+{
+"id": 214191,
+"title": "I Am Sorry",
+"release_date": "1989-05-10",
+"media_type": "movie",
+"job": "Presenter",
+"poster_path": "/sgQfSOmcPJ5KY6bdZLlX8dOQogK.jpg",
+"vote_average": 6.2,
+"vote_count": 6,
+"genre_ids": [],
+"original_language": "cn"
+},
+{
+"id": 464645,
+"title": "The Magnificent Monk",
+"release_date": "1969-03-01",
+"media_type": "movie",
+"job": "Script",
+"poster_path": "/xS0gUeZmLGN59X6c9uowHKIMA2u.jpg",
+"vote_average": 0,
+"vote_count": 0,
+"genre_ids": [
+35,
+12,
+14
+],
+"original_language": "zh"
+},
+{
+"id": 436047,
+"title": "Who Am I 2015",
+"release_date": "2015-06-12",
+"media_type": "movie",
+"job": "Producer",
+"poster_path": "/iRIKTzQN07ySezXJlHopnXuLKLL.jpg",
+"vote_average": 4.9,
+"vote_count": 7,
+"genre_ids": [
+28,
+53
+],
+"original_language": "zh"
+},
+{
+"id": 49259,
+"title": "Run Papa Run",
+"release_date": "2008-04-10",
+"media_type": "movie",
+"job": "Presenter",
+"poster_path": "/behMCGgIdXRLaqti6ULzTXWVfjH.jpg",
+"vote_average": 5.4,
+"vote_count": 12,
+"genre_ids": [
+18,
+80,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 320979,
+"title": "Impetuous Love in Action",
+"release_date": "2014-05-23",
+"media_type": "movie",
+"job": "Producer",
+"poster_path": "/qrE5lKpMJ3nSTqQIcTne3Ic63dg.jpg",
+"vote_average": 6.5,
+"vote_count": 4,
+"genre_ids": [
+28,
+35
+],
+"original_language": "zh"
+},
+{
+"id": 82190,
+"title": "Legendary Amazons",
+"release_date": "2011-11-17",
+"media_type": "movie",
+"job": "Producer",
+"poster_path": "/tcmb3NIoghYcCzHZjK4tioQmG6x.jpg",
+"vote_average": 5.788,
+"vote_count": 26,
+"genre_ids": [
+10752,
+28,
+18
+],
+"original_language": "zh"
+},
+{
+"id": 407400,
+"title": "Stage Door Johnny",
+"release_date": "1990-03-24",
+"media_type": "movie",
+"job": "Producer",
+"poster_path": "/hq4ks5PDyod1ATYmR3WAGKY6rHk.jpg",
+"vote_average": 10,
+"vote_count": 1,
+"genre_ids": [
+18,
+28
+],
+"original_language": "cn"
+},
+{
+"id": 80606,
+"title": "The Inspector Wears Skirts II",
+"release_date": "1989-01-28",
+"media_type": "movie",
+"job": "Producer",
+"poster_path": "/f1ImpiqX7EgwHRhPw66cEgQchW8.jpg",
+"vote_average": 6,
+"vote_count": 15,
+"genre_ids": [
+28,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 464646,
+"title": "The Break-Up Artist",
+"release_date": "2014-04-12",
+"media_type": "movie",
+"job": "Executive Producer",
+"poster_path": "/iX0g0fdhWxSxBgKsdFCy9277iFs.jpg",
+"vote_average": 0,
+"vote_count": 0,
+"genre_ids": [
+35
+],
+"original_language": "zh"
+},
+{
+"id": 58363,
+"title": "Hot War",
+"release_date": "1998-12-24",
+"media_type": "movie",
+"job": "Producer",
+"poster_path": "/vYPvxB22pehLDwMtDPdzyBaKT0T.jpg",
+"vote_average": 5.8,
+"vote_count": 10,
+"genre_ids": [
+28,
+53
+],
+"original_language": "cn"
+},
+{
+"id": 97520,
+"title": "Rice Rhapsody",
+"release_date": "2005-01-20",
+"media_type": "movie",
+"job": "Presenter",
+"poster_path": "/YIGEulOZxB6g4Q4kSa0FUPaPaP.jpg",
+"vote_average": 5.8,
+"vote_count": 16,
+"genre_ids": [
+18,
+10749
+],
+"original_language": "cn"
+},
+{
+"id": 68868,
+"title": "The Inspector Wears Skirts",
+"release_date": "1988-06-03",
+"media_type": "movie",
+"job": "Producer",
+"poster_path": "/iArllGjB61rjqyCFP0o2F9yu2Vn.jpg",
+"vote_average": 6.214,
+"vote_count": 42,
+"genre_ids": [
+28,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 407516,
+"title": "That Enchanting Night",
+"release_date": "1987-06-18",
+"media_type": "movie",
+"job": "Producer",
+"poster_path": "/5DxZg6DzxgwND7nZCOP5ZkTZQd2.jpg",
+"vote_average": 5.5,
+"vote_count": 2,
+"genre_ids": [
+35,
+10749
+],
+"original_language": "cn"
+},
+{
+"id": 467144,
+"title": "Air Diary",
+"release_date": "2007-09-06",
+"media_type": "movie",
+"job": "Producer",
+"poster_path": "/ftG8uKa8L3AN7rnGwrF2KpSMExS.jpg",
+"vote_average": 0,
+"vote_count": 0,
+"genre_ids": [
+18,
+10402
+],
+"original_language": "zh"
+},
+{
+"id": 467139,
+"title": "The Gold Hunters",
+"release_date": "1981-05-15",
+"media_type": "movie",
+"job": "Producer",
+"poster_path": "/f7Jp7KHkL3YzVmxwh3YvzHmCwlc.jpg",
+"vote_average": 9,
+"vote_count": 1,
+"genre_ids": [
+35,
+28,
+12
+],
+"original_language": "cn"
+},
+{
+"id": 468802,
+"title": "Kin chan no Cinema Jack",
+"release_date": "1993-05-22",
+"media_type": "movie",
+"job": "Producer",
+"poster_path": "/dEKUuncxoKuMba2q5Bwix6B3l08.jpg",
+"vote_average": 0,
+"vote_count": 0,
+"genre_ids": [
+35
+],
+"original_language": "cn"
+},
+{
+"id": 9461,
+"title": "Enter the Dragon",
+"release_date": "1973-08-17",
+"media_type": "movie",
+"job": "Stunts",
+"poster_path": "/fyrh2ULEcmLpGTVLPQqFW45hqr5.jpg",
+"vote_average": 7.414,
+"vote_count": 2187,
+"genre_ids": [
+28
+],
+"original_language": "en"
+},
+{
+"id": 468308,
+"title": "Red Zone",
+"release_date": "1995-12-01",
+"media_type": "movie",
+"job": "Producer",
+"poster_path": "/HAwWaZhvcPmuV9Ufb9X4InXucH.jpg",
+"vote_average": 8,
+"vote_count": 2,
+"genre_ids": [
+28
+],
+"original_language": "cn"
+},
+{
+"id": 66740,
+"title": "Purple Storm",
+"release_date": "1999-11-25",
+"media_type": "movie",
+"job": "Presenter",
+"poster_path": "/qSpgKFsFU9GDKgCbBD8e6i7Drqy.jpg",
+"vote_average": 5.7,
+"vote_count": 17,
+"genre_ids": [
+28,
+80,
+53
+],
+"original_language": "cn"
+},
+{
+"id": 49514,
+"title": "Gen-Y Cops",
+"release_date": "2000-11-17",
+"media_type": "movie",
+"job": "Presenter",
+"poster_path": "/28ogVAXiUjUwUIHXXh99UWfgpwj.jpg",
+"vote_average": 4.5,
+"vote_count": 27,
+"genre_ids": [
+28,
+878,
+53,
+80
+],
+"original_language": "cn"
+},
+{
+"id": 32249,
+"title": "2000 AD",
+"release_date": "2000-02-03",
+"media_type": "movie",
+"job": "Presenter",
+"poster_path": "/cYJRSQkk2l1U3h4xY3pBQlHe3S8.jpg",
+"vote_average": 6.2,
+"vote_count": 41,
+"genre_ids": [
+28,
+53
+],
+"original_language": "cn"
+},
+{
+"id": 11563,
+"title": "The Young Master",
+"release_date": "1980-02-09",
+"media_type": "movie",
+"job": "Martial Arts Choreographer",
+"poster_path": "/sSZwTKQgY9pudxFOqxKCSf8r5qF.jpg",
+"vote_average": 7,
+"vote_count": 259,
+"genre_ids": [
+28,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 270774,
+"title": "Skiptrace",
+"release_date": "2016-07-21",
+"media_type": "movie",
+"job": "Producer",
+"poster_path": "/jki396PIIGja0NoFjUq1AdBbMGc.jpg",
+"vote_average": 5.8,
+"vote_count": 795,
+"genre_ids": [
+28,
+12,
+80,
+35
+],
+"original_language": "en"
+},
+{
+"id": 379149,
+"title": "The Foreigner",
+"release_date": "2017-09-28",
+"media_type": "movie",
+"job": "Producer",
+"poster_path": "/rwM4hzrmc5HiWfQD9ls9DL4QgGl.jpg",
+"vote_average": 6.982,
+"vote_count": 3074,
+"genre_ids": [
+28,
+53,
+80
+],
+"original_language": "en"
+},
+{
+"id": 16407,
+"title": "Dragon Lord",
+"release_date": "1982-01-21",
+"media_type": "movie",
+"job": "Screenplay",
+"poster_path": "/qjQhm2jwV4DSTauOydFJVhVyMS3.jpg",
+"vote_average": 6.5,
+"vote_count": 165,
+"genre_ids": [
+28,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 16407,
+"title": "Dragon Lord",
+"release_date": "1982-01-21",
+"media_type": "movie",
+"job": "Martial Arts Choreographer",
+"poster_path": "/qjQhm2jwV4DSTauOydFJVhVyMS3.jpg",
+"vote_average": 6.5,
+"vote_count": 165,
+"genre_ids": [
+28,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 467136,
+"title": "Immortal Warriors",
+"release_date": "1978-09-25",
+"media_type": "movie",
+"job": "Stunt Coordinator",
+"poster_path": "/zSZM4d5DSBDGJWZH3WmxxcwjYK2.jpg",
+"vote_average": 0,
+"vote_count": 0,
+"genre_ids": [
+18,
+28,
+12,
+36
+],
+"original_language": "zh"
+},
+{
+"id": 21519,
+"title": "Project A",
+"release_date": "1983-12-22",
+"media_type": "movie",
+"job": "Screenplay",
+"poster_path": "/AvTu2bmJbVZGXPxdx6VllGXCtLG.jpg",
+"vote_average": 7.282,
+"vote_count": 601,
+"genre_ids": [
+28,
+12,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 21519,
+"title": "Project A",
+"release_date": "1983-12-22",
+"media_type": "movie",
+"job": "Martial Arts Choreographer",
+"poster_path": "/AvTu2bmJbVZGXPxdx6VllGXCtLG.jpg",
+"vote_average": 7.282,
+"vote_count": 601,
+"genre_ids": [
+28,
+12,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 9056,
+"title": "Police Story",
+"release_date": "1985-12-14",
+"media_type": "movie",
+"job": "Screenplay",
+"poster_path": "/1eFB0Iy1TMU4VO5hMcoCE064JAT.jpg",
+"vote_average": 7.561,
+"vote_count": 1117,
+"genre_ids": [
+28,
+80,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 9056,
+"title": "Police Story",
+"release_date": "1985-12-14",
+"media_type": "movie",
+"job": "Martial Arts Choreographer",
+"poster_path": "/1eFB0Iy1TMU4VO5hMcoCE064JAT.jpg",
+"vote_average": 7.561,
+"vote_count": 1117,
+"genre_ids": [
+28,
+80,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 11134,
+"title": "Police Story 3: Super Cop",
+"release_date": "1992-07-04",
+"media_type": "movie",
+"job": "Presenter",
+"poster_path": "/mUJOyCd4g0pNsU8thYI7UGrIpkl.jpg",
+"vote_average": 6.941,
+"vote_count": 612,
+"genre_ids": [
+28,
+80,
+53
+],
+"original_language": "cn"
+},
+{
+"id": 33542,
+"title": "Rumble in the Bronx",
+"release_date": "1995-01-21",
+"media_type": "movie",
+"job": "Martial Arts Choreographer",
+"poster_path": "/1nAfchiXHQB3iyhK8fCJJEnNs5A.jpg",
+"vote_average": 6.86,
+"vote_count": 1238,
+"genre_ids": [
+80,
+28,
+35,
+53
+],
+"original_language": "cn"
+},
+{
+"id": 11134,
+"title": "Police Story 3: Super Cop",
+"release_date": "1992-07-04",
+"media_type": "movie",
+"job": "Theme Song Performance",
+"poster_path": "/mUJOyCd4g0pNsU8thYI7UGrIpkl.jpg",
+"vote_average": 6.941,
+"vote_count": 612,
+"genre_ids": [
+28,
+80,
+53
+],
+"original_language": "cn"
+},
+{
+"id": 11636,
+"title": "New Police Story",
+"release_date": "2004-09-23",
+"media_type": "movie",
+"job": "Martial Arts Choreographer",
+"poster_path": "/kWUTyIao0b8DxVrO6L0LnpJVYWV.jpg",
+"vote_average": 7.162,
+"vote_count": 862,
+"genre_ids": [
+28,
+53,
+80,
+18
+],
+"original_language": "cn"
+},
+{
+"id": 10753,
+"title": "Police Story 2",
+"release_date": "1988-08-13",
+"media_type": "movie",
+"job": "Martial Arts Choreographer",
+"poster_path": "/kjq1FXtHh9i2sIuM0JaoYf43FDU.jpg",
+"vote_average": 7.103,
+"vote_count": 667,
+"genre_ids": [
+28,
+80,
+53
+],
+"original_language": "cn"
+},
+{
+"id": 10753,
+"title": "Police Story 2",
+"release_date": "1988-08-13",
+"media_type": "movie",
+"job": "Theme Song Performance",
+"poster_path": "/kjq1FXtHh9i2sIuM0JaoYf43FDU.jpg",
+"vote_average": 7.103,
+"vote_count": 667,
+"genre_ids": [
+28,
+80,
+53
+],
+"original_language": "cn"
+},
+{
+"id": 9404,
+"title": "Police Story 4: First Strike",
+"release_date": "1996-02-10",
+"media_type": "movie",
+"job": "Martial Arts Choreographer",
+"poster_path": "/dOZJQTn8Ys57pH5trpG5y9DaUBq.jpg",
+"vote_average": 6.513,
+"vote_count": 558,
+"genre_ids": [
+28,
+12,
+35,
+80,
+18,
+53
+],
+"original_language": "cn"
+},
+{
+"id": 428045,
+"title": "Iron Mask",
+"release_date": "2019-08-16",
+"media_type": "movie",
+"job": "Producer",
+"poster_path": "/nM6Mf4UIp8Uw6Jgw40WlY9OnQOS.jpg",
+"vote_average": 6.075,
+"vote_count": 577,
+"genre_ids": [
+28,
+12,
+10751,
+14
+],
+"original_language": "ru"
+},
+{
+"id": 13333,
+"title": "Game of Death",
+"release_date": "1978-03-23",
+"media_type": "movie",
+"job": "Stunts",
+"poster_path": "/c6jgLHaQpdIPH1rC94KkjAqgE7O.jpg",
+"vote_average": 6.405,
+"vote_count": 769,
+"genre_ids": [
+18,
+28,
+53
+],
+"original_language": "cn"
+},
+{
+"id": 1022659,
+"title": "The Movie Emperor",
+"release_date": "2024-02-10",
+"media_type": "movie",
+"job": "Thanks",
+"poster_path": "/8gKjxerz72MsB4zPXb09VKPWfgo.jpg",
+"vote_average": 6.1,
+"vote_count": 39,
+"genre_ids": [
+35,
+18
+],
+"original_language": "zh"
+},
+{
+"id": 21521,
+"title": "Project A - Part II",
+"release_date": "1987-07-25",
+"media_type": "movie",
+"job": "Screenplay",
+"poster_path": "/oY6wOuPmeeDoKjPdPlMwwmDCYmA.jpg",
+"vote_average": 7.1,
+"vote_count": 357,
+"genre_ids": [
+28,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 21521,
+"title": "Project A - Part II",
+"release_date": "1987-07-25",
+"media_type": "movie",
+"job": "Theme Song Performance",
+"poster_path": "/oY6wOuPmeeDoKjPdPlMwwmDCYmA.jpg",
+"vote_average": 7.1,
+"vote_count": 357,
+"genre_ids": [
+28,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 21521,
+"title": "Project A - Part II",
+"release_date": "1987-07-25",
+"media_type": "movie",
+"job": "Martial Arts Choreographer",
+"poster_path": "/oY6wOuPmeeDoKjPdPlMwwmDCYmA.jpg",
+"vote_average": 7.1,
+"vote_count": 357,
+"genre_ids": [
+28,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 1313181,
+"title": "Jackie Chan: Down to Earth",
+"release_date": "",
+"media_type": "movie",
+"job": "Producer",
+"poster_path": null,
+"vote_average": 0,
+"vote_count": 0,
+"genre_ids": [
+99
+],
+"original_language": "en"
+},
+{
+"id": 25074,
+"title": "Miracles: The Canton Godfather",
+"release_date": "1989-06-15",
+"media_type": "movie",
+"job": "Martial Arts Choreographer",
+"poster_path": "/70OnveJQzlYji1TOoODNGrU9Mjj.jpg",
+"vote_average": 7.1,
+"vote_count": 188,
+"genre_ids": [
+80,
+28,
+35,
+18
+],
+"original_language": "cn"
+},
+{
+"id": 25074,
+"title": "Miracles: The Canton Godfather",
+"release_date": "1989-06-15",
+"media_type": "movie",
+"job": "Screenplay",
+"poster_path": "/70OnveJQzlYji1TOoODNGrU9Mjj.jpg",
+"vote_average": 7.1,
+"vote_count": 188,
+"genre_ids": [
+80,
+28,
+35,
+18
+],
+"original_language": "cn"
+},
+{
+"id": 219572,
+"title": "Police Story: Lockdown",
+"release_date": "2013-12-24",
+"media_type": "movie",
+"job": "Executive Producer",
+"poster_path": "/iYukEgKMbbWr05s4nIvGqYGt84z.jpg",
+"vote_average": 6.218,
+"vote_count": 443,
+"genre_ids": [
+28,
+80,
+18
+],
+"original_language": "zh"
+},
+{
+"id": 219572,
+"title": "Police Story: Lockdown",
+"release_date": "2013-12-24",
+"media_type": "movie",
+"job": "Producer",
+"poster_path": "/iYukEgKMbbWr05s4nIvGqYGt84z.jpg",
+"vote_average": 6.218,
+"vote_count": 443,
+"genre_ids": [
+28,
+80,
+18
+],
+"original_language": "zh"
+},
+{
+"id": 543543,
+"title": "The Diary",
+"release_date": "",
+"media_type": "movie",
+"job": "Director",
+"poster_path": "/9AxKFHRG61AbR1Nhmpef0JqYWLj.jpg",
+"vote_average": 0,
+"vote_count": 0,
+"genre_ids": [
+18,
+10749
+],
+"original_language": "en"
+},
+{
+"id": 543543,
+"title": "The Diary",
+"release_date": "",
+"media_type": "movie",
+"job": "Writer",
+"poster_path": "/9AxKFHRG61AbR1Nhmpef0JqYWLj.jpg",
+"vote_average": 0,
+"vote_count": 0,
+"genre_ids": [
+18,
+10749
+],
+"original_language": "en"
+},
+{
+"id": 311667,
+"title": "Manhattan Night",
+"release_date": "2016-05-20",
+"media_type": "movie",
+"job": "Executive Producer",
+"poster_path": "/d40J0y6Ha1eakPrmfyEHoKFQrSB.jpg",
+"vote_average": 5.926,
+"vote_count": 435,
+"genre_ids": [
+18,
+9648,
+53
+],
+"original_language": "en"
+},
+{
+"id": 10975,
+"title": "Operation Condor",
+"release_date": "1991-02-07",
+"media_type": "movie",
+"job": "Theme Song Performance",
+"poster_path": "/25kyDgsGz1HzW4SqJTylhBaU5sW.jpg",
+"vote_average": 7.333,
+"vote_count": 678,
+"genre_ids": [
+28,
+12,
+80,
+53
+],
+"original_language": "cn"
+},
+{
+"id": 10975,
+"title": "Operation Condor",
+"release_date": "1991-02-07",
+"media_type": "movie",
+"job": "Martial Arts Choreographer",
+"poster_path": "/25kyDgsGz1HzW4SqJTylhBaU5sW.jpg",
+"vote_average": 7.333,
+"vote_count": 678,
+"genre_ids": [
+28,
+12,
+80,
+53
+],
+"original_language": "cn"
+},
+{
+"id": 10975,
+"title": "Operation Condor",
+"release_date": "1991-02-07",
+"media_type": "movie",
+"job": "Producer",
+"poster_path": "/25kyDgsGz1HzW4SqJTylhBaU5sW.jpg",
+"vote_average": 7.333,
+"vote_count": 678,
+"genre_ids": [
+28,
+12,
+80,
+53
+],
+"original_language": "cn"
+},
+{
+"id": 18857,
+"title": "Crime Story",
+"release_date": "1993-06-24",
+"media_type": "movie",
+"job": "Martial Arts Choreographer",
+"poster_path": "/1LzBLlptRC7ogT8OPi8cb0NrDQb.jpg",
+"vote_average": 6.8,
+"vote_count": 218,
+"genre_ids": [
+28,
+80,
+53,
+18
+],
+"original_language": "cn"
+},
+{
+"id": 8697,
+"title": "Who Am I?",
+"release_date": "1998-01-17",
+"media_type": "movie",
+"job": "Martial Arts Choreographer",
+"poster_path": "/9YDKLbBmWGpxG5bO3TBawtNNOAr.jpg",
+"vote_average": 7.18,
+"vote_count": 1051,
+"genre_ids": [
+12,
+28,
+35,
+53
+],
+"original_language": "cn"
+},
+{
+"id": 8697,
+"title": "Who Am I?",
+"release_date": "1998-01-17",
+"media_type": "movie",
+"job": "Stunt Coordinator",
+"poster_path": "/9YDKLbBmWGpxG5bO3TBawtNNOAr.jpg",
+"vote_average": 7.18,
+"vote_count": 1051,
+"genre_ids": [
+12,
+28,
+35,
+53
+],
+"original_language": "cn"
+},
+{
+"id": 10204,
+"title": "Around the World in 80 Days",
+"release_date": "2004-06-16",
+"media_type": "movie",
+"job": "Action Director",
+"poster_path": "/bBiMw6Jtg8tSTcEq8jFV7qk9TRW.jpg",
+"vote_average": 6,
+"vote_count": 2805,
+"genre_ids": [
+28,
+12,
+35
+],
+"original_language": "en"
+},
+{
+"id": 25676,
+"title": "Rob-B-Hood",
+"release_date": "2006-09-28",
+"media_type": "movie",
+"job": "Producer",
+"poster_path": "/aJZ8i1KEy5Kdc6hXNlLiHOlhdTA.jpg",
+"vote_average": 6.966,
+"vote_count": 708,
+"genre_ids": [
+18,
+28,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 463088,
+"title": "The Game Changers",
+"release_date": "2019-09-16",
+"media_type": "movie",
+"job": "Executive Producer",
+"poster_path": "/eufF3xEif5EZ1gTjdubw3KWh9xU.jpg",
+"vote_average": 7.3,
+"vote_count": 350,
+"genre_ids": [
+99
+],
+"original_language": "en"
+},
+{
+"id": 512901,
+"title": "The Knight of Shadows: Between Yin and Yang",
+"release_date": "2019-02-05",
+"media_type": "movie",
+"job": "Executive Producer",
+"poster_path": "/x2n0On0tEvlPiXVqajPYbPYJtn0.jpg",
+"vote_average": 5.6,
+"vote_count": 152,
+"genre_ids": [
+28,
+12,
+10751,
+14,
+10749
+],
+"original_language": "zh"
+},
+{
+"id": 38040,
+"title": "The Young Dragons",
+"release_date": "1974-07-25",
+"media_type": "movie",
+"job": "Stunt Coordinator",
+"poster_path": "/3QKr2yWGBXhxgqp91FmFiCx1tLz.jpg",
+"vote_average": 6.75,
+"vote_count": 6,
+"genre_ids": [
+28
+],
+"original_language": "zh"
+},
+{
+"id": 96331,
+"title": "Dance of Death",
+"release_date": "1980-07-04",
+"media_type": "movie",
+"job": "Stunt Coordinator",
+"poster_path": "/47Kf2DCiskH22M1n479jU8Nl0lV.jpg",
+"vote_average": 6.4,
+"vote_count": 7,
+"genre_ids": [
+28,
+35
+],
+"original_language": "zh"
+},
+{
+"id": 98422,
+"title": "The Face Behind the Mask",
+"release_date": "1977-05-13",
+"media_type": "movie",
+"job": "Action Director",
+"poster_path": "/kzi87Anaco4JvPqVmPtZnqTqycT.jpg",
+"vote_average": 5,
+"vote_count": 3,
+"genre_ids": [
+28
+],
+"original_language": "zh"
+},
+{
+"id": 11713,
+"title": "Fist of Fury",
+"release_date": "1972-03-22",
+"media_type": "movie",
+"job": "Stunts",
+"poster_path": "/dlcipCOa9hlfBBz7kCAyjsf3q0E.jpg",
+"vote_average": 7.2,
+"vote_count": 1124,
+"genre_ids": [
+18,
+28,
+53
+],
+"original_language": "zh"
+},
+{
+"id": 11713,
+"title": "Fist of Fury",
+"release_date": "1972-03-22",
+"media_type": "movie",
+"job": "Stunt Double",
+"poster_path": "/dlcipCOa9hlfBBz7kCAyjsf3q0E.jpg",
+"vote_average": 7.2,
+"vote_count": 1124,
+"genre_ids": [
+18,
+28,
+53
+],
+"original_language": "zh"
+},
+{
+"id": 531380,
+"title": "Golden Job",
+"release_date": "2018-09-20",
+"media_type": "movie",
+"job": "Presenter",
+"poster_path": "/66mlGssgzn6ZCJBPYf1zCmJSHhu.jpg",
+"vote_average": 6.1,
+"vote_count": 104,
+"genre_ids": [
+28,
+12,
+80
+],
+"original_language": "cn"
+},
+{
+"id": 737943,
+"title": "Gambling on Extinction",
+"release_date": "2015-03-01",
+"media_type": "movie",
+"job": "Producer",
+"poster_path": "/cCywP4SwJehyuLwe2zYgWBETzGu.jpg",
+"vote_average": 6,
+"vote_count": 1,
+"genre_ids": [
+99
+],
+"original_language": "en"
+},
+{
+"id": 458018,
+"title": "Too Happy for Words",
+"release_date": "1992-05-16",
+"media_type": "movie",
+"job": "Producer",
+"poster_path": "/um279pzPjp999Y9Et550mMxPNXx.jpg",
+"vote_average": 8.5,
+"vote_count": 2,
+"genre_ids": [
+35
+],
+"original_language": "cn"
+},
+{
+"id": 311667,
+"title": "Manhattan Night",
+"release_date": "2016-05-20",
+"media_type": "movie",
+"job": "Producer",
+"poster_path": "/d40J0y6Ha1eakPrmfyEHoKFQrSB.jpg",
+"vote_average": 5.926,
+"vote_count": 435,
+"genre_ids": [
+18,
+9648,
+53
+],
+"original_language": "en"
+},
+{
+"id": 22538,
+"title": "Scott Pilgrim vs. the World",
+"release_date": "2010-08-12",
+"media_type": "movie",
+"job": "Thanks",
+"poster_path": "/g5IoYeudx9XBEfwNL0fHvSckLBz.jpg",
+"vote_average": 7.5,
+"vote_count": 8964,
+"genre_ids": [
+28,
+35,
+10749
+],
+"original_language": "en"
+},
+{
+"id": 34800,
+"title": "The Cub Tiger from Kwang Tung",
+"release_date": "1973-03-31",
+"media_type": "movie",
+"job": "Stunt Coordinator",
+"poster_path": "/3Qf9OEhcYM3zW5e9ZGtJ6IQ53sY.jpg",
+"vote_average": 5.228,
+"vote_count": 79,
+"genre_ids": [
+28,
+35,
+18
+],
+"original_language": "cn"
+},
+{
+"id": 11847,
+"title": "The Accidental Spy",
+"release_date": "2001-01-18",
+"media_type": "movie",
+"job": "Stunts",
+"poster_path": "/fPW4Qn9wm82uOexHMB3TC8x6lRU.jpg",
+"vote_average": 5.993,
+"vote_count": 548,
+"genre_ids": [
+28,
+35,
+53
+],
+"original_language": "cn"
+},
+{
+"id": 98567,
+"title": "Chinese Zodiac",
+"release_date": "2012-12-20",
+"media_type": "movie",
+"job": "Art Direction",
+"poster_path": "/zlC6cN9dYIT6FjQVx026s9pFLIu.jpg",
+"vote_average": 6.186,
+"vote_count": 933,
+"genre_ids": [
+28,
+12
+],
+"original_language": "cn"
+},
+{
+"id": 46122,
+"title": "Jackie Chan: My Story",
+"release_date": "1998-07-17",
+"media_type": "movie",
+"job": "Story",
+"poster_path": "/kJnVff7qqEWeRZbILeZLW6fsn62.jpg",
+"vote_average": 6.3,
+"vote_count": 43,
+"genre_ids": [
+99
+],
+"original_language": "en"
+},
+{
+"id": 46122,
+"title": "Jackie Chan: My Story",
+"release_date": "1998-07-17",
+"media_type": "movie",
+"job": "Producer",
+"poster_path": "/kJnVff7qqEWeRZbILeZLW6fsn62.jpg",
+"vote_average": 6.3,
+"vote_count": 43,
+"genre_ids": [
+99
+],
+"original_language": "en"
+},
+{
+"id": 76349,
+"title": "1911",
+"release_date": "2011-09-23",
+"media_type": "movie",
+"job": "Director",
+"poster_path": "/k93DWz849jCsHW7rIbeUAIxewpr.jpg",
+"vote_average": 5.7,
+"vote_count": 170,
+"genre_ids": [
+12,
+18,
+28,
+36,
+10752
+],
+"original_language": "zh"
+},
+{
+"id": 12207,
+"title": "The Legend of Drunken Master",
+"release_date": "1994-02-03",
+"media_type": "movie",
+"job": "Theme Song Performance",
+"poster_path": "/xqUBrSBtPYLvCtfqHF5sapU6Div.jpg",
+"vote_average": 7.472,
+"vote_count": 1150,
+"genre_ids": [
+28,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 11653,
+"title": "The Myth",
+"release_date": "2005-05-11",
+"media_type": "movie",
+"job": "Martial Arts Choreographer",
+"poster_path": "/iBDFnLkTZZxQlbb6IIeYkufnPCY.jpg",
+"vote_average": 6.411,
+"vote_count": 437,
+"genre_ids": [
+28,
+12,
+35,
+18,
+14
+],
+"original_language": "zh"
+},
+{
+"id": 10204,
+"title": "Around the World in 80 Days",
+"release_date": "2004-06-16",
+"media_type": "movie",
+"job": "Martial Arts Choreographer",
+"poster_path": "/bBiMw6Jtg8tSTcEq8jFV7qk9TRW.jpg",
+"vote_average": 6,
+"vote_count": 2805,
+"genre_ids": [
+28,
+12,
+35
+],
+"original_language": "en"
+},
+{
+"id": 214191,
+"title": "I Am Sorry",
+"release_date": "1989-05-10",
+"media_type": "movie",
+"job": "Producer",
+"poster_path": "/sgQfSOmcPJ5KY6bdZLlX8dOQogK.jpg",
+"vote_average": 6.2,
+"vote_count": 6,
+"genre_ids": [],
+"original_language": "cn"
+},
+{
+"id": 49259,
+"title": "Run Papa Run",
+"release_date": "2008-04-10",
+"media_type": "movie",
+"job": "Producer",
+"poster_path": "/behMCGgIdXRLaqti6ULzTXWVfjH.jpg",
+"vote_average": 5.4,
+"vote_count": 12,
+"genre_ids": [
+18,
+80,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 68004,
+"title": "Center Stage",
+"release_date": "1991-11-29",
+"media_type": "movie",
+"job": "Producer",
+"poster_path": "/mrRQD7dJzZ39sgwhbsFQ8kK8UjT.jpg",
+"vote_average": 7.3,
+"vote_count": 95,
+"genre_ids": [
+18,
+10749,
+36
+],
+"original_language": "cn"
+},
+{
+"id": 45472,
+"title": "Tempting Heart",
+"release_date": "1999-09-23",
+"media_type": "movie",
+"job": "Producer",
+"poster_path": "/vFdczbjSjEGkqmeFFwgOu7DvW5o.jpg",
+"vote_average": 6,
+"vote_count": 20,
+"genre_ids": [
+18,
+10749
+],
+"original_language": "cn"
+},
+{
+"id": 97520,
+"title": "Rice Rhapsody",
+"release_date": "2005-01-20",
+"media_type": "movie",
+"job": "Producer",
+"poster_path": "/YIGEulOZxB6g4Q4kSa0FUPaPaP.jpg",
+"vote_average": 5.8,
+"vote_count": 16,
+"genre_ids": [
+18,
+10749
+],
+"original_language": "cn"
+},
+{
+"id": 531380,
+"title": "Golden Job",
+"release_date": "2018-09-20",
+"media_type": "movie",
+"job": "Producer",
+"poster_path": "/66mlGssgzn6ZCJBPYf1zCmJSHhu.jpg",
+"vote_average": 6.1,
+"vote_count": 104,
+"genre_ids": [
+28,
+12,
+80
+],
+"original_language": "cn"
+},
+{
+"id": 66740,
+"title": "Purple Storm",
+"release_date": "1999-11-25",
+"media_type": "movie",
+"job": "Producer",
+"poster_path": "/qSpgKFsFU9GDKgCbBD8e6i7Drqy.jpg",
+"vote_average": 5.7,
+"vote_count": 17,
+"genre_ids": [
+28,
+80,
+53
+],
+"original_language": "cn"
+},
+{
+"id": 299041,
+"title": "The Himalayan",
+"release_date": "1976-02-20",
+"media_type": "movie",
+"job": "Stunts",
+"poster_path": "/qoDuwsruZNDLyirZKoRLVkcUfKs.jpg",
+"vote_average": 4.9,
+"vote_count": 8,
+"genre_ids": [
+18,
+28
+],
+"original_language": "zh"
+},
+{
+"id": 460648,
+"title": "Bleeding Steel",
+"release_date": "2017-12-18",
+"media_type": "movie",
+"job": "Theme Song Performance",
+"poster_path": "/vL1KMUr0Jj6kEZ5YPZO7VQBZMLl.jpg",
+"vote_average": 6,
+"vote_count": 593,
+"genre_ids": [
+878,
+28,
+12,
+53
+],
+"original_language": "zh"
+},
+{
+"id": 12207,
+"title": "The Legend of Drunken Master",
+"release_date": "1994-02-03",
+"media_type": "movie",
+"job": "Co-Director",
+"poster_path": "/xqUBrSBtPYLvCtfqHF5sapU6Div.jpg",
+"vote_average": 7.472,
+"vote_count": 1150,
+"genre_ids": [
+28,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 10974,
+"title": "Armour of God",
+"release_date": "1986-08-16",
+"media_type": "movie",
+"job": "Songs",
+"poster_path": "/phCpGqCSBWJqutKxj73COACrlPt.jpg",
+"vote_average": 7.041,
+"vote_count": 690,
+"genre_ids": [
+12,
+28,
+35
+],
+"original_language": "cn"
+},
+{
+"id": 46124,
+"title": "Dragon Fist",
+"release_date": "1979-04-21",
+"media_type": "movie",
+"job": "Martial Arts Choreographer",
+"poster_path": "/4bTvTDjcbxdf8NvGTRacr9wM2jh.jpg",
+"vote_average": 6.3,
+"vote_count": 92,
+"genre_ids": [
+28,
+53
+],
+"original_language": "zh"
+},
+{
+"id": 18764,
+"title": "Twin Dragons",
+"release_date": "1992-01-15",
+"media_type": "movie",
+"job": "Stunts",
+"poster_path": "/tm153lMrHy6HykEYwoP0EI3dQ8k.jpg",
+"vote_average": 6.9,
+"vote_count": 474,
+"genre_ids": [
+28,
+35,
+80
+],
+"original_language": "cn"
+},
+{
+"id": 18764,
+"title": "Twin Dragons",
+"release_date": "1992-01-15",
+"media_type": "movie",
+"job": "Stunt Coordinator",
+"poster_path": "/tm153lMrHy6HykEYwoP0EI3dQ8k.jpg",
+"vote_average": 6.9,
+"vote_count": 474,
+"genre_ids": [
+28,
+35,
+80
+],
+"original_language": "cn"
+}
+],
+"ts": 1792663179414
+}
+},
+"ct_resolvecache": {
+"movie:822119": {
+"imdbID": "tt14513804",
+"ended": true,
+"ts": 1793106903189
+},
+"tv:79744": {
+"imdbID": "tt7587890",
+"ended": false,
+"ts": 1792745765716
+},
+"movie:10214": {
+"imdbID": "tt0362165",
+"ended": true,
+"ts": 1793106903189
+},
+"movie:169": {
+"imdbID": "tt0100403",
+"ended": true,
+"ts": 1792670010845
+}
+},
+"ct_tmdbfind": {
+"tt35466672": {
+"m": 0,
+"t": 279471
+},
+"tt11126994": {
+"m": 0,
+"t": 94605
+},
+"tt0100403": {
+"m": 169,
+"t": 0
+},
+"tt0210418": {
+"m": 0,
+"t": 31654
+},
+"tt7587890": {
+"m": 0,
+"t": 79744
+},
+"tt0362165": {
+"m": 10214,
+"t": 0
+},
+"tt14513804": {
+"m": 822119,
+"t": 0
+}
+},
+"ct_gamebackdrops": {},
+"ct_skipped": {},
+"ct_unresolvable": {},
+"ct_game_highscore": "5",
+"ct_game_roundbest": "9"
+},
+"bump": [
+"ct_collcache",
+"ct_colldetails",
+"ct_personcache",
+"ct_resolvecache",
+"ct_gamebackdrops",
+"ct_tmdbfind"
+],
+"touch": [
+"ct_last_export",
+"ct_maint_last",
+"ct_coll_lastrun"
+]
+}
