@@ -46,6 +46,26 @@ window.addEventListener('popstate',()=>{
   if(sid)return; /* a layer's own entry: the sheets under it stay */
   _ovPushed=false;navClose(true);searchClose(true);if(typeof fsClose==='function')fsClose(true);});
 
+/* ── DOUBLE BACK TO EXIT (installed app only) ──
+   Under the page lies one sentinel entry {ctExit:1}. The first Back from the page lands on it: a toast asks for one more,
+   and we stay on the sentinel (the first entry), so a second Back within 2 s goes to Android and closes the app.
+   No second Back → the page entry is pushed again (re-armed). In a browser tab Back behaves as usual. */
+const _isApp=()=>['standalone','minimal-ui','fullscreen'].some(m=>matchMedia('(display-mode: '+m+')').matches);
+let _exitT=0;
+function _exitArm(){try{if(history.state?.ctExit)history.pushState(null,'');}catch(e){}}
+if(_isApp()){
+  try{
+    if(history.state?.ctExit)history.pushState(null,''); /* reloaded while on the sentinel */
+    else if(sessionStorage.getItem('ct_exit_g')!=='1'){history.replaceState({ctExit:1},'');history.pushState(null,'');sessionStorage.setItem('ct_exit_g','1');}
+  }catch(e){}
+  window.addEventListener('popstate',()=>{
+    if(!history.state?.ctExit)return;
+    clearTimeout(_exitT);
+    toast('Ще раз «Назад» — щоб вийти','',2000);
+    _exitT=setTimeout(_exitArm,2000);
+  });
+}
+
 /* the phone menu is the same dock: what is invisible in the current state is also inert (not focusable, not read out) */
 function _navAria(on){
   document.querySelectorAll('.dk-mb,.dk-more').forEach(b=>b.setAttribute('aria-expanded',String(on)));
