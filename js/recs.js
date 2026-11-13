@@ -243,7 +243,7 @@ async function _shelfDiscover(id,title,why,queries,known,minVotes,minRating,sort
 async function buildRecs(manual){
   if(_recBusy)return;_recBusy=true;
   const g=document.getElementById('recsGrid');
-  if(!_recs&&g)g.innerHTML='<div class="spinner">Підбираю рекомендації…</div>';
+  if(!_recs&&g)g.innerHTML='<div class="spinner" role="status">Підбираю рекомендації…</div>';
   document.getElementById('recsRefresh')?.classList.add('busy');
   try{
     let net=!!TMDB_KEY&&!_tmdbBlocked;
@@ -345,16 +345,16 @@ async function recAct(k,action){
     save();_recDrop(k);
     /* a mis-tap on «−» is easy on a phone: the toast offers «Скасувати» for 6 s, which puts the title back in its place */
     document.querySelectorAll('.toast').forEach(t=>t.remove());
-    const el=document.createElement('div');el.className='toast undo';el.setAttribute('role','status');el.setAttribute('aria-live','polite');
+    const el=document.createElement('div');el.className='toast undo';
     const lbl=document.createElement('span');lbl.textContent=`«${it.title}» більше не пропонуватиметься`;
     const btn=document.createElement('button');btn.className='t-undo';btn.innerHTML=ic('undo')+'Скасувати';
-    const tm=setTimeout(()=>el.remove(),6000);
+    const tm=_toastTimer(el,6000,()=>el.remove());
     btn.onclick=()=>{clearTimeout(tm);el.remove();
       const i=hidden.indexOf(hEntry);if(i>-1){hidden.splice(i,1);save();}
       if(snap.sh&&_recs)_recs.shelves=JSON.parse(snap.sh);
       if(snap.gs&&_recGenreState)_recGenreState.items=JSON.parse(snap.gs);
       _recsSave();renderRecs();};
-    el.append(lbl,btn);document.body.appendChild(el);return;
+    el.append(lbl,btn);_toastMount(el);return;
   }
   let imdb=it.imdbID||_resolveCache[k]?.imdbID;
   if(!imdb){

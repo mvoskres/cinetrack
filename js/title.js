@@ -31,10 +31,10 @@ function _tsOwned(imdbID){
 async function _tsOpen(ref,push){
   const bg=document.getElementById('titleSheet');
   if(push){if(bg.classList.contains('hidden'))_tsStack=[];_tsStack.push(ref);}
-  if(bg.classList.contains('hidden'))_tsPrev=document.activeElement; /* closeTitle puts focus back there */
-  bg.classList.remove('hidden');document.body.classList.add('ts-on');
+  if(bg.classList.contains('hidden')){_tsPrev=document.activeElement;_lyOpen('ts',()=>closeTitle());} /* closeTitle puts focus back there; Back closes the card (ui.js layers) */
+  bg.classList.remove('hidden');document.body.classList.add('ts-on');_inertSync();
   const body=document.getElementById('tsBody');
-  body.innerHTML=`${_tsTopBar()}<div class="spinner">Завантажую деталі…</div>`;
+  body.innerHTML=`${_tsTopBar()}<div class="spinner" role="status">Завантажую деталі…</div>`;
   body.parentElement.scrollTop=0;
   let data=null;
   try{data=await _tsLoad(ref);}catch(e){}
@@ -49,6 +49,7 @@ async function _tsOpen(ref,push){
 let _tsPrev=null;
 function closeTitle(){
   document.getElementById('titleSheet').classList.add('hidden');document.body.classList.remove('ts-on');_tsStack=[];_tsCur=null;_refreshVisibleTab();
+  _lyDone('ts');_inertSync();
   const p=_tsPrev;_tsPrev=null;if(p&&p.isConnected&&typeof p.focus==='function')p.focus({preventScroll:true});
   searchResume(); /* opened from the search: back to the same results */
 }
@@ -323,7 +324,7 @@ async function _tsSeason(n){
   _tsCur.season=n;_tsRefreshActions();
   const box=document.getElementById('tsEps'),k=`${d.id}:${n}`;
   if(!_tsSeasonCache[k]){
-    box.innerHTML='<div class="spinner">Завантажую серії…</div>';
+    box.innerHTML='<div class="spinner" role="status">Завантажую серії…</div>';
     try{const r=await tmdbFetch(`/tv/${d.id}/season/${n}?language=uk-UA`);
       _tsSeasonCache[k]=(r.episodes||[]).map(e=>({e:e.episode_number,name:e.name||'',date:e.air_date||'',rt:e.runtime||0,vote:e.vote_count>=5?e.vote_average:0,ov:e.overview||''}));
     }catch(err){if(_tsCur?.season===n)box.innerHTML='<p class="ts-note">Не вдалося завантажити серії</p>';return;}
@@ -387,7 +388,7 @@ function _tsColl(d){
   const det=_collDetails[c.id];
   if(!det||_collStale(det)){
     _tsCollLoad(d);
-    if(!det)return `<section class="ts-sec" id="tsColl"><h3>Франшиза</h3><div class="spinner">Завантажую франшизу…</div></section>`;
+    if(!det)return `<section class="ts-sec" id="tsColl"><h3>Франшиза</h3><div class="spinner" role="status">Завантажую франшизу…</div></section>`;
   }
   return _tsCollHtml(d,det);
 }

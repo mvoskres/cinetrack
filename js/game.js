@@ -115,12 +115,19 @@ function startGame(mode){
   if(pool.length<4)return;
   _game={..._game,mode,pool,q:0,score:0,streak:0,recent:[],log:[],answered:true,current:null,next:null};
   document.getElementById('gameTitle').textContent=(mode==='round'?`Раунд з ${GAME_ROUND} ${GAME_TYPES[_game.type].unit}`:'Серія')+(_game.type!=='frame'&&mode!=='round'?` · ${GAME_TYPES[_game.type].name}`:'');
-  document.getElementById('gameModalBg').classList.remove('hidden');
+  if(document.getElementById('gameModalBg').classList.contains('hidden'))_gameFocus.el=null;
+  document.getElementById('gameModalBg').classList.remove('hidden');_lyOpen('game',()=>closeGameModal());_inertSync();
+  _focusIn(document.querySelector('#gameModalBg .game-modal'),_gameFocus);
   document.getElementById('gameOver').classList.add('hidden');
   document.getElementById('gamePlay').classList.remove('hidden');
   gameNextQuestion();
 }
-function closeGameModal(){_gameRun++;document.getElementById('gameModalBg').classList.add('hidden');_game.answered=true;loadGameTab();}
+const _gameFocus={el:null}; /* the start button that opened the game window */
+function closeGameModal(){
+  _gameRun++;document.getElementById('gameModalBg').classList.add('hidden');_game.answered=true;
+  _lyDone('game');_inertSync();loadGameTab();
+  _focusBack(_gameFocus,()=>document.querySelector('#gameStart button')); /* the start screen was redrawn: its first button */
+}
 
 function _gameHud(){
   const h=document.getElementById('gameHud');if(!h)return;
@@ -190,7 +197,7 @@ async function gameNextQuestion(){
   _game.q++;_game.answered=true;
   document.getElementById('gameReveal').innerHTML='';
   document.getElementById('gameOpts').innerHTML='';
-  const sw=document.getElementById('gameShotWrap');sw.classList.toggle('portrait',_game.type==='actor');sw.classList.toggle('quote',_game.type==='quote');sw.innerHTML=`<div class="spinner">${GAME_TYPES[_game.type].load}</div>`;
+  const sw=document.getElementById('gameShotWrap');sw.classList.toggle('portrait',_game.type==='actor');sw.classList.toggle('quote',_game.type==='quote');sw.innerHTML=`<div class="spinner" role="status">${GAME_TYPES[_game.type].load}</div>`;
   _gameHud();
   const pick=await(_game.next||_gamePickAny());
   if(run!==_gameRun)return; /* closed or restarted while loading */

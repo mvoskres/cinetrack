@@ -68,7 +68,7 @@ function renderRecs(){
     const st=_recGenreState;
     if(sub)sub.textContent='';
     if(bar)bar.innerHTML=`<div class="rg-head"><h2>${esc(_recGenreUa(st?.name||''))}</h2><span>популярне, чого немає у твоїх списках</span></div>${chips}`;
-    if(!st?.loaded){g.innerHTML='<div class="spinner">Шукаю популярне в жанрі…</div>';return;}
+    if(!st?.loaded){g.innerHTML='<div class="spinner" role="status">Шукаю популярне в жанрі…</div>';return;}
     const items=st.items.filter(fresh).filter(_recTypeOk);
     g.innerHTML=items.length?`<div class="rv-grid">${items.map(_recCard).join('')}</div>`:`<div class="empty"><span class="empty-icon">${ic('search')}</span><div class="empty-txt">Усе популярне в цьому жанрі вже є у твоїх списках</div></div>`;
     return;

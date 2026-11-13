@@ -5,7 +5,7 @@ function goTab(id,btn){
     document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('on',b.dataset.tab===id));
     navClose();setTimeout(()=>goTab(id,btn),300);return;
   }
-  document.getElementById('gameModalBg')?.classList.add('hidden');
+  document.getElementById('gameModalBg')?.classList.add('hidden');_lyDone('game');
   const tabEl=document.getElementById('tab-'+id);
   const fresh=!!tabEl&&tabEl.classList.contains('hidden'); /* a new tab starts at its top, not at the old tab's scroll depth */
   document.querySelectorAll('[id^="tab-"]').forEach(t=>t.classList.add('hidden'));
@@ -322,7 +322,7 @@ function ic(n){return `<svg class="i" aria-hidden="true"><use href="#i-${n}"/></
 function openMenu(ev,items){
   ev.preventDefault();ev.stopPropagation();
   closeMenu();
-  const btn=ev.currentTarget;
+  const btn=ev.currentTarget;_menuBtn=btn;btn.setAttribute('aria-haspopup','menu');btn.setAttribute('aria-expanded','true');
   const m=document.createElement('div');m.className='ct-menu';m.setAttribute('role','menu');
   /* item = {icon,label,fn,args} (fn is a global function name, args go through data-args) or {icon,label,href} */
   m.innerHTML=items.filter(Boolean).map(x=>x==='-'?'<hr>':x.href
@@ -335,8 +335,22 @@ function openMenu(ev,items){
   m.style.left=Math.max(8,Math.min(innerWidth-m.offsetWidth-8,r.right-m.offsetWidth))+'px';
   m.querySelector('button,a')?.focus({preventScroll:true});
 }
-function closeMenu(){document.querySelector('.ct-menu')?.remove();}
-function _menuRun(fn,...args){closeMenu();if(typeof window[fn]==='function')window[fn](...args);}
+let _menuBtn=null; /* the button that opened the menu: aria-expanded lives on it, focus returns to it (restore=true: Esc, a chosen item) */
+function closeMenu(restore){
+  document.querySelector('.ct-menu')?.remove();
+  const b=_menuBtn;_menuBtn=null;
+  if(b){b.setAttribute('aria-expanded','false');if(restore===true&&b.isConnected)b.focus({preventScroll:true});}
+}
+/* the menu role comes with the keyboard model: ↑ ↓ Home End move between items, Esc closes, Tab leaves (and closes) */
+document.addEventListener('keydown',e=>{
+  const m=e.target.closest?.('.ct-menu');if(!m)return;
+  const items=[...m.querySelectorAll('[role=menuitem]')],i=items.indexOf(document.activeElement);
+  const to=k=>{e.preventDefault();items[(k+items.length)%items.length]?.focus({preventScroll:true});};
+  if(e.key==='ArrowDown')to(i+1);else if(e.key==='ArrowUp')to(i<0?items.length-1:i-1);
+  else if(e.key==='Home')to(0);else if(e.key==='End')to(items.length-1);
+  else if(e.key==='Tab')closeMenu(true);
+});
+function _menuRun(fn,...args){closeMenu(true);if(typeof window[fn]==='function')window[fn](...args);}
 function _menuDel(list,id){del(list,id,{watched:rWatched,watching:rWatching,planned:rPlanned}[list]);}
 document.addEventListener('click',e=>{if(!e.target.closest('.ct-menu'))closeMenu();});
 /* ── DELEGATED HANDLERS ──
@@ -345,7 +359,7 @@ document.addEventListener('click',e=>{if(!e.target.closest('.ct-menu'))closeMenu
    same attribute run too, like inline handlers bubbling, until one stops propagation. */
 function A(...a){return esc(JSON.stringify(a));}
 /* Enter in a field marked data-enter="fnName" (+ data-args) */
-document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.closest?.('[data-enter]'))_dispatch(e,'data-enter');});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing&&e.target.closest?.('[data-enter]'))_dispatch(e,'data-enter');}); /* not while an IME composition is being confirmed */
 function _dispatch(ev,attr){
   let el=ev.target.closest?.('['+attr+']');
   while(el){
@@ -375,7 +389,7 @@ function _omdbErr(e){
   if(e&&/^HTTP|Failed to fetch|NetworkError/i.test(e.message||''))return 'Немає зв\'язку з OMDb';
   return 'OMDb: '+((e&&e.message)||'помилка');
 }
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMenu();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.querySelector('.ct-menu')){e.stopImmediatePropagation();closeMenu(true);}}); /* only the menu closes: a card under it stays */
 window.addEventListener('scroll',e=>{if(!e.target.closest?.('.ct-menu'))closeMenu();},{passive:true,capture:true});
 /* title sheet: the sticky top bar stays see-through over the hero and gets a solid background once content scrolls under it */
 window.addEventListener('scroll',e=>{const t=e.target;if(t.classList?.contains('ts'))t.classList.toggle('scrolled',t.scrollTop>8);},{passive:true,capture:true});

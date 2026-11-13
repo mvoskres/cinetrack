@@ -156,7 +156,7 @@ async function loadCollections(force){
   const todo=uniq.filter(i=>!_collCache[i.imdbID]);
   _showCollLastRun(todo.length,uniq.length);
   if(todo.length){
-    g.innerHTML=`<div class="spinner" id="collProgress">Шукаю франшизи серед нових фільмів… 0/${todo.length}</div>`;
+    g.innerHTML=`<div class="spinner" role="status" id="collProgress">Шукаю франшизи серед нових фільмів… 0/${todo.length}</div>`;
     let done=0;
     for(let i=0;i<todo.length;i+=5){
       const batch=todo.slice(i,i+5);
@@ -477,8 +477,8 @@ function _showSkipUndo(imdbID,wasSkipped){
     el.remove();
     if(_collPickerOnDone)_collPickerOnDone();
   };
-  el.append(lblEl,btn);document.body.appendChild(el);
-  const timer=setTimeout(()=>el.remove(),5000);
+  el.append(lblEl,btn);_toastMount(el);
+  const timer=_toastTimer(el,5000,()=>el.remove());
 }
 function _showAddUndo(imdbID,status,before={}){
   const lbl={watched:'Переглянуто',watching:'Дивлюсь',planned:'Заплановано'}[status];
@@ -501,7 +501,7 @@ function _showAddUndo(imdbID,status,before={}){
     el.remove();
     if(_collPickerOnDone)_collPickerOnDone();
   };
-  el.append(lblEl,btn);document.body.appendChild(el);
-  const timer=setTimeout(()=>el.remove(),5000);
+  el.append(lblEl,btn);_toastMount(el);
+  const timer=_toastTimer(el,5000,()=>el.remove());
 }
 

@@ -107,8 +107,8 @@ function rWatching(skipLive){
   c.className='wb';
   /* computer: the same choice sits in the toolbar, styled like Сітка/Список/Полиці on the other lists */
   const ts=document.getElementById('wbTopSeg');
-  if(ts){ts.hidden=!cur;ts.innerHTML=cur?groups.map(([k,l,a])=>`<button class="seg-b${k===_wbTop?' on':''}" role="tab" aria-selected="${k===_wbTop}" data-act="wbTopSet" data-args="${A(k)}">${l}<span class="wb-tn">${a.length}</span></button>`).join(''):'';}
-  c.innerHTML=(cur?`<div class="wb-sel" style="--n:${groups.length}" role="tablist" aria-label="Що показати вгорі">${groups.map(([k,l,a])=>`<button role="tab" aria-selected="${k===_wbTop}" class="${k===_wbTop?'on':''}" data-act="wbTopSet" data-args="${A(k)}">${l}<span>${a.length}</span></button>`).join('')}</div>
+  if(ts){ts.hidden=!cur;ts.innerHTML=cur?groups.map(([k,l,a])=>`<button class="seg-b${k===_wbTop?' on':''}" aria-pressed="${k===_wbTop}" data-act="wbTopSet" data-args="${A(k)}">${l}<span class="wb-tn">${a.length}</span></button>`).join(''):'';}
+  c.innerHTML=(cur?`<div class="wb-sel" style="--n:${groups.length}" role="group" aria-label="Що показати вгорі">${groups.map(([k,l,a])=>`<button aria-pressed="${k===_wbTop}" class="${k===_wbTop?'on':''}" data-act="wbTopSet" data-args="${A(k)}">${l}<span>${a.length}</span></button>`).join('')}</div>
       <div class="wb-cs">${cur[2].map(_wbCard).join('')}</div>`:'')
     +_wbShelves(xs);
   if(!skipLive&&!document.getElementById('tab-watching')?.classList.contains('hidden'))_startLive(list);
@@ -137,20 +137,27 @@ function rDash(){clearTimeout(_wbRT);_wbRT=setTimeout(()=>{if(!document.getEleme
 
 /* ── sheet ── */
 let _wbCur=null;
+const _wbFocus={el:null}; /* the tile that opened the sheet: focus goes back to it */
 function wbOpen(id){
   _wbCur=id;let L=document.getElementById('wbSheet');
   if(!L){L=document.createElement('div');L.id='wbSheet';L.className='wb-sh';document.body.appendChild(L);}
-  _wbSheetDraw();document.body.classList.add('wb-on');
+  if(!document.body.classList.contains('wb-on'))_wbFocus.el=null;
+  _wbSheetDraw();document.body.classList.add('wb-on');_inertSync();
+  _focusIn(L.querySelector('.wb-pan'),_wbFocus);
   try{history.pushState({wbSheet:1},'');}catch(e){}
 }
 function wbClose(fromHistory){
   if(!document.body.classList.contains('wb-on'))return;
+  const id=_wbCur;
   document.body.classList.remove('wb-on');_wbCur=null;const L=document.getElementById('wbSheet');if(L)L.innerHTML='';
+  _inertSync();
+  _focusBack(_wbFocus,()=>[...document.querySelectorAll('#wnList [data-act="wbOpen"]')].find(e=>e.getAttribute('data-args')===JSON.stringify([id]))); /* the wall may have been redrawn: find the tile again */
   if(!fromHistory&&history.state?.wbSheet)history.back();
 }
-window.addEventListener('popstate',()=>{if(!history.state?.wbSheet)wbClose(true);}); /* Back from a sheet on top (tags) lands on our entry: stay */
+window.addEventListener('popstate',()=>{if(!history.state?.wbSheet&&!history.state?.ctLy)wbClose(true);}); /* Back from a sheet/card on top lands on our entry or the card's: stay */
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('wb-on'))wbClose();});
-function _wbSheetDraw(){
+function _wbSheetDraw(){const L=document.getElementById('wbSheet');if(L)_keepFocus(L,_wbSheetDraw0);} /* ± redraws the sheet: focus stays on the pressed button */
+function _wbSheetDraw0(){
   const L=document.getElementById('wbSheet'),i=watching.find(w=>w.id===_wbCur);
   if(!L)return;if(!i){wbClose();return;}
   const x=_wbInfo(i);
@@ -161,7 +168,7 @@ function _wbSheetDraw(){
       <button class="wb-sq p" data-act="wbAdj" data-args="${A(i.id,1)}" aria-label="Плюс серія">${ic('plus')}</button></div>
     <div class="wb-prog"><div class="wb-bar"><i style="width:${x.pct}%"></i></div><div class="wb-pl"><span>Переглянуто ${x.pct}%${x.aired?` · ${x.seen} з ${x.aired} серій, що вийшли`:''}</span></div>
       ${x.tot>1&&x.tot<=40?`<div class="wb-segs" style="--n:${x.tot}">${segs}</div>`:''}</div>`:'';
-  if(!L.querySelector('.wb-in'))L.innerHTML=`<div class="wb-dim" data-act="wbClose"></div><div class="wb-pan" role="dialog"><div class="wb-grab"></div>
+  if(!L.querySelector('.wb-in'))L.innerHTML=`<div class="wb-dim" data-act="wbClose"></div><div class="wb-pan" role="dialog" aria-modal="true" tabindex="-1"><div class="wb-grab"></div>
     <button class="wb-x" data-act="wbClose" aria-label="Закрити">${ic('x')}</button><div class="wb-in"></div></div>`;
   L.querySelector('.wb-pan').setAttribute('aria-label',tn(i));
   sheetSwipe(L.querySelector('.wb-pan'),{close:()=>wbClose(),up:()=>{const it=watching.find(w=>w.id===_wbCur);if(it)wbCard(it.imdbID);},handle:'.wb-grab,.wb-hd'});
@@ -177,6 +184,9 @@ function _wbSheetDraw(){
 }
 /* every ±episode / ±season (the sheet, the ⋯ menu) redraws the wall and the open sheet */
 const _wbAdj0=adj;adj=function(...a){_wbAdj0(...a);rWatching(true);};
+/* a redraw of the wall (air data arrived, ±) must not drop the keyboard focus from the tile that has it */
+const _rWatching0=rWatching;
+rWatching=function(...a){const c=document.getElementById('wnList');if(c)_keepFocus(c,()=>_rWatching0(...a));else _rWatching0(...a);};
 function wbAdj(id,d){adj(id,'e',d);}
 function wbDone(id){wbClose();mvToW(id);}
 function wbCard(imdbID){openTitle(imdbID);} /* the card opens over the sheet; closing it shows the sheet again */

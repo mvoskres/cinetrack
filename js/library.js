@@ -78,8 +78,8 @@ function cleanApply(){
     save();rWatched();rWatching();rPlanned();updateStats();runCleanScan();
     el.remove();toast('Дані повернуто як було','ok',2400);
   };
-  el.append(lbl,btn);document.body.appendChild(el);
-  const timer=setTimeout(()=>{el.remove();_undo=null;},8000);_undo={timer};
+  el.append(lbl,btn);_toastMount(el);
+  const timer=_toastTimer(el,8000,()=>{el.remove();_undo=null;});_undo={timer};
 }
 
 
@@ -90,20 +90,24 @@ function tagEdit(id){
   if(!findItem(id))return;_tgId=id;closeMenu?.();
   let L=document.getElementById('tgSheet');
   if(!L){L=document.createElement('div');L.id='tgSheet';L.className='tg-sh';document.body.appendChild(L);}
-  L.innerHTML=`<div class="tg-dim" data-act="tagClose"></div><div class="tg-pan" role="dialog" aria-label="Теги"><div class="tg-grab"></div><div class="tg-in"></div></div>`;
-  _tgDraw();document.body.classList.add('tg-on');
+  L.innerHTML=`<div class="tg-dim" data-act="tagClose"></div><div class="tg-pan" role="dialog" aria-modal="true" aria-label="Теги" tabindex="-1"><div class="tg-grab"></div><div class="tg-in"></div></div>`;
+  if(!document.body.classList.contains('tg-on'))_tgFocus.el=null;
+  _tgDraw();document.body.classList.add('tg-on');_inertSync();_focusIn(L.querySelector('.tg-pan'),_tgFocus);
   sheetSwipe(L.querySelector('.tg-pan'),{close:()=>tagClose(),handle:'.tg-grab,.tg-hd'});
   try{history.pushState({tgSheet:1},'');}catch(e){}
 }
 function addTag(id){tagEdit(id);} /* old name, still used by the title card */
+const _tgFocus={el:null}; /* what had focus when the sheet opened */
 function tagClose(fromHistory){
   if(!document.body.classList.contains('tg-on'))return;
   document.body.classList.remove('tg-on');_tgId=null;const L=document.getElementById('tgSheet');if(L)L.innerHTML='';
+  _inertSync();_focusBack(_tgFocus);
   if(!fromHistory&&history.state?.tgSheet)history.back();
 }
-window.addEventListener('popstate',()=>{if(!history.state?.tgSheet)tagClose(true);});
+window.addEventListener('popstate',()=>{if(!history.state?.tgSheet&&!history.state?.ctLy)tagClose(true);});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('tg-on')){e.stopPropagation();tagClose();}},true);
-function _tgDraw(){
+function _tgDraw(){const L=document.getElementById('tgSheet');if(L)_keepFocus(L,_tgDraw0);} /* tapping a tag redraws the chips: focus stays on it */
+function _tgDraw0(){
   const L=document.getElementById('tgSheet'),it=findItem(_tgId);if(!L||!it){tagClose();return;}
   const mine=it.tags||[],all=_tgAll();
   L.querySelector('.tg-in').innerHTML=`<div class="tg-hd"><div><b>Теги</b><span>${esc(tn(it))}</span></div><button class="tg-ok" data-act="tagClose">Готово</button></div>
@@ -145,8 +149,8 @@ function delGlobalTag(tag){
   el.innerHTML=`<span>Тег «${esc(tag)}» видалено</span>`;
   const btn=document.createElement('button');btn.className='t-undo';btn.innerHTML=ic('undo')+'Відновити';
   btn.onclick=()=>{el.remove();clearTimeout(_tagUndoTimer);_doUndo();};
-  el.appendChild(btn);document.body.appendChild(el);
-  let _tagUndoTimer=setTimeout(()=>el.remove(),5000);
+  el.appendChild(btn);_toastMount(el);
+  let _tagUndoTimer=_toastTimer(el,5000,()=>el.remove());
 }
 function editUrl(id){
   const it=findItem(id);if(!it)return;

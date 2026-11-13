@@ -171,7 +171,7 @@ async function openPerson(id){
   if(_personGroupsCache?.personId!==id){_personFilter={...PERSON_FILTER_DEFAULT};_personShown=PERSON_PAGE_SIZE;}
   _personLast=id;
   detail.dataset.pid=id;
-  detail.innerHTML=`<div class="spinner">Завантажую фільмографію…</div>`;
+  detail.innerHTML=`<div class="spinner" role="status">Завантажую фільмографію…</div>`;
   document.querySelectorAll('.person-chip').forEach(b=>b.classList.toggle('active',b.dataset.pid==String(id)));
 
   let credits=_personCache[id];

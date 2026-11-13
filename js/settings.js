@@ -175,7 +175,7 @@ async function doExport(){
   if(btn)btn.textContent='Готую…';
   const data=_buildBackup(true); /* keys always in: a restored file then works at once */
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-  const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`cinetrack-backup-${new Date().toISOString().slice(0,10)}.json`;a.click();URL.revokeObjectURL(url);
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`cinetrack-backup-${_todayISO()}.json`;a.click();URL.revokeObjectURL(url);
   _lsSet('ct_last_export',String(Date.now()));
   _backupStateRender();
   /* the file is already saved: the slow OMDb top-up (300 ms per title, may fail) must never delay or block a backup;
@@ -504,7 +504,7 @@ function _snapshotToast(){
   const btn=document.createElement('button');btn.className='t-undo';btn.innerHTML=ic('undo')+'Повернути';
   btn.onclick=()=>{el.remove();snapshotRestore();};
   lbl.addEventListener('click',()=>el.remove());lbl.style.cursor='pointer';lbl.title='Натисни, щоб закрити';
-  el.append(lbl,btn);document.body.appendChild(el);setTimeout(()=>el.remove(),8000);
+  el.append(lbl,btn);_toastMount(el);_toastTimer(el,8000,()=>el.remove());
 }
 /* one honest sentence block for the import report (file import and Drive both use it) */
 function _backupReport(r){
@@ -541,6 +541,7 @@ function doImport(e,mode){
 
 /* ── VERSION and CHANGELOG: newest first; bump APP_VERSION and add an entry with every change pushed to the site ── */
 const CHANGELOG=[
+  {v:'1.31',d:'13.11.2026',n:['Кінопис можна встановити як застосунок: в Chrome на телефоні — меню ⋮ → «Установити застосунок» (або «Додати на головний екран»), на компʼютері — значок установки в адресному рядку; відкривається в окремому вікні, без адресного рядка','Кнопка «Назад» (жест) тепер закриває картку тайтлу, вікна з питаннями й гру, а не виходить із сайту; картка, відкрита з пошуку, закривається першою, пошук лишається','Клавіатура й екранні читці: плитки в «Дивлюсь» відкриваються Enter/Space, меню «⋯» керується стрілками, Home/End, Esc і повертає фокус на кнопку; шторки та вікна переносять фокус у себе й повертають назад, усе позаду недоступне Tab; є посилання «До вмісту» та головна область сторінки','Повідомлення озвучуються екранними читцями; помилки лишаються довше, а повідомлення зі «Скасувати» не зникає, поки на ньому курсор або фокус','На компʼютері горизонтальні стрічки без смуги прокручуються колесом миші','Шрифти тепер зберігаються разом із сайтом (без запитів до Google Fonts); адресний рядок і тло в темному кольорі застосунку; зображення дозволені лише з m.media-amazon.com та image.tmdb.org','Файл бекапу тепер називається за місцевою датою (раніше між 00:00 і 03:00 мав учорашню)']},
   {v:'1.30',d:'11.11.2026',n:['Пошук: поки нічого не введено, видно «Ти шукав» (останні запити), «Нещодавно додане» й людей, за якими стежиш','Пошук: під кожним знайденим тайтлом, якого ще немає у списках, кнопка «+ Додати» з вибором списку']},
   {v:'1.29.6',d:'11.11.2026',n:['Рекомендації: після «−» (Не цікаво) з\'являється «Скасувати» на 6 секунд — тайтл повертається на своє місце']},
   {v:'1.29.5',d:'11.11.2026',n:['Телефон: меню (☰) знову відкривається на весь екран і тоді, коли адресний рядок схований; під ним темне тло — сторінка не просвічує зверху й знизу']},

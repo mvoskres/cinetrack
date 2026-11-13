@@ -3,17 +3,61 @@
    (a drop-down, .dk-drop); on a phone (≤700px) it is a floating dock at the bottom that grows into the full
    menu. navOpen/navClose toggle body.nav-on for both. The search is a full-screen layer (#srch, body.srch-on).
    Both push one history entry, so the phone's Back button closes them instead of leaving the site. */
-try{history.scrollRestoration='manual';}catch(e){} /* closing the menu/search goes «back»; the browser must not restore an old scroll then */
+try{history.scrollRestoration='manual';}catch(e){}
+try{const h=history.state;if(h&&(h.ctLy||h.ctOv||h.wbSheet||h.tgSheet))history.replaceState(null,'');}catch(e){} /* a reload on one of our overlay entries: it is a plain page now */ /* closing the menu/search goes «back»; the browser must not restore an old scroll then */
 let _ovPushed=false;
+const _ovOpen=()=>['nav-on','srch-on','fs-on'].some(c=>document.body.classList.contains(c));
 function _ovPush(){if(!_ovPushed){try{history.pushState({ctOv:1},'');_ovPushed=true;}catch(e){}}}
-function _ovPop(){if(_ovPushed&&!document.body.classList.contains('nav-on')&&!document.body.classList.contains('srch-on')&&!document.body.classList.contains('fs-on')){_ovPushed=false;history.back();}}
-window.addEventListener('popstate',()=>{if(history.state?.ctOv)return; /* landed on our own entry (a late «back» of a closed sheet): the menu/search stays */
+function _ovPop(){
+  if(!_ovPushed||_ovOpen())return;
+  _ovPushed=false;
+  if(!_LY.some(l=>!l.dead))history.back(); /* a card/dialog is still on top of the menu entry: Back from it will skip the entry (popstate below) */
+}
+/* ── LAYERS: title card, dialogs (#mbox), the game window ──
+   Each one pushes its own history entry when it opens ({ctLy:id}) so the phone's Back button / gesture closes the top one
+   and nothing else (a card opened from the search: Back closes the card, the search stays; a dialog over a card: only the dialog).
+   Opening: _lyOpen('key', closeFn). Closing by code (✕, Esc, a button): the close function ends with _lyDone('key'), which
+   marks its entry «stale» and walks one step back; a stale entry the user lands on (or that lies under a newer layer) is skipped.
+   A layer opened right after another closed (modal → modal) reuses the stale entry (replaceState), so nothing flickers. */
+const _LY=[];const _lyStale=new Set();let _lyId=0,_lyT=0;
+function _lyOpen(key,close){
+  if(_LY.some(l=>l.key===key&&!l.dead))return;
+  const id=++_lyId;_LY.push({id,key,close,dead:false});
+  try{
+    const top=history.state?.ctLy;
+    if(top&&_lyStale.has(top)){_lyStale.delete(top);history.replaceState({ctLy:id},'');}
+    else history.pushState({ctLy:id},'');
+  }catch(e){}
+}
+function _lyDone(key){
+  const l=[..._LY].reverse().find(x=>x.key===key&&!x.dead);if(!l)return;
+  l.dead=true;_lyStale.add(l.id);
+  clearTimeout(_lyT);_lyT=setTimeout(()=>{if(_lyStale.has(history.state?.ctLy))history.back();},0);
+}
+window.addEventListener('popstate',()=>{
+  const st=history.state,sid=st?.ctLy||0;
+  if(sid&&_lyStale.has(sid)){history.back();return;} /* a closed layer's entry: keep going back */
+  while(_LY.length&&_LY[_LY.length-1].id>sid){const l=_LY.pop();_lyStale.delete(l.id);if(!l.dead){l.dead=true;try{l.close();}catch(e){}}}
+  _inertSync();
+  if(st?.ctOv){ /* landed on the menu/search entry: it stays, unless it was already closed (then this entry is a leftover) */
+    if(!_ovPushed&&!_ovOpen())history.back();
+    return;
+  }
+  if(sid)return; /* a layer's own entry: the sheets under it stay */
   _ovPushed=false;navClose(true);searchClose(true);if(typeof fsClose==='function')fsClose(true);});
 
-function navOpen(){_dockWall();if(typeof fsClose==='function')fsClose(true);document.body.classList.add('nav-on');document.querySelector('.dk-mb')?.setAttribute('aria-expanded','true');_ovPush();}
+/* the phone menu is the same dock: what is invisible in the current state is also inert (not focusable, not read out) */
+function _navAria(on){
+  document.querySelectorAll('.dk-mb,.dk-more').forEach(b=>b.setAttribute('aria-expanded',String(on)));
+  const ph=matchMedia('(max-width:700px)').matches;
+  document.querySelectorAll('.dk-big,.dk-top,.dk-rset').forEach(e=>{e.inert=!on;});
+  document.querySelectorAll('.dk-lists').forEach(e=>{e.inert=on&&ph;});
+}
+_navAria(false);
+function navOpen(){_dockWall();if(typeof fsClose==='function')fsClose(true);document.body.classList.add('nav-on');_navAria(true);_ovPush();}
 function navClose(fromHistory){
   if(!document.body.classList.contains('nav-on'))return;
-  document.body.classList.remove('nav-on');document.querySelector('.dk-mb')?.setAttribute('aria-expanded','false');
+  document.body.classList.remove('nav-on');_navAria(false);
   if(!fromHistory)_ovPop();
 }
 /* on a phone the ☰ doubles as ✕ for the search layer as well */
@@ -21,11 +65,12 @@ function navToggle(){
   if(document.body.classList.contains('srch-on')){searchClose();return;}
   document.body.classList.contains('nav-on')?navClose():navOpen();
 }
+const _srchFocus={el:null}; /* the button that opened the search: Esc / ✕ puts focus back there */
 function searchOpen(){
   _dockWall();
   const L=document.getElementById('srch');if(!L)return;
   navClose(true);if(typeof fsClose==='function')fsClose(true);
-  if(!document.body.classList.contains('srch-on')){L.hidden=false;document.body.classList.add('srch-on');_ovPush();}
+  if(!document.body.classList.contains('srch-on')){_srchFocus.el=document.activeElement;L.hidden=false;document.body.classList.add('srch-on');_ovPush();}
   _srchFit();
   const si=document.getElementById('searchInput');if(si){si.focus({preventScroll:true});si.select();}
   _seRender();_seShow();
@@ -56,11 +101,13 @@ function searchClose(fromHistory){
   if(!document.body.classList.contains('srch-on'))return;
   document.body.classList.remove('srch-on');document.getElementById('srch').hidden=true;
   clearTimeout(_st2);hideSug();const si=document.getElementById('searchInput');if(si){si.value='';si.blur();}
+  _inertSync();if(fromHistory===true)_srchFocus.el=null;else _focusBack(_srchFocus);
   if(!fromHistory)_ovPop();
 }
 document.addEventListener('keydown',e=>{
   if(e.key!=='Escape')return;
   if(_srchCovered())return; /* a card or dialog on top handles its own Esc */
+  if(document.querySelector('.ct-menu'))return; /* a menu on top closes first */
   if(document.body.classList.contains('srch-on')){e.preventDefault();searchClose();}
   else if(document.body.classList.contains('nav-on'))navClose();
 },true); /* capture: decided before the card's own Esc closes it, so one Esc closes only the card */
@@ -115,7 +162,7 @@ function _seRender(){
   const ppl=(typeof _trackedPeople!=='undefined'?_trackedPeople:[]).filter(p=>p.profile).slice(0,10);
   el.innerHTML=(rec.length?`<section class="se-s"><div class="se-h"><h3>Ти шукав</h3><button class="rd-lnk" data-act="seClear">Очистити</button></div>
       <div class="se-q">${rec.map(q=>`<button class="se-c" data-act="seRun" data-args="${A(q)}">${ic('search')}<span>${esc(q)}</span></button>`).join('')}</div></section>`:'')
-    +(added.length?`<section class="se-s"><div class="se-h"><h3>Нещодавно додане</h3></div><div class="suggestions se-g">${added.map(i=>`<div class="sug-item" data-act="seOpen" data-args="${A(i.imdbID)}">
+    +(added.length?`<section class="se-s"><div class="se-h"><h3>Нещодавно додане</h3></div><div class="suggestions se-g">${added.map(i=>`<div class="sug-item" role="button" tabindex="0" data-act="seOpen" data-args="${A(i.imdbID)}">
       <div class="sug-p"><img class="sug-img" src="${posterSrc(i.poster)}" alt="" loading="lazy" data-fb>${_ownBadge(i.imdbID)}</div>
       <div class="sug-title">${esc(tn(i))}</div><div class="sug-meta">${[_wbYear(i),catLabel(i.customCategory||i.type).toLowerCase()].filter(Boolean).join(' · ')}</div></div>`).join('')}</div></section>`:'')
     +(ppl.length?`<section class="se-s"><div class="se-h"><h3>Люди, за якими стежиш</h3></div><div class="se-p">${ppl.map(p=>`<button class="se-f" data-act="seFace" data-args="${A(p.id,p.name,p.profile)}"><img src="${_tsImg(p.profile,'w185')}" alt="" loading="lazy"><span>${esc(p.name)}</span></button>`).join('')}</div></section>`:'');
@@ -202,3 +249,72 @@ function sheetSwipe(pan,{close,up,handle,scroller}){
   };
   pan.addEventListener('touchend',end);pan.addEventListener('touchcancel',end);
 }
+
+/* ── BACKGROUND INERT ──
+   While an overlay (search, filters, game window, «Дивлюсь» sheet, title card, dialog, tag sheet) is open, everything under it is
+   `inert`: Tab and screen readers stay in the top layer, taps cannot reach the page. Computed from what is open, never remembered,
+   so it cannot get stuck: _inertSync() runs from the open/close functions (before focus goes back) and from a MutationObserver. */
+const _isOn=(id,cls)=>()=>document.body.classList.contains(cls)?document.getElementById(id):null;
+const _OVL=[ /* bottom to top = by z-index */
+  _isOn('srch','srch-on'),_isOn('fsh','fs-on'),
+  ()=>{const e=document.getElementById('gameModalBg');return e&&!e.classList.contains('hidden')?e:null;},
+  _isOn('wbSheet','wb-on'),
+  ()=>{const e=document.getElementById('titleSheet');return e&&!e.classList.contains('hidden')?e:null;},
+  ()=>{const e=document.getElementById('mbox');return e&&e.innerHTML.trim()?e:null;},
+  _isOn('tgSheet','tg-on')];
+const _inertSet=new Set();
+function _inertSync(){
+  const open=_OVL.map(f=>f()).filter(Boolean),top=open[open.length-1],want=new Set();
+  if(top){
+    document.querySelectorAll('#dock,.dk-drop,.ph-top,#main>*').forEach(e=>{if(e!==top&&!e.contains(top))want.add(e);});
+    open.slice(0,-1).forEach(e=>want.add(e));
+  }
+  _inertSet.forEach(e=>{if(!want.has(e)){e.inert=false;_inertSet.delete(e);}});
+  want.forEach(e=>{if(!_inertSet.has(e)){e.inert=true;_inertSet.add(e);}});
+}
+(function(){
+  const mo=new MutationObserver(_inertSync);
+  mo.observe(document.body,{attributes:true,attributeFilter:['class']});
+  const t=document.getElementById('titleSheet'),g=document.getElementById('gameModalBg'),m=document.getElementById('mbox');
+  if(t)mo.observe(t,{attributes:true,attributeFilter:['class']});
+  if(g)mo.observe(g,{attributes:true,attributeFilter:['class']});
+  if(m)mo.observe(m,{childList:true});
+})();
+/* an overlay opens: remember where focus was, so closing puts it back; run with the element that gets focus next */
+function _focusIn(el,store){if(store&&!store.el)store.el=document.activeElement;if(el)el.focus({preventScroll:true});}
+function _focusBack(store,fallback){
+  const p=store&&store.el;if(store)store.el=null;
+  const t=p&&p.isConnected?p:fallback&&fallback();
+  if(t&&typeof t.focus==='function')t.focus({preventScroll:true});
+}
+/* a redraw of an open sheet replaces the focused button: find its twin (same action + arguments) and focus that */
+function _keepFocus(root,redraw){
+  const a=document.activeElement,inside=a&&root.contains(a)&&a!==root;
+  const act=inside&&a.getAttribute('data-act'),args=inside&&a.getAttribute('data-args'),cls=inside&&a.className;
+  redraw();
+  if(!inside||document.activeElement!==document.body&&root.contains(document.activeElement))return;
+  const t=[...root.querySelectorAll(act?`[data-act="${act}"]`:'.'+String(cls).split(' ')[0])].find(e=>!act||e.getAttribute('data-args')===args);
+  if(t)t.focus({preventScroll:true});
+}
+
+/* ── skip link, role=button, strips ── */
+function skipMain(ev){ev.preventDefault();const m=document.getElementById('main');if(m){m.focus({preventScroll:false});m.scrollIntoView({block:'start'});}}
+/* a role=button that is not a <button> must work from the keyboard too: Enter / Space press it */
+document.addEventListener('keydown',e=>{
+  if((e.key!=='Enter'&&e.key!==' ')||e.isComposing||e.defaultPrevented)return;
+  const t=e.target;if(!t||!t.matches||!t.matches('[role=button][data-act]')||t.matches('button,a,input,select,textarea'))return;
+  e.preventDefault();t.click();
+});
+/* horizontal strips without a visible scrollbar (chips, faces, cards): a mouse wheel scrolls them sideways on a computer,
+   only while the strip can still move that way (at its end the page scrolls as usual); touch and trackpads are untouched */
+document.addEventListener('wheel',e=>{
+  if(e.ctrlKey||Math.abs(e.deltaY)<=Math.abs(e.deltaX)||!matchMedia('(hover:hover) and (pointer:fine)').matches)return;
+  for(let el=e.target;el&&el!==document.body&&el!==document.documentElement;el=el.parentElement){
+    if(!(el instanceof HTMLElement)||el.scrollWidth<=el.clientWidth+1)continue;
+    const cs=getComputedStyle(el);
+    if(cs.scrollbarWidth!=='none'||!/auto|scroll/.test(cs.overflowX)||(el.scrollHeight>el.clientHeight+1&&/auto|scroll/.test(cs.overflowY)))continue;
+    const d=e.deltaMode===1?e.deltaY*32:e.deltaY,max=el.scrollWidth-el.clientWidth;
+    if((d<0&&el.scrollLeft<=0)||(d>0&&el.scrollLeft>=max-1))return; /* at the end: let the page scroll */
+    el.scrollLeft+=d;e.preventDefault();return;
+  }
+},{passive:false});

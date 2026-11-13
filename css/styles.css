@@ -2090,3 +2090,10 @@ body.ts-on{overflow:hidden;}
 .srch .sug-add{display:flex;align-items:center;justify-content:center;gap:5px;width:100%;height:40px;margin-top:6px;border-radius:12px;border:1px solid var(--gold-b);background:var(--gold-d);color:var(--gold);font:700 13.5px var(--sans);cursor:pointer;}
 .sug-add .i{width:14px;height:14px;}
 .rd-lnk,.srch .rd-lnk{background:none;border:0;padding:0;color:var(--gold);font:inherit;font-weight:600;cursor:pointer;}
+
+/* ── 1.31: accessibility helpers (nothing here changes the look of the page) ── */
+.sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0;}
+.skip-link{position:fixed;left:12px;top:-64px;z-index:10000;padding:.65rem 1rem;border-radius:10px;background:var(--gold);color:var(--gold-ink);font:600 14px var(--sans);text-decoration:none;}
+.skip-link:focus{top:12px;}
+/* containers that receive focus from script (skip link, sheets, game window): the ring belongs to the controls inside */
+#main:focus,.wb-pan:focus,.tg-pan:focus,.game-modal:focus{outline:none;}

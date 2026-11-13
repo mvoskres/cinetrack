@@ -199,7 +199,7 @@ function buildBar(t){
   const open=document.body.classList.contains('fs-on')&&_fs&&_fs.t===t;
   el.className='filter-row fbar';
   el.innerHTML=`
-    ${t==='watching'?'<div class="seg view-seg wb-tseg" id="wbTopSeg" role="tablist" aria-label="Що показати вгорі" hidden></div>':viewSeg(t)}
+    ${t==='watching'?'<div class="seg view-seg wb-tseg" id="wbTopSeg" role="group" aria-label="Що показати вгорі" hidden></div>':viewSeg(t)}
     <div class="local-search-wrap"><span class="local-search-icon">${ic('lsearch')}</span>
       <input class="local-search" type="text" placeholder="Знайти в списку" aria-label="Пошук у списку" value="${esc(f.q||'')}" data-input="lsearch" data-args="${A(`${t}`,'$value')}"><button type="button" class="ls-x" data-act="lsClear" data-args="[&quot;$el&quot;]" aria-label="Очистити пошук" title="Очистити">${ic('x')}</button>
     </div>
@@ -241,8 +241,9 @@ function fsOpen(t){
   fsRender();fsPlace();
   const b=document.getElementById(`fbtn-${t}`);b?.setAttribute('aria-expanded','true');b?.classList.add('active');
   if(typeof _ovPush==='function')_ovPush();
-  root.querySelector('.fsh-card')?.focus({preventScroll:true});
+  _inertSync();_focusIn(root.querySelector('.fsh-card'),_fsFocus);
 }
+const _fsFocus={el:null}; /* where focus was before the sheet opened */
 function fsClose(fromHistory){
   if(!document.body.classList.contains('fs-on'))return;
   const t=_fs&&_fs.t;
@@ -250,6 +251,8 @@ function fsClose(fromHistory){
   const root=document.getElementById('fsh');if(root){root.hidden=true;root.innerHTML='';}
   _fs=null;
   if(t){const b=document.getElementById(`fbtn-${t}`);b?.setAttribute('aria-expanded','false');b?.classList.remove('active');}
+  _inertSync();
+  if(fromHistory===true)_fsFocus.el=null;else _focusBack(_fsFocus,()=>t&&document.getElementById(`fbtn-${t}`));
   if(fromHistory!==true&&typeof _ovPop==='function')_ovPop();
 }
 /* a computer: the card hangs under the button; a phone: CSS pins it to the bottom */
@@ -511,7 +514,7 @@ async function ensureWatchedRuntimes(){
   if(dirty)save();
   if(stillUnknown.length&&API){
     const el=document.getElementById('statsContent');
-    if(el)el.innerHTML=`<div class="spinner" id="statsRtProgress">Рахую тривалість переглянутого… 0/${stillUnknown.length}</div>`;
+    if(el)el.innerHTML=`<div class="spinner" role="status" id="statsRtProgress">Рахую тривалість переглянутого… 0/${stillUnknown.length}</div>`;
     let done=0,stop=false;
     for(let k=0;k<stillUnknown.length&&!stop;k+=5){
       const batch=stillUnknown.slice(k,k+5);
@@ -534,7 +537,7 @@ async function ensureWatchedRuntimes(){
 }
 async function loadStats(){
   const el=document.getElementById('statsContent');
-  if(el&&!el.innerHTML)el.innerHTML=`<div class="spinner">Завантажую статистику…</div>`;
+  if(el&&!el.innerHTML)el.innerHTML=`<div class="spinner" role="status">Завантажую статистику…</div>`;
   await ensureWatchedRuntimes();
   renderStats();
 }

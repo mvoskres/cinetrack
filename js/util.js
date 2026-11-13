@@ -26,10 +26,13 @@ function modal(h){
   const m=box.querySelector('.modal'),t=m.querySelector('.modal-title');
   if(t){t.id='modalTitle';m.setAttribute('aria-labelledby','modalTitle');}else m.setAttribute('aria-label','Вікно');
   document.removeEventListener('keydown',_modalKeys);document.addEventListener('keydown',_modalKeys);
+  _lyOpen('mbox',()=>closeModal()); /* Back / the swipe gesture closes the dialog (ui.js layers) */
+  _inertSync();
   (m.querySelector(_FOCUSABLE)||m).focus({preventScroll:true});
 }
 function closeModal(){
   document.getElementById('mbox').innerHTML='';document.removeEventListener('keydown',_modalKeys);
+  _lyDone('mbox');_inertSync();
   const p=_modalPrev;_modalPrev=null;if(p&&p.isConnected&&typeof p.focus==='function')p.focus({preventScroll:true});
   if(typeof searchResume==='function')searchResume();
 }
@@ -67,14 +70,36 @@ let _tTimer;
 /* Messages across the app were written with a leading emoji (⚠ ✓ ℹ 🔖…);
    the icon now comes from the toast type, so strip whatever leads the text. */
 const _LEAD_GLYPH=/^(?:[\p{Extended_Pictographic}\u2713\u2717\u2726\u25B6]\uFE0F?\s*)+/u;
+/* Toasts live in the permanent region #toasts (index.html). The text is announced by ariaNotify() (or the hidden live regions
+   #srLive / #srAlert where it is missing) — a live region created together with its text is often not read out. An error stays
+   at least 7 s; a toast waits while the pointer is on it or focus is inside it (the «Скасувати» button is reachable by Tab). */
+const _toastHost=()=>document.getElementById('toasts')||document.body;
+function _toastSay(text,urgent){
+  if(!text)return;
+  if(typeof document.ariaNotify==='function'){try{document.ariaNotify(text,{priority:urgent?'high':'normal'});return;}catch(e){}}
+  const r=document.getElementById(urgent?'srAlert':'srLive');if(!r)return;
+  r.textContent='';setTimeout(()=>{r.textContent=text;},60);
+}
+function _toastMount(el,urgent){
+  _toastHost().appendChild(el);
+  const t=(el.querySelector('span')?.textContent||el.textContent||'').trim();
+  _toastSay(el.querySelector('button')?t+'. Доступні дії':t,urgent);
+}
+function _toastTimer(el,ms,fn){
+  let hov=false;el.addEventListener('mouseenter',()=>{hov=true;});el.addEventListener('mouseleave',()=>{hov=false;});
+  return setTimeout(function chk(){
+    if(!el.isConnected)return;
+    if(hov||el.contains(document.activeElement)){setTimeout(chk,800);return;}
+    fn();
+  },ms);
+}
 function toast(msg,type='',dur=3400){
   clearTimeout(_tTimer);document.querySelectorAll('.toast').forEach(t=>t.remove());
   const el=document.createElement('div');el.className=`toast${type?' '+type:''}`;
   const txt=document.createElement('span');txt.textContent=String(msg).replace(_LEAD_GLYPH,'');
   el.innerHTML=ic(type==='ok'?'check':type==='err'?'alert':'info');el.appendChild(txt);
-  el.setAttribute('role','status');el.setAttribute('aria-live','polite');
   el.title='Натисни, щоб закрити';el.addEventListener('click',()=>{clearTimeout(_tTimer);el.remove();});
-  document.body.appendChild(el);_tTimer=setTimeout(()=>el.remove(),dur);
+  _toastMount(el,type==='err');_tTimer=_toastTimer(el,type==='err'?Math.max(dur,7000):dur,()=>el.remove());
 }
 
 /* ── DELETE + UNDO ── */
@@ -87,7 +112,6 @@ function _mvUndo(item,fromList,fromIdx,undoFn,actionLabel){
   if(_undo){clearTimeout(_undo.timer);document.querySelectorAll('.toast').forEach(t=>t.remove());_undo=null;}
   document.querySelectorAll('.toast').forEach(t=>t.remove());
   const el=document.createElement('div');el.className='toast undo';
-  el.setAttribute('role','status');el.setAttribute('aria-live','polite');
   const lbl=document.createElement('span');lbl.textContent=actionLabel;
   const btn=document.createElement('button');btn.className='t-undo';btn.innerHTML=ic('undo')+'Скасувати';
   btn.onclick=()=>{
@@ -96,8 +120,8 @@ function _mvUndo(item,fromList,fromIdx,undoFn,actionLabel){
     el.remove();
     toast(`«${item.title}» повернено до запланованого`,'ok',2400);
   };
-  el.append(lbl,btn);document.body.appendChild(el);
-  const timer=setTimeout(()=>{el.remove();_undo=null;},5000);
+  el.append(lbl,btn);_toastMount(el);
+  const timer=_toastTimer(el,5000,()=>{el.remove();_undo=null;});
   _undo={timer};
 }
 
@@ -111,8 +135,8 @@ function del(listName,id,renderFn){
   const lbl=document.createElement('span');lbl.textContent=`«${item.title||'Запис'}» видалено`;
   const btn=document.createElement('button');btn.className='t-undo';btn.innerHTML=ic('undo')+'Відновити';
   btn.onclick=()=>{clearTimeout(_undo?.timer);_undo=null;const cur=tList(listName);cur.splice(Math.min(idx,cur.length),0,item);saveAll();renderFn();el.remove();toast(`«${item.title}» відновлено`,'ok',2400);};
-  el.append(lbl,btn);document.body.appendChild(el);
-  const timer=setTimeout(()=>{el.remove();_undo=null;},5000);_undo={timer};
+  el.append(lbl,btn);_toastMount(el);
+  const timer=_toastTimer(el,5000,()=>{el.remove();_undo=null;});_undo={timer};
 }
 
 /* ── API ── */
