@@ -2,18 +2,65 @@
    One «dock» (index.html header.dock): on a computer it is the top bar; ≤1100px the five pages fold into «Ще»
    (a drop-down, .dk-drop); on a phone (≤700px) it is a floating dock at the bottom that grows into the full
    menu. navOpen/navClose toggle body.nav-on for both. The search is a full-screen layer (#srch, body.srch-on).
-   Both push one history entry, so the phone's Back button closes them instead of leaving the site. */
+   The phone's Back button closes them instead of leaving the site (BACK below). */
 try{history.scrollRestoration='manual';}catch(e){}
-try{const h=history.state;if(h&&(h.ctLy||h.ctOv||h.wbSheet||h.tgSheet))history.replaceState(null,'');}catch(e){} /* a reload on one of our overlay entries: it is a plain page now */ /* closing the menu/search goes «back»; the browser must not restore an old scroll then */
+try{const h=history.state;if(h&&(h.ctLy||h.ctOv||h.wbSheet||h.tgSheet||h.ctExit))history.replaceState(null,'');}catch(e){} /* a reload on one of our overlay entries (or the 1.32 exit sentinel): it is a plain page now */ /* closing the menu/search goes «back»; the browser must not restore an old scroll then */
+
+/* ── BACK on Android: CloseWatcher (1.32.1) ──
+   Chrome on Android animates every step back through history — a screenshot of the previous entry slides in, even for our own
+   pushState entries — so closing a card with Back looked like the page reloading. In Chrome on Android (the system Back is known
+   to reach CloseWatcher there) overlays add NO history entries: they are listed in _cwL (in the order they opened) and ONE
+   CloseWatcher is armed while anything is listed. Back fires it → only the top overlay closes → a new watcher is armed for the rest.
+   Always one watcher, never one per overlay: watchers made without a tap in between are grouped by the browser and a single
+   Back closes the whole group (HTML «close watcher manager»); a lone watcher re-made after each Back is always its own group.
+   Everywhere else (a computer — its Back button / mouse back button must keep closing overlays —, iOS Safari, other Android
+   browsers, where Back may not reach a watcher) the history entries below are used. A new overlay, both ways: _lyOpen('key',
+   closeFn) when it opens, _lyDone('key') at the end of its close function (plus _OVL for inert); Back calls closeFn.
+   Esc keeps its own handlers in both ways. */
+const _ua=navigator.userAgentData;
+const _cwMode='CloseWatcher' in window&&!!_ua&&_ua.platform==='Android'&&(_ua.brands||[]).some(b=>b.brand==='Google Chrome');
+const _cwL=[];let _cwW=null;
+function _cwAdd(key,close){if(!_cwL.some(l=>l.key===key))_cwL.push({key,close});_exitCancel();_cwSync();}
+function _cwDel(key){const k=_cwL.findIndex(l=>l.key===key);if(k>=0)_cwL.splice(k,1);_cwSync();}
+function _cwSync(){ /* a watcher exists exactly while something is open, or the exit guard is armed */
+  const need=_cwL.length>0||(_exitOn&&!_exitWin);
+  if(need&&!_cwW){try{const w=new CloseWatcher();w.onclose=()=>{if(_cwW===w)_cwBack();};_cwW=w;}catch(e){}}
+  else if(!need&&_cwW){const w=_cwW;_cwW=null;try{w.destroy();}catch(e){}}
+}
+function _cwBack(){
+  _cwW=null; /* the browser has already destroyed it */
+  if(document.querySelector('.ct-menu'))closeMenu(true); /* a ⋯ menu on top closes first, as with Esc */
+  else{const top=_cwL.pop();if(top){try{top.close();}catch(e){}_inertSync();}else _exitHit();}
+  _cwSync();
+}
+if(_cwMode)window.addEventListener('keydown',e=>{if(e.key==='Escape'&&_cwW)e.preventDefault();},true); /* window capture: before every other handler. Esc is handled by them (they know what is on top); the cancelled keydown keeps it from also reaching the watcher and closing a second layer */
+/* ── DOUBLE BACK TO EXIT (installed app, Chrome on an Android touch screen) ──
+   With nothing open the same watcher is the guard: the first Back shows a hint and leaves the guard off for 2 s, so a second
+   Back goes to Android — there is no history entry behind the page — and the app closes. No second Back → armed again.
+   In a browser tab, on a computer and in other browsers Back behaves as usual (the 1.32 history sentinel is gone). */
+const _isApp=()=>['standalone','minimal-ui','fullscreen'].some(m=>matchMedia('(display-mode: '+m+')').matches);
+const _exitOn=_cwMode&&_isApp()&&matchMedia('(pointer:coarse)').matches;
+let _exitWin=false,_exitT=0;
+function _exitHit(){_exitWin=true;clearTimeout(_exitT);toast('Ще раз «Назад» — щоб вийти','',2000);_exitT=setTimeout(()=>{_exitWin=false;_cwSync();},2000);}
+function _exitCancel(){if(_exitWin){_exitWin=false;clearTimeout(_exitT);}} /* something opened meanwhile: its Back closes it */
+if(_exitOn)_cwSync();
+if(_cwMode)window.addEventListener('popstate',()=>{ /* only entries left by an older version (a reload keeps the tab's history) */
+  const h=history.state;if(h&&(h.ctLy||h.ctOv||h.wbSheet||h.tgSheet||h.ctExit))history.replaceState(null,'');
+  if(_exitWin)_exitHit(); /* the second Back landed on such an entry instead of leaving: one more */
+});
+
+/* ── history entries (no CloseWatcher, or a computer) ── */
 let _ovPushed=false;
 const _ovOpen=()=>['nav-on','srch-on','fs-on'].some(c=>document.body.classList.contains(c));
-function _ovPush(){if(!_ovPushed){try{history.pushState({ctOv:1},'');_ovPushed=true;}catch(e){}}}
+function _ovBack(){navClose(true);searchClose(true);if(typeof fsClose==='function')fsClose(true);} /* menu, search and filters share one entry: only one of them is open */
+function _ovPush(){if(_cwMode){_cwAdd('ov',_ovBack);return;}if(!_ovPushed){try{history.pushState({ctOv:1},'');_ovPushed=true;}catch(e){}}}
 function _ovPop(){
+  if(_cwMode){if(!_ovOpen())_cwDel('ov');return;}
   if(!_ovPushed||_ovOpen())return;
   _ovPushed=false;
   if(!_LY.some(l=>!l.dead))history.back(); /* a card/dialog is still on top of the menu entry: Back from it will skip the entry (popstate below) */
 }
-/* ── LAYERS: title card, dialogs (#mbox), the game window ──
+/* ── LAYERS: title card, dialogs (#mbox), the game window ── (with CloseWatcher on a touch screen: _cwAdd/_cwDel above instead)
    Each one pushes its own history entry when it opens ({ctLy:id}) so the phone's Back button / gesture closes the top one
    and nothing else (a card opened from the search: Back closes the card, the search stays; a dialog over a card: only the dialog).
    Opening: _lyOpen('key', closeFn). Closing by code (✕, Esc, a button): the close function ends with _lyDone('key'), which
@@ -21,6 +68,7 @@ function _ovPop(){
    A layer opened right after another closed (modal → modal) reuses the stale entry (replaceState), so nothing flickers. */
 const _LY=[];const _lyStale=new Set();let _lyId=0,_lyT=0;
 function _lyOpen(key,close){
+  if(_cwMode){_cwAdd(key,close);return;}
   if(_LY.some(l=>l.key===key&&!l.dead))return;
   const id=++_lyId;_LY.push({id,key,close,dead:false});
   try{
@@ -30,11 +78,12 @@ function _lyOpen(key,close){
   }catch(e){}
 }
 function _lyDone(key){
+  if(_cwMode){_cwDel(key);return;}
   const l=[..._LY].reverse().find(x=>x.key===key&&!x.dead);if(!l)return;
   l.dead=true;_lyStale.add(l.id);
   clearTimeout(_lyT);_lyT=setTimeout(()=>{if(_lyStale.has(history.state?.ctLy))history.back();},0);
 }
-window.addEventListener('popstate',()=>{
+if(!_cwMode)window.addEventListener('popstate',()=>{
   const st=history.state,sid=st?.ctLy||0;
   if(sid&&_lyStale.has(sid)){history.back();return;} /* a closed layer's entry: keep going back */
   while(_LY.length&&_LY[_LY.length-1].id>sid){const l=_LY.pop();_lyStale.delete(l.id);if(!l.dead){l.dead=true;try{l.close();}catch(e){}}}
@@ -45,26 +94,6 @@ window.addEventListener('popstate',()=>{
   }
   if(sid)return; /* a layer's own entry: the sheets under it stay */
   _ovPushed=false;navClose(true);searchClose(true);if(typeof fsClose==='function')fsClose(true);});
-
-/* ── DOUBLE BACK TO EXIT (installed app only) ──
-   Under the page lies one sentinel entry {ctExit:1}. The first Back from the page lands on it: a toast asks for one more,
-   and we stay on the sentinel (the first entry), so a second Back within 2 s goes to Android and closes the app.
-   No second Back → the page entry is pushed again (re-armed). In a browser tab Back behaves as usual. */
-const _isApp=()=>['standalone','minimal-ui','fullscreen'].some(m=>matchMedia('(display-mode: '+m+')').matches);
-let _exitT=0;
-function _exitArm(){try{if(history.state?.ctExit)history.pushState(null,'');}catch(e){}}
-if(_isApp()){
-  try{
-    if(history.state?.ctExit)history.pushState(null,''); /* reloaded while on the sentinel */
-    else if(sessionStorage.getItem('ct_exit_g')!=='1'){history.replaceState({ctExit:1},'');history.pushState(null,'');sessionStorage.setItem('ct_exit_g','1');}
-  }catch(e){}
-  window.addEventListener('popstate',()=>{
-    if(!history.state?.ctExit)return;
-    clearTimeout(_exitT);
-    toast('Ще раз «Назад» — щоб вийти','',2000);
-    _exitT=setTimeout(_exitArm,2000);
-  });
-}
 
 /* the phone menu is the same dock: what is invisible in the current state is also inert (not focusable, not read out) */
 function _navAria(on){

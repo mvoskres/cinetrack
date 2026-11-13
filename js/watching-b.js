@@ -144,7 +144,7 @@ function wbOpen(id){
   if(!document.body.classList.contains('wb-on'))_wbFocus.el=null;
   _wbSheetDraw();document.body.classList.add('wb-on');_inertSync();
   _focusIn(L.querySelector('.wb-pan'),_wbFocus);
-  try{history.pushState({wbSheet:1},'');}catch(e){}
+  if(_cwMode)_cwAdd('wb',()=>wbClose(true));else try{history.pushState({wbSheet:1},'');}catch(e){} /* Back closes the sheet (ui.js BACK) */
 }
 function wbClose(fromHistory){
   if(!document.body.classList.contains('wb-on'))return;
@@ -152,9 +152,9 @@ function wbClose(fromHistory){
   document.body.classList.remove('wb-on');_wbCur=null;const L=document.getElementById('wbSheet');if(L)L.innerHTML='';
   _inertSync();
   _focusBack(_wbFocus,()=>[...document.querySelectorAll('#wnList [data-act="wbOpen"]')].find(e=>e.getAttribute('data-args')===JSON.stringify([id]))); /* the wall may have been redrawn: find the tile again */
-  if(!fromHistory&&history.state?.wbSheet)history.back();
+  if(_cwMode)_cwDel('wb');else if(!fromHistory&&history.state?.wbSheet)history.back();
 }
-window.addEventListener('popstate',()=>{if(!history.state?.wbSheet&&!history.state?.ctLy)wbClose(true);}); /* Back from a sheet/card on top lands on our entry or the card's: stay */
+window.addEventListener('popstate',()=>{if(!_cwMode&&!history.state?.wbSheet&&!history.state?.ctLy)wbClose(true);}); /* Back from a sheet/card on top lands on our entry or the card's: stay */
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('wb-on'))wbClose();});
 function _wbSheetDraw(){const L=document.getElementById('wbSheet');if(L)_keepFocus(L,_wbSheetDraw0);} /* ± redraws the sheet: focus stays on the pressed button */
 function _wbSheetDraw0(){
