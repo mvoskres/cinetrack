@@ -94,7 +94,7 @@ function tagEdit(id){
   if(!document.body.classList.contains('tg-on'))_tgFocus.el=null;
   _tgDraw();document.body.classList.add('tg-on');_inertSync();_focusIn(L.querySelector('.tg-pan'),_tgFocus);
   sheetSwipe(L.querySelector('.tg-pan'),{close:()=>tagClose(),handle:'.tg-grab,.tg-hd'});
-  if(_cwMode)_cwAdd('tg',()=>tagClose(true));else try{history.pushState({tgSheet:1},'');}catch(e){} /* Back closes the sheet (ui.js BACK) */
+  if(_cwMode)_cwAdd('tg',()=>tagClose(true));else try{_tgBase=history.state?.ctLy||0;history.pushState({tgSheet:1},'');}catch(e){} /* Back closes the sheet (ui.js BACK) */
 }
 function addTag(id){tagEdit(id);} /* old name, still used by the title card */
 const _tgFocus={el:null}; /* what had focus when the sheet opened */
@@ -104,7 +104,8 @@ function tagClose(fromHistory){
   _inertSync();_focusBack(_tgFocus);
   if(_cwMode)_cwDel('tg');else if(!fromHistory&&history.state?.tgSheet)history.back();
 }
-window.addEventListener('popstate',()=>{if(!_cwMode&&!history.state?.tgSheet&&!history.state?.ctLy)tagClose(true);});
+let _tgBase=0; /* the card layer under the sheet (0 = none) */
+window.addEventListener('popstate',()=>{const st=history.state;if(!_cwMode&&!st?.tgSheet&&!((st?.ctLy||0)>_tgBase))tagClose(true);}); /* keep it only on its own entry or under a newer card */
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('tg-on')){e.stopPropagation();tagClose();}},true);
 function _tgDraw(){const L=document.getElementById('tgSheet');if(L)_keepFocus(L,_tgDraw0);} /* tapping a tag redraws the chips: focus stays on it */
 function _tgDraw0(){

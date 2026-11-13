@@ -23,7 +23,7 @@ const _cwL=[];let _cwW=null;
 function _cwAdd(key,close){if(!_cwL.some(l=>l.key===key))_cwL.push({key,close});_exitCancel();_cwSync();}
 function _cwDel(key){const k=_cwL.findIndex(l=>l.key===key);if(k>=0)_cwL.splice(k,1);_cwSync();}
 function _cwSync(){ /* a watcher exists exactly while something is open, or the exit guard is armed */
-  const need=_cwL.length>0||(_exitOn&&!_exitWin);
+  const need=_cwL.length>0||!!document.querySelector('.ct-menu')||(_exitOn&&!_exitWin); /* a ⋯ menu counts too: Back closes it */
   if(need&&!_cwW){try{const w=new CloseWatcher();w.onclose=()=>{if(_cwW===w)_cwBack();};_cwW=w;}catch(e){}}
   else if(!need&&_cwW){const w=_cwW;_cwW=null;try{w.destroy();}catch(e){}}
 }

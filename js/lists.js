@@ -329,6 +329,7 @@ function openMenu(ev,items){
     ?`<a role="menuitem" href="${esc(safeUrl(x.href)||'#')}" target="_blank" rel="noopener" data-act="closeMenu">${ic(x.icon)}${x.label}</a>`
     :`<button role="menuitem" class="${x.danger?'danger':''}" data-act="_menuRun" data-args="${A(x.fn,...(x.args||[]))}">${ic(x.icon)}${x.label}</button>`).join('');
   document.body.appendChild(m);
+  if(_cwMode)_cwSync(); /* Android: system Back closes the menu (ui.js _cwBack) */
   const r=btn.getBoundingClientRect();
   const below=r.bottom+6+m.offsetHeight<=innerHeight-8;
   m.style.top=Math.max(8,below?r.bottom+6:r.top-m.offsetHeight-6)+'px';
@@ -339,6 +340,7 @@ let _menuBtn=null; /* the button that opened the menu: aria-expanded lives on it
 function closeMenu(restore){
   document.querySelector('.ct-menu')?.remove();
   const b=_menuBtn;_menuBtn=null;
+  if(_cwMode)_cwSync();
   if(b){b.setAttribute('aria-expanded','false');if(restore===true&&b.isConnected)b.focus({preventScroll:true});}
 }
 /* the menu role comes with the keyboard model: ↑ ↓ Home End move between items, Esc closes, Tab leaves (and closes) */
