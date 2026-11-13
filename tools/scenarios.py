@@ -48,7 +48,7 @@ class Ctx:
 # ───────────── оверлеї: як відкрити, як побачити, що відкрито ─────────────
 HID = "document.getElementById('{}').classList.contains('hidden')"
 OVERLAYS = {
-    'title':    dict(open="openTitle('tt0093773')", is_open="!" + HID.format('titleSheet'), root='#titleSheet', focus=True),
+    'title':    dict(open="openTitle('tt0093773')", is_open="!" + HID.format('titleSheet') + "&&!document.querySelector('#tsBody .spinner')", root='#titleSheet', focus=True),  # відкрита = дані завантажені (фокус тепер ставиться ще до завантаження)
     'search':   dict(open="searchOpen()", is_open="document.body.classList.contains('srch-on')", root='#srch', focus=True),
     'dialog':   dict(open="modal('<div class=\"modal-title\">Тест</div><button class=\"btn\">Гаразд</button>')",
                      is_open="!!document.getElementById('mbox').innerHTML.trim()", root='#mbox', focus=True),
@@ -174,6 +174,20 @@ def _exit(c):
 # ───────────── відомі вади: падіння = XFAIL (не ламає код виходу); коли виправлять — стане XPASS і треба прибрати рядок ─────────────
 XFAIL = {
 }
+
+
+@scenario('overlay/title-load-fail', modes=('android', 'desktop'))
+def _title_fail(c):
+    # деталі не завантажились (немає мережі/ключа): картка показує помилку, фокус усе одно всередині, Назад/Esc закриває
+    c.eval("window._tsLoad0=window._tsLoad0||_tsLoad;_tsLoad=()=>Promise.reject(new Error('offline'))")
+    try:
+        c.eval("openTitle('tt0000001')")
+        c.wait("document.body.classList.contains('ts-on')&&!!document.querySelector('#tsBody .empty')", 5, 'картка з помилкою')
+        c.wait("!!document.activeElement&&!!document.activeElement.closest('#titleSheet')", 2, 'фокус усередині картки з помилкою')
+        c.close_top() if c.mode != 'android' else c.b.back()
+        c.wait("!document.body.classList.contains('ts-on')", 2, 'картка з помилкою закрилась')
+    finally:
+        c.eval("_tsLoad=window._tsLoad0")
 
 
 @scenario('overlay/menu-back', modes=('android',))

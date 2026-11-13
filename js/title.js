@@ -36,6 +36,7 @@ async function _tsOpen(ref,push){
   const body=document.getElementById('tsBody');
   body.innerHTML=`${_tsTopBar()}<div class="spinner" role="status">Завантажую деталі…</div>`;
   body.parentElement.scrollTop=0;
+  if(!bg.contains(document.activeElement))bg.querySelector('.ts')?.focus({preventScroll:true}); /* focus inside right away: while loading and if loading fails */
   let data=null;
   try{data=await _tsLoad(ref);}catch(e){}
   if(_tsStack[_tsStack.length-1]!==ref)return; /* navigated away meanwhile */
