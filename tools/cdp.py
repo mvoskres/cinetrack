@@ -127,12 +127,18 @@ class Browser:
         if p:
             try: subprocess.run(['taskkill', '/F', '/T', '/PID', str(p.pid)], capture_output=True, timeout=15)
             except Exception: p.kill()
+            try: p.wait(10)
+            except Exception: pass
         s, self.srv = self.srv, None
         if s:
             try: s.shutdown(); s.server_close()
             except Exception: pass
         t, self.tmp = self.tmp, None
-        if t: shutil.rmtree(t, ignore_errors=True)
+        if t:
+            for _ in range(5):  # Windows тримає файли ще мить після завершення Chrome
+                shutil.rmtree(t, ignore_errors=True)
+                if not os.path.exists(t): break
+                time.sleep(0.4)
 
     # ── CDP ──
     def _reader(self):
