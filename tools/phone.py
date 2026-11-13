@@ -92,8 +92,22 @@ def _ready():
         raise AssertionError('телефон заблокований — розблокуй')
     launch(); time.sleep(3)
     p = app()
+    # Pages тримає index.html у кеші до 10 хв: перезавантажити без кешу, щоб перевіряти саме свіжу версію
+    p.n += 1; p.ws.send(json.dumps({'id': p.n, 'method': 'Page.reload', 'params': {'ignoreCache': True}})); time.sleep(5)
+    p = app()
+    want = _local_version()
+    got = p.ev('CHANGELOG[0].v')
+    if want and got != want:
+        raise AssertionError(f'на телефоні {got}, а в коді {want} — живий сайт ще не оновився (зачекай або спершу ship.py)')
     p.ev("typeof closeTitle==='function'&&closeTitle()"); time.sleep(0.5)
     return p
+
+
+def _local_version():
+    import re
+    p = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'js', 'settings.js')
+    m = re.search(r"CHANGELOG=\[\s*\{v:'([^']+)'", open(p, encoding='utf-8').read())
+    return m.group(1) if m else None
 
 
 CARD_OPEN = "document.body.classList.contains('ts-on')"
