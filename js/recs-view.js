@@ -14,15 +14,22 @@ let _recTiles=_lsJSON('ct_rec_gtiles',{});
 let _recTilesBusy=false;
 async function _recTilesFill(){
   if(_recTilesBusy||!TMDB_KEY||_tmdbBlocked)return;
-  if(_recTiles.ts&&Date.now()-_recTiles.ts<7*864e5&&_recGenresOk().every(([k])=>_recTiles[k]!==undefined))return;
+  /* a backdrop already shown on an earlier tile counts as missing: every tile gets its own picture */
+  const dup=k=>{const v=_recTiles[k];return !!v&&_recGenresOk().some(([j])=>j!==k&&_recTiles[j]===v&&_recGenresOk().findIndex(([x])=>x===j)<_recGenresOk().findIndex(([x])=>x===k));};
+  const stale=!_recTiles.ts||Date.now()-_recTiles.ts>=7*864e5;
+  const todo=_recGenresOk().filter(([k])=>stale||_recTiles[k]===undefined||dup(k));
+  if(!todo.length)return;
   _recTilesBusy=true;
-  const todo=_recGenresOk().filter(([k])=>_recTiles[k]===undefined||!_recTiles.ts||Date.now()-_recTiles.ts>=7*864e5);
+  const cand={};
   for(let i=0;i<todo.length;i+=4){
     await Promise.all(todo.slice(i,i+4).map(async([k])=>{
       try{const d=await tmdbFetch(`/discover/movie?with_genres=${TMDB_GENRES[k]}&vote_count.gte=3000&sort_by=popularity.desc`);
-        _recTiles[k]=(d?.results||[]).find(r=>r.backdrop_path)?.backdrop_path||'';}catch(e){}
+        cand[k]=(d?.results||[]).map(r=>r.backdrop_path).filter(Boolean);}catch(e){}
     }));
   }
+  /* hand the pictures out in tile order, skipping ones another tile already shows (one film is often in several genres) */
+  const todoK=new Set(todo.map(([k])=>k)),used=new Set(_recGenresOk().filter(([k])=>!todoK.has(k)&&_recTiles[k]).map(([k])=>_recTiles[k]));
+  for(const [k] of todo){if(!cand[k])continue;const bd=cand[k].find(b=>!used.has(b))||'';_recTiles[k]=bd;if(bd)used.add(bd);}
   _recTiles.ts=Date.now();_lsSet('ct_rec_gtiles',JSON.stringify(_recTiles));_recTilesBusy=false;
   _recTilesRender();
 }
