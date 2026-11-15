@@ -13,11 +13,7 @@ function _showCollLastRun(pending,total){
   const el=document.getElementById('collLastRun');
   if(!el)return;
   if(pending>0){el.textContent=`нових для аналізу: ${pending}/${total}`;return;}
-  const last=localStorage.getItem('ct_coll_lastrun');
-  if(!last){el.textContent='';return;}
-  const mins=Math.round((Date.now()-Number(last))/60000);
-  const when=mins<1?'щойно':mins<60?`${mins} хв тому`:mins<1440?`${Math.round(mins/60)} год тому`:`${Math.round(mins/1440)} дн тому`;
-  el.textContent=`Оновлено ${when}`;
+  el.textContent=''; /* nothing running: no «Оновлено …» line (the refresh lives in Налаштування now) */
 }
 function _markCollRun(){_lsSet('ct_coll_lastrun',String(Date.now()));}
 
@@ -103,6 +99,12 @@ async function _collBackgroundRefresh(force){
   if(!document.getElementById('tab-collections')?.classList.contains('hidden')){buildCollBar();renderCollections(true);}
 }
 /* header button: re-read every franchise and re-check old "not in a franchise" answers; nothing is wiped */
+/* Налаштування → «Оновити франшизи»: the same, started from the settings; it runs in the background */
+function collRefreshFromSettings(){
+  if(_collRefreshing){toast('Франшизи вже оновлюються','',2200);return;}
+  if(!TMDB_KEY){toast('Потрібен ключ TMDB','err',2200);return;}
+  refreshCollectionsData();toast('Оновлюю склад франшиз у фоні: кілька хвилин','ok',3000);
+}
 async function refreshCollectionsData(){
   if(_collRefreshing)return;
   const old=Date.now()-180*864e5;
@@ -239,7 +241,7 @@ function buildCollBar(){
       <div class="local-search-wrap"><span class="local-search-icon">${ic('search')}</span>
         <input class="local-search" type="text" placeholder="Пошук франшизи…" aria-label="Пошук франшизи" value="${esc(f.q)}" data-input="collSearch" data-args="[&quot;$value&quot;]"><button type="button" class="ls-x" data-act="lsClear" data-args="[&quot;$el&quot;]" aria-label="Очистити пошук" title="Очистити">${ic('x')}</button>
       </div>
-      <button id="collFbtn" class="flt-pill${n?' has-n':''}" data-act="toggleCollPan">${ic('filter')}Тип, жанр${n?` <span class="flt-n">${n}</span>`:''}</button>
+      <button id="collFbtn" class="flt-pill${n?' has-n':''}" data-act="toggleCollPan" aria-haspopup="dialog">${ic('filter')}Фільтри${n?` <span class="flt-n">${n}</span>`:''}</button>
       <select class="sort-sel" aria-label="Сортування" data-change="collSetSort" data-args="[&quot;$value&quot;]">
         ${[['missing-asc','Найближчі до завершення'],['owned-desc','Найбільше переглянуто'],['next-asc','Найближча прем\'єра'],['name-asc','А→Я']]
           .map(([v,l])=>`<option value="${v}"${f.sort===v?' selected':''}>${l}</option>`).join('')}
@@ -247,6 +249,7 @@ function buildCollBar(){
     </div>`;
 }
 function toggleCollPan(){
+  if(matchMedia('(max-width:700px)').matches){collSheetOpen();return;} /* phone: a bottom sheet like the lists' filters */
   const p=document.getElementById('collPanel'),b=document.getElementById('collFbtn');
   if(!p)return;
   const open=p.style.display!=='none';
@@ -269,11 +272,50 @@ function collChip(dim,val){
   const f=_collFilter,arr=f[dim];
   const i=arr.indexOf(val);
   if(i>=0)arr.splice(i,1);else arr.push(val);
-  buildCollBar();buildCollPan();
+  buildCollBar();buildCollPan();_collSheetBody();
   document.getElementById('collFbtn')?.classList.add('active');
   renderCollections();
 }
-function collClearPan(){_collFilter.types=[];_collFilter.genres=[];buildCollBar();buildCollPan();renderCollections();}
+function collClearPan(){_collFilter.types=[];_collFilter.genres=[];buildCollBar();buildCollPan();_collSheetBody();renderCollections();}
+
+/* ── phone: type/genre filters in a bottom sheet (same look as the lists' «Фільтри»); chips apply at once ── */
+const _csFocus={el:null};
+function collSheetOpen(){
+  if(document.body.classList.contains('cs-on')||!_collGroupsCache)return;
+  _csFocus.el=document.activeElement;
+  let root=document.getElementById('csh');
+  if(!root){root=document.createElement('div');root.id='csh';root.className='fsh';document.body.appendChild(root);}
+  root.innerHTML=`<div class="fsh-bd" data-act="collSheetClose"></div><div class="fsh-card" role="dialog" aria-modal="true" aria-label="Фільтри франшиз" tabindex="-1">
+    <div class="fsh-grab"></div><div class="fsh-hd"><h2 class="fsh-t">Фільтри</h2><span id="cshReset"></span>
+    <button class="fsh-x" data-act="collSheetClose" aria-label="Закрити">${ic('x')}</button></div>
+    <div class="fsh-body" id="cshBody"></div><div class="fsh-ft"><button class="fsh-go" data-act="collSheetClose">Готово</button></div></div>`;
+  root.hidden=false;document.body.classList.add('cs-on');
+  _collSheetBody();
+  const card=root.querySelector('.fsh-card');
+  sheetSwipe(card,{close:()=>collSheetClose(),handle:'.fsh-grab,.fsh-hd',scroller:'.fsh-body'});
+  _lyOpen('csh',()=>collSheetClose());
+  document.getElementById('collFbtn')?.setAttribute('aria-expanded','true');
+  _inertSync();card.focus();
+}
+function _collSheetBody(){
+  const body=document.getElementById('cshBody');if(!body||!_collGroupsCache)return;
+  const f=_collFilter;
+  const types=[...new Set(_collGroupsCache.flatMap(c=>c.types))];
+  const genres=[...new Set(_collGroupsCache.flatMap(c=>c.genres))].filter(g=>g!=='N/A').sort((a,b)=>_gName(a).localeCompare(_gName(b),'uk'));
+  const chip=(dim,v,l)=>`<button class="fsh-chip${f[dim].includes(v)?' on':''}" aria-pressed="${f[dim].includes(v)}" data-act="collChip" data-args="${A(dim,`${dim==='genres'?uriSafe(v):v}`)}">${esc(l)}</button>`;
+  body.innerHTML=(types.length>1?`<div class="fsh-grp"><p class="fsh-lbl">Тип</p><div class="fsh-chips">${types.map(t=>chip('types',t,CAT[t]||t)).join('')}</div></div>`:'')
+    +(genres.length?`<div class="fsh-grp"><p class="fsh-lbl">Жанр</p><div class="fsh-chips">${genres.map(g=>chip('genres',g,_gName(g))).join('')}</div></div>`:'');
+  const r=document.getElementById('cshReset');if(r)r.innerHTML=f.types.length+f.genres.length?'<button class="fsh-reset" data-act="collClearPan">Скинути все</button>':'';
+}
+function collSheetClose(){
+  if(!document.body.classList.contains('cs-on'))return;
+  document.body.classList.remove('cs-on');
+  const root=document.getElementById('csh');if(root){root.hidden=true;root.innerHTML='';}
+  const b=document.getElementById('collFbtn');b?.setAttribute('aria-expanded','false');if(!_collFN())b?.classList.remove('active');
+  _inertSync();_focusBack(_csFocus,()=>document.getElementById('collFbtn'));
+  _lyDone('csh');
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('cs-on'))collSheetClose();});
 
 let _collSearchT;
 function collSearch(v){clearTimeout(_collSearchT);_collSearchT=setTimeout(()=>{_collFilter.q=v.trim();renderCollections();},220);}

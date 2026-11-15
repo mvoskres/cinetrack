@@ -24,6 +24,7 @@ function openIO(target){
         <label class="st-act" for="csvFile" id="stCsv">${ic('film')}<span><b>Імпорт з IMDb / Letterboxd</b><small>CSV з оцінками або watchlist</small></span></label>
         <input type="file" id="csvFile" accept=".csv,text/csv" data-change="doCsvImport" data-args="[&quot;$ev&quot;]" hidden>
         <div id="csvBox"></div>
+        <button class="st-act" data-act="collRefreshFromSettings">${ic('refresh')}<span><b>Оновити франшизи</b><small>Перечитати склад усіх франшиз: нові частини, дати, постери. Само це робиться раз на 2 тижні – 2 місяці</small></span></button>
         <button class="st-act" data-act="runCleanScan">${ic('check')}<span><b>Перевірка даних</b><small>Дублі й сумнівні категорії</small></span></button>
         <div id="cleanMsg" class="cl-msg"></div>
         <div id="cleanList"></div>
@@ -541,6 +542,7 @@ function doImport(e,mode){
 
 /* ── VERSION and CHANGELOG: newest first; bump APP_VERSION and add an entry with every change pushed to the site ── */
 const CHANGELOG=[
+  {v:'1.34',d:'15.11.2026',n:['Франшизи на телефоні: пошук, «Фільтри» і ⇅ в один рядок; тип і жанр відкриваються шторкою знизу, як у списках','Кнопка «Оновити дані» переїхала в Налаштування → «Оновити франшизи» (і так оновлюються самі раз на 2 тижні)']},
   {v:'1.33.3',d:'15.11.2026',n:['Картка серіалу: «Переглянуто повністю» — звичайна кнопка, а не залита кольором, тож не виглядає вже вибраною']},
   {v:'1.33.2',d:'15.11.2026',n:['Телефон: сортування в списках і в «Людях» — кнопка ⇅, тож пошук більше не обрізається («Знайти в списку», «Знайти у фільмах»)']},
   {v:'1.33.1',d:'15.11.2026',n:['Вигляд «Список»: рік тим самим шрифтом, що й решта рядка']},
