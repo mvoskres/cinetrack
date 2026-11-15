@@ -296,13 +296,13 @@ function _shelvesHtml(t,list,cardFn){
     const gs=Object.keys(by).sort((a,b)=>by[b].length-by[a].length);
     if(gs.length>1)return gs.map(g=>`<section class="shelf">
     <div class="shelf-h"><h2>${esc(uk(g))}</h2><span class="num">${by[g].length}</span>
-      ${by[g].length>VSHELF_N?`<button class="shelf-all" data-act="chip" data-args="${A(`${t}`,'genres',`${uriSafe(g)}`)}">Усі ${by[g].length}</button>`:''}</div>
+      ${by[g].length>VSHELF_N?`<button class="shelf-all" data-act="chip" data-args="${A(`${t}`,'genres',`${uriSafe(g)}`)}" aria-label="Усі ${by[g].length}">Усі <span aria-hidden="true">›</span></button>`:''}</div>
     <div class="shelf-row">${by[g].slice(0,VSHELF_N).map(cardFn).join('')}</div></section>`).join('');
   }
   const by={};list.forEach(i=>{const c=Object.hasOwn(VSHELF_L,i.customCategory||i.type)?(i.customCategory||i.type):'other';(by[c]??=[]).push(i);});
   return Object.keys(VSHELF_L).filter(c=>by[c]).map(c=>`<section class="shelf">
     <div class="shelf-h"><h2>${VSHELF_L[c]}</h2><span class="num">${by[c].length}</span>
-      ${by[c].length>VSHELF_N?`<button class="shelf-all" data-act="setCat" data-args="${A(`${t}`,`${c}`)}">Усі ${by[c].length}</button>`:''}</div>
+      ${by[c].length>VSHELF_N?`<button class="shelf-all" data-act="setCat" data-args="${A(`${t}`,`${c}`)}" aria-label="Усі ${by[c].length}">Усі <span aria-hidden="true">›</span></button>`:''}</div>
     <div class="shelf-row">${by[c].slice(0,VSHELF_N).map(cardFn).join('')}</div></section>`).join('');
 }
 function _gridSentinel(t,n){
