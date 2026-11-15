@@ -2101,3 +2101,16 @@ body.ts-on{overflow:hidden;}
 /* captions under posters and the IMDb column: the body font with even digits, not the mono one (1.33) */
 .pc-m .num,.tr-meta .num,.lrow .num{font-family:var(--sans);}
 .pc-m,.tr-meta,.lrow-i{font-variant-numeric:tabular-nums;}
+
+/* your rating on a card is a button: it opens the rating + the whole comment (myNote) */
+.pc-my{border:0;pointer-events:auto;cursor:pointer;}
+.pc-my.has-c::after{content:"";width:5px;height:5px;border-radius:50%;background:currentColor;margin-left:.15rem;opacity:.8;}
+button.pc-note{display:block;width:100%;padding:0;border:0;background:none;font:inherit;font-size:.74rem;text-align:left;cursor:pointer;}
+button.pc-note:hover{color:var(--text-2);}
+.lrow-myb{display:inline-flex;align-items:center;gap:.2rem;padding:.15rem .35rem;border:0;border-radius:6px;background:none;color:inherit;font:inherit;cursor:pointer;}
+.lrow-myb:hover{background:var(--ink-3);}
+.mn-r{display:flex;align-items:center;justify-content:center;gap:.35rem;margin:.2rem 0 .8rem;color:var(--gold);}
+.mn-r svg.i{width:20px;height:20px;fill:currentColor;stroke:none;}
+.mn-r b{font:700 1.6rem var(--serif);}.mn-r span{color:var(--muted);font-size:.85rem;}
+.mn-c{white-space:pre-wrap;line-height:1.55;color:var(--text);background:var(--ink-3);border:1px solid var(--line);border-radius:12px;padding:.8rem .9rem;margin:0 0 1rem;max-height:40vh;overflow-y:auto;}
+.mn-c.none{color:var(--muted);text-align:center;}

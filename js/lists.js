@@ -277,12 +277,12 @@ function myRow(list,i){
   return `<div class="lrow">
     <a class="lrow-art" href="${imdbHref(i)}" target="_blank" rel="noopener" tabindex="-1" data-act="_tsClick" data-args="${A('$ev',`${i.imdbID}`)}"><img src="${posterSrc(i.poster)}" data-pf="${esc(i.imdbID)}" alt="" loading="lazy"></a>
     <div class="lrow-t"><a href="${imdbHref(i)}" target="_blank" rel="noopener" data-act="_tsClick" data-args="${A('$ev',`${i.imdbID}`)}">${esc(tn(i))}</a>
-      ${i.comment?`<div class="pc-note" title="${esc(i.comment)}">${esc(i.comment)}</div>`:''}${_tagsHtml(i)}</div>
+      ${i.comment?`<button class="pc-note" data-act="myNote" data-args="${A(i.id)}" title="${esc(i.comment)}">${esc(i.comment)}</button>`:''}${_tagsHtml(i)}</div>
     <span class="lrow-y num">${esc(i.year||'')}</span>
     <span class="lrow-c">${catLabel(c)}</span>
     <span class="lrow-g">${esc((i.genre||'').split(',').slice(0,2).map(s=>s.trim()).filter(g=>g&&g!=='N/A').map(_gName).join(', '))}</span>
     <span class="lrow-i">${rNum(i.imdbRating)||'—'}</span>
-    <span class="lrow-my num">${i.rating?`${ic('star')}${esc(i.rating)}`:''}</span>
+    <span class="lrow-my num">${i.rating?`<button class="lrow-myb" data-act="myNote" data-args="${A(i.id)}" aria-label="Моя оцінка ${esc(i.rating)} з 10">${ic('star')}${esc(i.rating)}</button>`:''}</span>
     <button class="lrow-more" data-act="cardMenu" data-args="${A('$ev',`${list}`,(i.id))}" aria-label="Дії: ${esc(tn(i))}">${ic('dots')}</button>
   </div>`;
 }
@@ -422,12 +422,12 @@ function _tagPill(i){const t=i.tags||[];return t.length?`<button class="tg-pill"
 function myCard(list,i){
   return `<article class="pc">
     <div class="pc-art"><a href="${imdbHref(i)}" target="_blank" rel="noopener" tabindex="-1" data-act="_tsClick" data-args="${A('$ev',`${i.imdbID}`)}"><img src="${posterSrc(i.poster)}" data-pf="${esc(i.imdbID)}" alt="" loading="lazy"></a>
-      ${i.rating?`<span class="pc-my">${ic('star')}${esc(i.rating)}</span>`:''}
+      ${i.rating?`<button class="pc-my${i.comment?' has-c':''}" data-act="myNote" data-args="${A(i.id)}" aria-label="Моя оцінка ${esc(i.rating)} з 10${i.comment?', є коментар':''}">${ic('star')}${esc(i.rating)}</button>`:''}
       ${i.streamUrl&&safeUrl(i.streamUrl)?`<a class="pc-fab play" href="${esc(safeUrl(i.streamUrl))}" target="_blank" rel="noopener" aria-label="Дивитись ${esc(tn(i))}">${ic('play')}</a>`:''}
       <button class="pc-fab more" data-act="cardMenu" data-args="${A('$ev',`${list}`,(i.id))}" aria-label="Дії: ${esc(tn(i))}">${ic('dots')}</button>${_tagPill(i)}</div>
     <div class="pc-t"><a href="${imdbHref(i)}" target="_blank" rel="noopener" data-act="_tsClick" data-args="${A('$ev',`${i.imdbID}`)}">${esc(tn(i))}</a></div>
     ${_myMeta(i)}
-    ${i.comment?`<div class="pc-note" title="${esc(i.comment)}">${esc(i.comment)}</div>`:''}
+    ${i.comment?`<button class="pc-note" data-act="myNote" data-args="${A(i.id)}" title="${esc(i.comment)}">${esc(i.comment)}</button>`:''}
   </article>`;
 }
 
@@ -447,6 +447,17 @@ function rPlanned(){
   const list=applyF(planned,'planned');
   if(!list.length){g.className='grid';g.innerHTML=planned.length?`<div class="empty"><span class="empty-icon">${ic('search')}</span><div class="empty-txt">Нічого не знайдено</div></div>`:`<div class="empty"><span class="empty-icon">${ic('bookmark')}</span><div class="empty-txt">Черга для перегляду порожня</div></div>`;return;}
   _gridRender('planned',g,list,i=>myCard('planned',i));
+}
+
+/* tap on your rating (or the comment line) on a card: your mark and the whole comment, with «Змінити» → editW */
+function myNote(id){
+  const it=watched.find(i=>i.id===id);if(!it)return;
+  modal(`<img class="modal-poster" src="${imgSrc(it.poster)}" loading="lazy" data-fb alt="">
+    <h2 class="modal-title">${esc(tn(it))}</h2>
+    <div class="modal-sub">${esc(it.year||'')} · ${tl(it.type)}</div>
+    ${it.rating?`<div class="mn-r" aria-label="Моя оцінка ${esc(it.rating)} з 10">${ic('star')}<b>${esc(it.rating)}</b><span>з 10</span></div>`:''}
+    ${it.comment?`<p class="mn-c">${esc(it.comment)}</p>`:'<p class="mn-c none">Коментаря ще немає</p>'}
+    <div class="modal-btns"><button class="m-btn g" data-act="editW" data-args="${A(id)}">Змінити</button><button class="m-btn can" data-act="closeModal">Закрити</button></div>`);
 }
 
 /* ── EDIT WATCHED ── */
