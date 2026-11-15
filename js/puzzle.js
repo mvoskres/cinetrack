@@ -96,7 +96,7 @@ function _pzShuffle(n){
 }
 function pzStart(again){
   if(!_pz.pick||again==='new'){const all=_pzMine();if(!all.length){toast('У списках немає тайтлів із постерами','err',2400);return;}_pz.pick=_pzItem(all[Math.floor(Math.random()*all.length)]);}
-  _gameRun++;clearInterval(_pz.timer);
+  _gameRun++;clearInterval(_pz.timer);if(typeof _chStop==='function')_chStop();
   Object.assign(_pz,{board:_pzShuffle(_pz.n),moves:0,t0:0,won:false});
   const bg=document.getElementById('gameModalBg'),m=bg.querySelector('.game-modal');
   let w=document.getElementById('pzWrap');
