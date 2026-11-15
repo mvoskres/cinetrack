@@ -165,7 +165,7 @@ function _tsActions(d){
     if(own.list==='watching'&&watched.some(x=>x.imdbID===d.imdbID))lbl[2]='Дивлюсь знову';
     const main=own.list==='watched'?`<button class="btn" data-act="editW" data-args="${A((it.id))}">${ic('star')}Оцінка і коментар</button>`
       :own.list==='planned'?`<button class="btn" data-act="plToW" data-args="${A((it.id))}">${ic('check')}Переглянуто</button><button class="btn" data-act="plToWn" data-args="${A((it.id))}">${ic('play')}Почати дивитись</button>${_tsSkipBtn(d)}`
-      :`<button class="btn primary" data-act="mvToW" data-args="${A((it.id))}">${ic('check')}Переглянуто повністю</button>`;
+      :`<button class="btn" data-act="mvToW" data-args="${A((it.id))}">${ic('check')}Переглянуто повністю</button>`;
     return `<button class="chip-s st-sw ${lbl[0]}" data-act="_tsStatusMenu" data-args="${A('$ev')}" aria-haspopup="menu" title="Змінити стан">${ic(lbl[1])}${lbl[2]}${extra}<span class="st-car" aria-hidden="true">▾</span></button>${main}
       <button class="icon-btn" data-act="cardMenu" data-args="${A('$ev',`${own.list}`,(it.id))}" aria-label="Ще дії">${ic('dots')}</button>`;
   }

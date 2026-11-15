@@ -510,7 +510,7 @@ function rWatching(skipLive){
               <button class="btn sq" data-act="mvToW" data-args="${A((i.id))}" aria-label="Переглянуто повністю" title="Переглянуто повністю">${ic('check')}</button>
             </div></div>`
         :`<div class="tr-meta">Повнометражний${i.runtime?` · <span class="num">${esc(i.runtime)}</span> хв`:''}</div>
-          <div class="counter"><div class="step">${play}<button class="btn primary" data-act="mvToW" data-args="${A((i.id))}">${ic('check')}Переглянуто</button></div></div>`}
+          <div class="counter"><div class="step">${play}<button class="btn" data-act="mvToW" data-args="${A((i.id))}">${ic('check')}Переглянуто</button></div></div>`}
         ${_tagsHtml(i)}
       </div></article>`;
   }).join('');
