@@ -449,16 +449,35 @@ function rPlanned(){
   _gridRender('planned',g,list,i=>myCard('planned',i));
 }
 
-/* tap on your rating (or the comment line) on a card: your mark and the whole comment, with «Змінити» → editW */
+/* tap on your rating (or the comment line) on a card: a bottom sheet like the «Дивлюсь» one (swipe down / Back closes it)
+   with your mark and the whole comment; «Змінити» → editW */
+const _mnFocus={el:null};let _mnId=null;
 function myNote(id){
   const it=watched.find(i=>i.id===id);if(!it)return;
-  modal(`<img class="mn-poster" src="${imgSrc(it.poster)}" loading="lazy" data-fb alt="">
-    <h2 class="modal-title">${esc(tn(it))}</h2>
-    <div class="modal-sub">${esc(it.year||'')} · ${tl(it.type)}</div>
-    ${it.rating?`<div class="mn-r" aria-label="Моя оцінка ${esc(it.rating)} з 10">${ic('star')}<b>${esc(it.rating)}</b><span>з 10</span></div>`:''}
+  _mnId=id;
+  let R=document.getElementById('mnSheet');
+  if(!R){R=document.createElement('div');R.id='mnSheet';R.className='mn-sh';document.body.appendChild(R);}
+  if(!document.body.classList.contains('mn-on'))_mnFocus.el=document.activeElement;
+  R.innerHTML=`<div class="wb-dim" data-act="mnClose"></div><div class="wb-pan" role="dialog" aria-modal="true" aria-label="${esc(tn(it))}: моя оцінка" tabindex="-1"><div class="wb-grab"></div>
+    <button class="wb-x" data-act="mnClose" aria-label="Закрити">${ic('x')}</button>
+    <div class="wb-hd mn-hd"><img class="mn-poster" src="${imgSrc(it.poster)}" alt="" data-fb><div>
+      <b class="wb-tt">${esc(tn(it))}</b><div class="wb-mt">${esc(it.year||'')} · ${tl(it.type)}</div>
+      ${it.rating?`<div class="mn-r" aria-label="Моя оцінка ${esc(it.rating)} з 10">${ic('star')}<b>${esc(it.rating)}</b><span>з 10</span></div>`:''}</div></div>
     ${it.comment?`<p class="mn-c">${esc(it.comment)}</p>`:'<p class="mn-c none">Коментаря ще немає</p>'}
-    <div class="modal-btns"><button class="m-btn g" data-act="editW" data-args="${A(id)}">Змінити</button><button class="m-btn can" data-act="closeModal">Закрити</button></div>`);
+    <div class="wb-acts"><button class="wb-b mn-edit" data-act="mnEdit">${ic('star')}Змінити оцінку й коментар</button></div></div>`;
+  document.body.classList.add('mn-on');_inertSync();
+  const pan=R.querySelector('.wb-pan');
+  sheetSwipe(pan,{close:()=>mnClose(),handle:'.wb-grab,.mn-hd'});
+  _lyOpen('mn',()=>mnClose());
+  _focusIn(pan,_mnFocus);
 }
+function mnClose(){
+  if(!document.body.classList.contains('mn-on'))return;
+  document.body.classList.remove('mn-on');const R=document.getElementById('mnSheet');if(R)R.innerHTML='';
+  _inertSync();_focusBack(_mnFocus);_lyDone('mn');
+}
+function mnEdit(){const id=_mnId;mnClose();setTimeout(()=>editW(id),0);}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('mn-on'))mnClose();});
 
 /* ── EDIT WATCHED ── */
 function editW(id){

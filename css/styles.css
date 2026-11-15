@@ -2072,7 +2072,7 @@ body.ts-on{overflow:hidden;}
    phone: the page under a sheet / menu / card is NOT locked with overflow:hidden — on Android Chrome that brings the
    address bar back, which shoves the bottom dock up and leaves its taps landing in the old place. ui.js cancels the
    finger drags that would scroll the page instead. */
-@media(max-width:700px){html body.nav-on,html body.wb-on,html body.fs-on,html body.cs-on,html body.tg-on,html body.srch-on,html body.ts-on{overflow-x:hidden;overflow-y:auto;}} /* = the normal body values: no change at all */
+@media(max-width:700px){html body.nav-on,html body.wb-on,html body.mn-on,html body.fs-on,html body.cs-on,html body.tg-on,html body.srch-on,html body.ts-on{overflow-x:hidden;overflow-y:auto;}} /* = the normal body values: no change at all */
 
 /* ── SEARCH: empty state (1.30, js/ui.js) ── */
 .se{margin-top:18px;}
@@ -2104,14 +2104,14 @@ body.ts-on{overflow:hidden;}
 
 /* your rating on a card is a button: it opens the rating + the whole comment (myNote) */
 .pc-my{border:0;pointer-events:auto;cursor:pointer;}
-/* the whole poster, not a cropped strip: 2:3, as tall as the screen allows */
-.mn-poster{display:block;height:min(46vh,420px);aspect-ratio:2/3;max-width:100%;object-fit:cover;margin:0 auto 1rem;border-radius:12px;box-shadow:0 14px 36px rgba(0,0,0,.5);background:var(--ink-3);}
-button.pc-note{display:block;width:100%;padding:0;border:0;background:none;font:inherit;font-size:.74rem;text-align:left;cursor:pointer;}
-button.pc-note:hover{color:var(--text-2);}
-.lrow-myb{display:inline-flex;align-items:center;gap:.2rem;padding:.15rem .35rem;border:0;border-radius:6px;background:none;color:inherit;font:inherit;cursor:pointer;}
-.lrow-myb:hover{background:var(--ink-3);}
-.mn-r{display:flex;align-items:center;justify-content:center;gap:.35rem;margin:.2rem 0 .8rem;color:var(--gold);}
+/* rating sheet (myNote): the «Дивлюсь» sheet look, from the bottom on a phone */
+.mn-sh{display:none;}
+body.mn-on .mn-sh{display:block;position:fixed;inset:0;z-index:520;}
+.mn-hd img.mn-poster{width:112px;height:auto;aspect-ratio:2/3;object-fit:cover;border-radius:12px;cursor:default;box-shadow:0 10px 26px rgba(0,0,0,.45);}
+.mn-hd>div{justify-content:center;}
+.mn-edit{flex:1;}
+.mn-r{display:flex;align-items:center;gap:.35rem;margin:.4rem 0 0;color:var(--gold);}
 .mn-r svg.i{width:20px;height:20px;fill:currentColor;stroke:none;}
 .mn-r b{font:700 1.6rem var(--serif);}.mn-r span{color:var(--muted);font-size:.85rem;}
-.mn-c{white-space:pre-wrap;line-height:1.55;color:var(--text);background:var(--ink-3);border:1px solid var(--line);border-radius:12px;padding:.8rem .9rem;margin:0 0 1rem;max-height:40vh;overflow-y:auto;}
+.mn-c{white-space:pre-wrap;line-height:1.55;color:var(--text);background:var(--ink-3);border:1px solid var(--line);border-radius:12px;padding:.8rem .9rem;margin:16px 0;max-height:40vh;overflow-y:auto;}
 .mn-c.none{color:var(--muted);text-align:center;}
