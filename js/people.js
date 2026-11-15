@@ -311,12 +311,16 @@ function renderPersonList(){
     const y=parseInt(c.year)||0,k=y?`${Math.floor(y/10)*10}-ті`:'Анонси';
     if(!dec.has(k))dec.set(k,[]);dec.get(k).push(c);
   });
+  /* redraws (adding a title, a filter) keep every decade strip where it was scrolled to */
+  const _keepX={},_pid=String(_personGroupsCache.personId);if(listEl.dataset.kpid===_pid)listEl.querySelectorAll('.pk-dec').forEach(sec=>{const k=sec.querySelector('.pk-dh b')?.textContent,st=sec.querySelector('.pk-strip');if(k&&st)_keepX[k]=st.scrollLeft;});
   listEl.innerHTML=[...dec].map(([k,l])=>{
     l.sort(sorters[f.sort]||sorters['year-asc']);
     const s=l.filter(c=>c.owned?.status==='ok').length;
     return `<section class="pk-dec"><div class="pk-dh"><b>${k}</b><span>${l.length} ${l.length%10===1&&l.length%100!==11?'тайтл':l.length%10>=2&&l.length%10<=4&&(l.length%100<12||l.length%100>14)?'тайтли':'тайтлів'}</span>${s?`<i>${s} переглянуто</i>`:''}</div>
       <div class="pk-strip">${l.map(c=>_personCardHtml(c)).join('')}</div></section>`;
   }).join('');
+  listEl.dataset.kpid=_pid;
+  listEl.querySelectorAll('.pk-dec').forEach(sec=>{const x=_keepX[sec.querySelector('.pk-dh b')?.textContent];if(x)sec.querySelector('.pk-strip').scrollLeft=x;});
 }
 
 function _personCardHtml(c){

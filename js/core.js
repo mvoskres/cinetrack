@@ -488,10 +488,7 @@ function saveAll(){const ok=save();['watched','watching','planned'].forEach(buil
 function updateStats(){
   const nf=n=>n.toLocaleString('uk-UA'),cn={watched:watched.length,watching:watching.length,planned:planned.length};
   document.querySelectorAll('[data-nb]').forEach(el=>{el.textContent=nf(cn[el.dataset.nb]??0);});
-  const wh=document.getElementById('wHead'),wnH=document.getElementById('wnHead'),plH=document.getElementById('plHead');
-  if(wh) wh.textContent='· '+watched.length;
-  if(wnH)wnH.textContent='· '+watching.length;
-  if(plH)plH.textContent='· '+planned.length;
+  /* no count next to the page title: the dock / top menu already shows it */
 }
 
 /* ── STATS: one-time runtime backfill (old items never stored Runtime) ──

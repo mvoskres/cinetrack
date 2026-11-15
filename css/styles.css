@@ -817,7 +817,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 .toast{bottom:calc(4.6rem + env(safe-area-inset-bottom,0px));}}
 @media(max-width:480px){.grid,.person-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:.9rem .5rem;}
 .pc-t{font-size:.78rem;}
-.pc-m{font-size:.68rem;}}
+.pc-m{font-size:.75rem;}}
 @media (prefers-reduced-motion:reduce){.pc-art img,.tr-bar i{transition:none;}}
 .pc-fab.always{opacity:1;}
 /* ── title sheet (slides in from the right; full screen on phones) ── */
@@ -2097,3 +2097,7 @@ body.ts-on{overflow:hidden;}
 .skip-link:focus{top:12px;}
 /* containers that receive focus from script (skip link, sheets, game window): the ring belongs to the controls inside */
 #main:focus,.wb-pan:focus,.tg-pan:focus,.game-modal:focus{outline:none;}
+
+/* captions under posters and the IMDb column: the body font with even digits, not the mono one (1.33) */
+.pc-m .num,.tr-meta .num{font-family:var(--sans);}
+.pc-m,.tr-meta,.lrow-i{font-variant-numeric:tabular-nums;}

@@ -257,10 +257,10 @@ function buildCollPan(){
   const el=document.getElementById('collPanel');if(!el||!_collGroupsCache)return;
   const f=_collFilter;
   const types=[...new Set(_collGroupsCache.flatMap(c=>c.types))];
-  const genres=[...new Set(_collGroupsCache.flatMap(c=>c.genres))].sort();
+  const genres=[...new Set(_collGroupsCache.flatMap(c=>c.genres))].filter(g=>g!=='N/A').sort((a,b)=>_gName(a).localeCompare(_gName(b),'uk'));
   let h='';
   if(types.length>1)h+=`<div class="flt-row"><span class="flt-lbl">Тип</span><div class="flt-chips">${types.map(t=>`<button class="flt-chip${f.types.includes(t)?' on':''}" data-act="collChip" data-args="${A('types',`${t}`)}">${CAT[t]||t}</button>`).join('')}</div></div>`;
-  if(genres.length)h+=`<div class="flt-row"><span class="flt-lbl">Жанр</span><div class="flt-chips">${genres.map(g=>`<button class="flt-chip${f.genres.includes(g)?' on':''}" data-act="collChip" data-args="${A('genres',`${uriSafe(g)}`)}">${esc(g)}</button>`).join('')}</div></div>`;
+  if(genres.length)h+=`<div class="flt-row"><span class="flt-lbl">Жанр</span><div class="flt-chips">${genres.map(g=>`<button class="flt-chip${f.genres.includes(g)?' on':''}" data-act="collChip" data-args="${A('genres',`${uriSafe(g)}`)}">${esc(_gName(g))}</button>`).join('')}</div></div>`;
   h+=`<div class="flt-panel-footer"><button class="flt-reset" data-act="collClearPan">✕ Скинути тип/жанр</button></div>`;
   el.innerHTML=h;
 }
@@ -358,7 +358,7 @@ function _collCell(p,k,ownedMap,extra){
   const tag=lbl?(act?`<button class="fa-lbl ${st}" data-act="collAddMissing" data-args="${A(`${p.imdbID}`,`${_collMetaEnc(p)}`)}" aria-label="${lbl}: ${esc(tt)}. Змінити">${lbl}</button>`
     :`<span class="fa-lbl ${st}">${lbl}</span>`):'';
   const ir=owned?.item.imdbRating||p.imdbRating;
-  const meta=[p.year?esc(p.year):'',ir?`IMDb ${esc(ir)}`:p.vote?`TMDB ${esc(p.vote)}`:''].filter(Boolean).join(' · ');
+  const meta=[p.year?esc(p.year):'',ir?imdbL(ir):p.vote?`TMDB ${rNum(p.vote)}`:''].filter(Boolean).join(' · ');
   return `<div class="fa-cell ${st}${extra?' extra':''}"><div class="fa-art">${_collLink(p,art,`fa-pc ${st}`)}${st==='ok'?`<i class="fa-ok" title="Переглянуто">${ic('check')}</i>`:''}${tag}</div>
     <div class="fa-cap">${_collLink(p,esc(tt),'fa-t')}<span>${meta}</span></div></div>`;
 }
@@ -418,7 +418,7 @@ function openStatusPicker(imdbID,meta,onDone){
     planned:!!planned.find(x=>x.imdbID===imdbID)
   };
   const skipped=!!_skippedParts[imdbID];
-  const sub=[meta.year,meta.rating?`★ ${meta.rating}`:null].filter(Boolean).join(' · ');
+  const sub=[meta.year,meta.rating?imdbL(meta.rating):null].filter(Boolean).join(' · ');
   _collPickerOnDone=onDone;
   modal(`
     <img class="modal-poster" src="${imgSrc(meta.poster)}" data-fb="hide" alt="">

@@ -48,7 +48,7 @@ const _recGenreUa=k=>(REC_GENRES.find(([e])=>e===k)||[k,k])[1];
 function _recCard(it){
   const href=esc(/^tt\d+$/.test(it.imdbID||'')?`https://www.imdb.com/title/${it.imdbID}/`:`https://www.themoviedb.org/${it.mt==='tv'?'tv':'movie'}/${+it.id||0}`);
   const poster=esc(String(it.poster||'').startsWith('http')?ps(it.poster)||BLANK:_tsImg(it.poster,'w342')||BLANK);
-  const score=it.imdbRating?`IMDb ${esc(it.imdbRating)}`:it.rating?`TMDB ${it.rating.toFixed(1)}`:'';
+  const score=rNum(it.imdbRating)?imdbL(it.imdbRating):it.rating?`TMDB ${rNum(it.rating)}`:'';
   const meta=[it.year?esc(it.year):'',_recTypeLabel(it),score].filter(Boolean).join(' · ');
   const open=`href="${href}" target="_blank" rel="noopener" data-act="_tsClickT" data-args="${A('$ev',`${it.mt}`,(it.id))}"`;
   return `<article class="rv-c" id="rc-${esc(String(it.k).replace(':','-'))}">

@@ -159,7 +159,7 @@ async function pickMovie(imdbID){
   modal(`
     <img class="modal-poster" src="${imgSrc(m.Poster)}" data-fb="hide" alt="">
     <h2 class="modal-title">${esc(m.Title)}</h2>
-    <div class="modal-sub">${esc(m.Year)} · ${tl(m.Type)} · ${m.imdbRating&&m.imdbRating!=='N/A'?'IMDb '+esc(m.imdbRating):'без рейтингу'} · ${esc((m.Genre||'').split(',')[0])}</div>
+    <div class="modal-sub">${esc(m.Year)} · ${tl(m.Type)} · ${imdbL(m.imdbRating)||'без рейтингу'} · ${esc((m.Genre||'').split(',')[0])}</div>
     ${m.Plot&&m.Plot!=='N/A'?`<div class="modal-plot">${esc(m.Plot)}</div>`:''}
     <div class="modal-btns">
       ${inW ?`<div class="modal-already ok">${ic('check')}Вже у переглянутому</div>`:`<button class="m-btn j" data-act="_pickDo" data-args="${A('w',imdbID)}">${ic('check')}Переглянуто</button>`}
@@ -279,8 +279,8 @@ function myRow(list,i){
       ${i.comment?`<div class="pc-note" title="${esc(i.comment)}">${esc(i.comment)}</div>`:''}${_tagsHtml(i)}</div>
     <span class="lrow-y num">${esc(i.year||'')}</span>
     <span class="lrow-c">${catLabel(c)}</span>
-    <span class="lrow-g">${esc((i.genre||'').split(',').slice(0,2).map(s=>s.trim()).join(', '))}</span>
-    <span class="lrow-i num">${i.imdbRating?esc(i.imdbRating):'—'}</span>
+    <span class="lrow-g">${esc((i.genre||'').split(',').slice(0,2).map(s=>s.trim()).filter(g=>g&&g!=='N/A').map(_gName).join(', '))}</span>
+    <span class="lrow-i">${rNum(i.imdbRating)||'—'}</span>
     <span class="lrow-my num">${i.rating?`${ic('star')}${esc(i.rating)}`:''}</span>
     <button class="lrow-more" data-act="cardMenu" data-args="${A('$ev',`${list}`,(i.id))}" aria-label="Дії: ${esc(tn(i))}">${ic('dots')}</button>
   </div>`;
@@ -413,7 +413,7 @@ function cardMenu(ev,list,id,from){
 }
 
 /* ── POSTER CARD — the one card for watched, planned, recs, people ── */
-function _myMeta(i){const c=i.customCategory||i.type;return `<div class="pc-m">${i.year?`<span class="num">${esc(i.year)}</span>`:''}<span>${catLabel(c)}</span>${i.imdbRating?`<span class="imdb">IMDb <span class="num">${esc(i.imdbRating)}</span></span>`:''}</div>`;}
+function _myMeta(i){const c=i.customCategory||i.type;return `<div class="pc-m">${i.year?`<span class="num">${esc(i.year)}</span>`:''}<span>${catLabel(c)}</span>${rNum(i.imdbRating)?`<span class="imdb">${imdbL(i.imdbRating)}</span>`:''}</div>`;}
 /* tags: a quiet line of #chips (tap → show this tag in the list); edited in the tag sheet (tagEdit) */
 function _tagsHtml(i){return (i.tags||[]).length?`<div class="tg-line">${i.tags.map(t=>`<button class="tg-c" data-act="tagGo" data-args="${A('$ev',`${uriSafe(t)}`)}" title="Показати все з тегом «${esc(t)}»">#${esc(t)}</button>`).join('')}</div>`:'';}
 /* on a poster: the first tag (+N) as a small label in the corner */
@@ -498,7 +498,7 @@ function rWatching(skipLive){
       <div class="tr-body">
         <div class="tr-top"><div class="tr-head">
           <h3 class="tr-t"><a href="${imdbHref(i)}" target="_blank" rel="noopener" data-act="_tsClick" data-args="${A('$ev',`${i.imdbID}`)}">${esc(tn(i))}</a>${_isRewatch(i)?'<span class="dup-badge rw" title="Повторний перегляд: у Переглянутому лишається твоя оцінка">повторно</span>':_dupSet.has(i.imdbID)?'<span class="dup-badge" title="Цей тайтл є ще в іншому списку">дубль</span>':''}</h3>
-          <div class="tr-meta">${catLabel(i.customCategory||i.type)}${i.year?` · <span class="num">${esc(i.year)}</span>`:''}${i.imdbRating?` · IMDb <span class="num">${esc(i.imdbRating)}</span>`:''}</div></div>
+          <div class="tr-meta">${catLabel(i.customCategory||i.type)}${i.year?` · <span class="num">${esc(i.year)}</span>`:''}${rNum(i.imdbRating)?` · ${imdbL(i.imdbRating)}`:''}</div></div>
           <button class="icon-btn" data-act="cardMenu" data-args="${A('$ev','watching',(i.id))}" aria-label="Ще дії: ${esc(tn(i))}">${ic('dots')}</button></div>
         ${isSeries?`<div id="lv-${esc(i.imdbID)}">${lh}</div>
           <div class="tr-bar" title="Сезон ${esc(i.season)} з ${esc(i.totalSeasons||1)}"><i style="width:${+_seasonPct(i)||0}%"></i></div>

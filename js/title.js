@@ -264,7 +264,7 @@ function _tsRender(){
   const listTitle=own?.title||d.title;
   const alt=[d.title!==listTitle?d.title:'',d.original&&d.original!==listTitle&&d.original!==d.title?d.original:''].filter(Boolean).join(' · ');
   const meta=[d.year,d.runtime?`${d.runtime} хв${d.mt==='tv'?' серія':''}`:'',d.genres.slice(0,3).join(', '),d.countries.join(', ')].filter(Boolean).join(' · ');
-  const scores=[imdbR&&`<span class="ts-score"><b>IMDb</b> ${esc(imdbR)}</span>`,d.vote&&d.votes>=20&&`<span class="ts-score"><b>TMDB</b> ${d.vote.toFixed(1)} <small>${nf2(d.votes)}</small></span>`,
+  const scores=[imdbR&&`<span class="ts-score"><b>IMDb</b> ${rNum(imdbR)}</span>`,d.vote&&d.votes>=20&&`<span class="ts-score"><b>TMDB</b> ${rNum(d.vote)} <small>${nf2(d.votes)}</small></span>`,
     rt&&`<span class="ts-score"><b>Rotten Tomatoes</b> ${esc(rt)}</span>`,mc&&`<span class="ts-score"><b>Metacritic</b> ${esc(mc)}</span>`].filter(Boolean).join('');
   const poster=esc(ps(d.posterUrl)||_tsImg(d.poster,'w342')||ps(own?.poster)||BLANK);
   const links=[d.trailer&&_ytOk(d.trailer.key)&&`<a class="btn" href="https://www.youtube.com/watch?v=${esc(d.trailer.key)}" target="_blank" rel="noopener">${ic('play')}Трейлер${d.trailer.lang==='uk'?' українською':''}</a>`,
@@ -341,7 +341,7 @@ function _tsEpsRender(){
       const soon=ep.date&&ep.date>today;
       return `<li><button class="ts-ep ${st}${soon?' soon':''}"${w&&!soon?` data-act="_tsSetEp" data-args="${A(n,ep.e)}"`:' disabled'}${ep.ov?` title="${esc(ep.ov.slice(0,300))}"`:''}>
         <span class="ts-ep-n">${String(ep.e).padStart(2,'0')}</span>
-        <span class="ts-ep-t"><b>${esc(ep.name)}</b><small>${[soon?'вийде '+_tsFd(ep.date):_tsFd(ep.date),ep.rt?ep.rt+' хв':'',ep.vote?'★ '+ep.vote.toFixed(1):''].filter(Boolean).join(' · ')}</small></span>
+        <span class="ts-ep-t"><b>${esc(ep.name)}</b><small>${[soon?'вийде '+_tsFd(ep.date):_tsFd(ep.date),ep.rt?ep.rt+' хв':'',ep.vote?'TMDB '+rNum(ep.vote):''].filter(Boolean).join(' · ')}</small></span>
         ${st==='done'?ic('check'):st==='cur'?'<span class="ts-ep-here">ти тут</span>':''}</button></li>`;}).join('')}</ol>`;
 }
 function _tsSetEp(sn,ep){

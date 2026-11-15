@@ -125,7 +125,7 @@ function _recSeedsPick(rot,n){
   for(let k=0;out.length<n;k++){let any=false;ord.forEach(c=>{const i=picked[c][k];if(i&&out.length<n){out.push(i);any=true;}});if(!any)break;}
   return out;
 }
-function _seedWhy(s){return s.rating>=8?`Бо ти оцінив його на ${s.rating}/10`:`Бо він є в твоєму «Переглянутому» (IMDb ${s.imdbRating})`;}
+function _seedWhy(s){return s.rating>=8?`Бо ти оцінив його на ${s.rating}/10`:`Бо він є в твоєму «Переглянутому» (${imdbL(s.imdbRating)})`;}
 
 /* ── shelves that need no network ── */
 function _shelfFranchises(known){

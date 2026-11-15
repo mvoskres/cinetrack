@@ -229,7 +229,7 @@ function _gameAnswer(btn){
   document.getElementById('gameReveal').innerHTML=`
     <img src="${esc(ps(item.poster)||BLANK)}" alt="" data-fb>
     <div class="game-reveal-txt"><div><b>${ok?'Так!':'Ні.'}</b> ${act?`<a href="https://www.themoviedb.org/person/${encodeURIComponent(act.id)}" target="_blank" rel="noopener">${esc(act.name)}</a>${act.character?` (${esc(act.character)})`:''} у `:'Це '}<a href="${imdbHref(item)}" target="_blank" rel="noopener">${esc(name)}</a>${orig}</div>
-      <span>${esc(item.year||'')} · ${catLabel(item.customCategory||item.type)}${item.imdbRating?` · IMDb ${esc(item.imdbRating)}`:''}</span></div>
+      <span>${esc(item.year||'')} · ${catLabel(item.customCategory||item.type)}${rNum(item.imdbRating)?` · ${imdbL(item.imdbRating)}`:''}</span></div>
     <button class="btn primary" id="gameNextBtn" data-act="${last?'gameEnd':'gameNextQuestion'}">${last?'Підсумок':'Далі'} <kbd>Enter</kbd></button>`;
   document.getElementById('gameNextBtn').focus({preventScroll:true});
 }

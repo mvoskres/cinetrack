@@ -326,3 +326,7 @@ async function tmdbFindIds(imdbID){
   return r;
 }
 
+
+/* one rating format everywhere: «IMDb 7,4» (decimal comma, one digit); ★ is kept for the viewer's own marks only */
+function rNum(r){const n=parseFloat(r);return n>0?n.toFixed(1).replace('.',','):'';}
+function imdbL(r){const n=rNum(r);return n?'IMDb '+n:'';}

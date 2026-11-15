@@ -74,7 +74,7 @@ function _wbStatusOld(x){
 const _wbYear=i=>esc(String(i.year||'').replace(/[^\d–-]/g,'').replace(/-/g,'–'));
 function _wbMeta(i,full){
   const g=full&&i.genre?(i.genre.split(',').slice(0,3).map(s=>{s=s.trim();return (typeof SX_GENRE!=='undefined'&&SX_GENRE[s])||s;}).join(', ')):'';
-  return [catLabel(i.customCategory||i.type),_wbYear(i),i.imdbRating&&i.imdbRating!=='N/A'?'★ '+esc(i.imdbRating):'',esc(g)].filter(Boolean).join(' · ');
+  return [catLabel(i.customCategory||i.type),_wbYear(i),imdbL(i.imdbRating),esc(g)].filter(Boolean).join(' · ');
 }
 function _wbTile(x){
   const i=x.i;
