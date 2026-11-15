@@ -65,7 +65,7 @@ function pzScreen(){
   const chosen=p?`<div class="pz-pick"><img src="${esc(p.thumb||p.img)}" alt="" data-fb><span><b>${esc(p.title)}</b><small>${esc(p.sub||'')}</small></span>
       <button class="pz-chg" data-act="pzRandom" aria-label="Інший випадковий">${ic('refresh')}</button><button class="pz-chg" data-act="pzClear" aria-label="Обрати за назвою">${ic('search')}</button></div>`
     :`<div class="pz-src"><button class="pz-rnd" data-act="pzRandom">${ic('refresh')}Випадковий</button>
-      <div class="local-search-wrap pz-q"><span class="local-search-icon">${ic('search')}</span><input class="local-search" id="pzQ" type="text" placeholder="Назва фільму, серіалу чи франшизи" aria-label="Назва фільму, серіалу чи франшизи" autocomplete="off" value="${esc(_pz.q)}" data-input="pzQuery" data-args="[&quot;$value&quot;]"></div></div>
+      <div class="local-search-wrap pz-q"><span class="local-search-icon">${ic('search')}</span><input class="local-search" id="pzQ" type="text" placeholder="Фільм, серіал, франшиза" aria-label="Назва фільму, серіалу чи франшизи" autocomplete="off" value="${esc(_pz.q)}" data-input="pzQuery" data-args="[&quot;$value&quot;]"></div></div>
       <div class="pz-sug" id="pzSug"></div>`;
   return `<section class="gx-screen gx-puzzle">${p?`<img class="gx-bg" src="${esc(p.img)}" alt="">`:''}
     <div class="gx-in">
