@@ -17,7 +17,7 @@ function goTab(id,btn){
   if(id==='planned')rPlanned();
   if(id==='collections')loadCollections();
   if(id==='people')renderPeopleTab();
-  if(id==='game')loadGameTab();
+  if(id==='game'){if(typeof _gxList!=='undefined')_gxList=true;loadGameTab();}
   const ds=document.getElementById('dashSection');if(ds)ds.hidden=id!=='watching'; /* air strip belongs to Дивлюсь */
   closeMenu();navClose();searchClose();
   if(fresh){window.scrollTo(0,0);requestAnimationFrame(()=>window.scrollTo(0,0));} /* after the menu closed: its history step must not bring the old position back */

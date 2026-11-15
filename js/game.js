@@ -67,7 +67,6 @@ const GX_SCREEN={
 };
 function loadGameTab(){
   const el=document.getElementById('gameStart');if(!el)return;
-  setTimeout(()=>{const t=el.querySelector('.gx-t.on'),r=t?.parentElement;if(t&&r&&r.scrollWidth>r.clientWidth)r.scrollLeft=Math.max(0,t.offsetLeft-r.offsetLeft-16);},0); /* phone: the chosen game is in view */
   const all=_gameEligible(),cnt={all:all.length,movie:0,series:0,anim:0};all.forEach(i=>cnt[_gameKind(i)]++);
   if(_game.filter!=='all'&&cnt[_game.filter]<4)_game.filter='all';
   const V=_gxVisuals();
@@ -80,10 +79,19 @@ function loadGameTab(){
     quote:'<span class="gx-th-q">«»</span>',
   };
   const tdesc={frame:'назви фільм за кадром',actor:'де грало це обличчя',quote:'звідки це гасло'};
-  const types=`<div class="gx-types" role="group" aria-label="Гра">${Object.entries(GAME_TYPES).map(([k,v])=>`<button class="gx-t${_game.type===k?' on':''}" aria-pressed="${_game.type===k}" data-act="setGameType" data-args="${A(`${k}`)}">
-      <span class="gx-th">${thumb[k]}</span><span class="gx-t-tx"><b>${v.name}</b><span>${tdesc[k]}</span></span></button>`).join('')}<button class="gx-t${_game.type==='puzzle'?' on':''}" aria-pressed="${_game.type==='puzzle'}" data-act="setGameType" data-args="[&quot;puzzle&quot;]">
-      <span class="gx-th"><span class="gx-th-pz">${'<i></i>'.repeat(9)}</span></span><span class="gx-t-tx"><b>П'ятнашки</b><span>склади постер</span></span></button><button class="gx-t${_game.type==='chrono'?' on':''}" aria-pressed="${_game.type==='chrono'}" data-act="setGameType" data-args="[&quot;chrono&quot;]">
-      <span class="gx-th"><span class="gx-th-ch"><i></i><i></i><i></i><i></i></span></span><span class="gx-t-tx"><b>Хронологія</b><span>розстав по роках</span></span></button></div>`;
+  thumb.puzzle=`<span class="gx-th-pz">${'<i></i>'.repeat(9)}</span>`;thumb.chrono='<span class="gx-th-ch"><i></i><i></i><i></i><i></i></span>';
+  const GL=[...Object.entries(GAME_TYPES).map(([k,v])=>[k,v.name,tdesc[k],GX_SCREEN[k].d]),
+    ['puzzle',"П'ятнашки",'склади постер','Постер розрізано на клітинки, одна порожня. Пересувай, поки картинка не складеться. Від 3×3 до 6×6.'],
+    ['chrono','Хронологія','розстав по роках','Постери з переглянутого: розстав від найстарішого до найновішого. Серія до першої помилки.']];
+  /* phone: first a list of wide cards; a tap opens that game's screen with «‹ Усі ігри» above it */
+  if(_gxPhone()&&_gxList){
+    el.innerHTML=`<div class="gx-list" role="list">${GL.map(([k,l,,d])=>`<button class="gx-card" role="listitem" data-act="setGameType" data-args="${A(`${k}`)}">
+      <span class="gx-th">${thumb[k]}</span><span class="gx-ct"><b>${l}</b><span>${d}</span></span><span class="gx-chev" aria-hidden="true">›</span></button>`).join('')}</div>`;
+    return;
+  }
+  const types=_gxPhone()?`<button class="gx-back" data-act="gxBack"><span aria-hidden="true">‹</span>Усі ігри</button>`
+    :`<div class="gx-types" role="group" aria-label="Гра">${GL.map(([k,l,t])=>`<button class="gx-t${_game.type===k?' on':''}" aria-pressed="${_game.type===k}" data-act="setGameType" data-args="${A(`${k}`)}">
+      <span class="gx-th">${thumb[k]}</span><span class="gx-t-tx"><b>${l}</b><span>${t}</span></span></button>`).join('')}</div>`;
   if(_game.type==='puzzle'){el.innerHTML=types+pzScreen();return;}
   if(_game.type==='chrono'){el.innerHTML=types+chScreen();return;}
   const n=cnt[_game.filter],T=GAME_TYPES[_game.type],S=GX_SCREEN[_game.type],b=_gb();
@@ -111,7 +119,11 @@ function loadGameTab(){
     <p class="game-keys">Клавіші: <kbd>1</kbd>–<kbd>4</kbd> відповідь · <kbd>Enter</kbd> далі · <kbd>Esc</kbd> вийти</p>`;
 }
 function setGameFilter(k){_game.filter=k;loadGameTab();}
-function setGameType(k){if(!GAME_TYPES[k]&&k!=='puzzle'&&k!=='chrono')return;_game.type=k;_game.next=null;_lsSet('ct_game_type',k);loadGameTab();}
+function setGameType(k){if(!GAME_TYPES[k]&&k!=='puzzle'&&k!=='chrono')return;_game.type=k;_game.next=null;_lsSet('ct_game_type',k);
+  if(_gxPhone()&&_gxList){_gxList=false;loadGameTab();scrollTo(0,0);document.querySelector('#gameStart .gx-back')?.focus();return;}loadGameTab();}
+let _gxList=true; /* phone: the «Ігри» tab opens on the list of games */
+const _gxPhone=()=>matchMedia('(max-width:700px)').matches;
+function gxBack(){_gxList=true;loadGameTab();scrollTo(0,0);document.querySelector(`#gameStart .gx-card[data-args*="${_game.type}"]`)?.focus();}
 
 /* bumped on every start and close: an answer that arrives for an older game must not paint over the current one */
 let _gameRun=0;
