@@ -93,5 +93,5 @@
 .gx-ct b{font:700 1.05rem var(--serif);}
 .gx-ct span{color:var(--text-2);font-size:.8rem;line-height:1.35;}
 .gx-chev{flex:none;color:var(--muted);font-size:1.5rem;line-height:1;}
-.gx-back{display:inline-flex;align-items:center;gap:.4rem;min-height:40px;padding:0 .9rem 0 .7rem;margin-bottom:.8rem;border-radius:10px;background:var(--ink-3);border:1px solid var(--line);color:var(--text);font:600 .88rem var(--sans);cursor:pointer;}
+.gx-back{display:flex;width:fit-content;align-items:center;gap:.4rem;min-height:40px;padding:0 .9rem 0 .7rem;margin-bottom:.8rem;border-radius:10px;background:var(--ink-3);border:1px solid var(--line);color:var(--text);font:600 .88rem var(--sans);cursor:pointer;}
 .gx-back span{font-size:1.25rem;line-height:1;margin-top:-2px;}
