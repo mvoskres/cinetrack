@@ -2099,5 +2099,5 @@ body.ts-on{overflow:hidden;}
 #main:focus,.wb-pan:focus,.tg-pan:focus,.game-modal:focus{outline:none;}
 
 /* captions under posters and the IMDb column: the body font with even digits, not the mono one (1.33) */
-.pc-m .num,.tr-meta .num{font-family:var(--sans);}
+.pc-m .num,.tr-meta .num,.lrow .num{font-family:var(--sans);}
 .pc-m,.tr-meta,.lrow-i{font-variant-numeric:tabular-nums;}
