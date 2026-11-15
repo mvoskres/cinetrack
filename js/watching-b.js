@@ -47,7 +47,7 @@ function _wbInfo(i){
 const _wbEp=(s,e)=>`S${s}·E${e}`;
 function _wbBadge(x){
   if(x.state==='new')return `<span class="wb-bd g">${_wbAgo(x.ls.lastAiredDate)}</span>`;
-  if(x.state==='go')return `<span class="wb-bd n">ще ${x.ahead>99?'99+':x.ahead}</span>`;
+  /* «ще N» lives in the caption under the poster, not on it */
     return '';
 }
 const _wbDate=s=>{const d=new Date(s+'T00:00:00');return `${d.getDate()} ${_WB_MON[d.getMonth()]}`;};
