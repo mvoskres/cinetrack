@@ -135,3 +135,8 @@ body.wb-on .wb-sh{display:block;position:fixed;inset:0;z-index:520;}
 .wb-pp img{transition:transform .35s ease;}
 @media(hover:hover){.wb-t:hover .wb-pp{border-color:var(--gold-b);}.wb-t:hover .wb-pp img{transform:scale(1.03);}}
 .wb-t:active .wb-pp,.wb-t:focus-visible .wb-pp,.wb-t:has(:focus-visible) .wb-pp{border-color:var(--gold-b);}
+/* sheet buttons in the title card's .btn look: --ink-3 fill, --line hairline, 10-12px corners, lighter border on hover; «+» = .btn.primary */
+.wb-b,.wb-tgb,.wb-sq{background:var(--ink-3);border:1px solid var(--line);color:var(--text);transition:border-color .15s ease,background .15s ease;}
+.wb-b,.wb-tgb{border-radius:10px;}.wb-sq{border-radius:12px;}
+.wb-sq.p{background:var(--gold);border-color:var(--gold);color:var(--gold-ink);}
+@media(hover:hover){.wb-b:hover,.wb-tgb:hover,.wb-sq:hover{border-color:var(--border-3);}.wb-sq.p:hover{background:var(--gold-2);border-color:var(--gold-2);}}

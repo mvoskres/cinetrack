@@ -9,7 +9,7 @@
 .wb-tags{display:flex;align-items:center;gap:10px;margin:0 0 14px;}
 .wb-tags .tg-line{margin:0;flex:1;}
 .wb-notag{flex:1;color:var(--muted);font-size:13.5px;}
-.wb-tgb{flex:none;height:36px;padding:0 12px;border-radius:12px;border:1px solid var(--line);background:none;color:var(--text);font:600 13.5px var(--sans);display:flex;align-items:center;gap:6px;cursor:pointer;}
+.wb-tgb{flex:none;height:36px;padding:0 12px;border-radius:10px;border:1px solid var(--line);background:var(--ink-3);color:var(--text);font:600 13.5px var(--sans);display:flex;align-items:center;gap:6px;cursor:pointer;}
 .wb-tgb .i{width:16px;height:16px;}
 .tg-sh{display:none;}
 body.tg-on{overflow:hidden;}
