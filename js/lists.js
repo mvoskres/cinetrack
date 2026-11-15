@@ -452,31 +452,48 @@ function rPlanned(){
 /* tap on your rating (or the comment line) on a card: a bottom sheet like the «Дивлюсь» one (swipe down / Back closes it)
    with your mark and the whole comment; «Змінити» → editW */
 const _mnFocus={el:null};let _mnId=null;
-function myNote(id){
+/* edit=true: the same sheet turns into the editor (stars + comment), no second window */
+function myNote(id,edit){
   const it=watched.find(i=>i.id===id);if(!it)return;
   _mnId=id;
   let R=document.getElementById('mnSheet');
   if(!R){R=document.createElement('div');R.id='mnSheet';R.className='mn-sh';document.body.appendChild(R);}
-  if(!document.body.classList.contains('mn-on'))_mnFocus.el=document.activeElement;
+  const opening=!document.body.classList.contains('mn-on');
+  if(opening)_mnFocus.el=document.activeElement;
+  const body=edit?`<div class="mn-ed">
+      <div class="form-g"><label class="form-lbl" id="starsLbl">Моя оцінка</label>
+        <div class="stars" id="starsBox" role="radiogroup" aria-labelledby="starsLbl">${buildStars(it.rating||0)}</div>
+        <input type="hidden" id="eR" value="${+it.rating||0}"></div>
+      <div class="form-g"><label class="form-lbl" for="eCm">Коментар</label>
+        <textarea class="form-ta" id="eCm" rows="4" placeholder="Враження…">${esc(it.comment||'')}</textarea></div></div>
+    <div class="wb-acts"><button class="wb-b mn-save" data-act="mnSave">${ic('check')}Зберегти</button><button class="wb-b" data-act="mnView">Скасувати</button></div>`
+    :`${it.comment?`<p class="mn-c">${esc(it.comment)}</p>`:'<p class="mn-c none">Коментаря ще немає</p>'}
+    <div class="wb-acts"><button class="wb-b mn-edit" data-act="mnEdit">${ic('star')}${it.rating||it.comment?'Змінити оцінку й коментар':'Додати оцінку й коментар'}</button></div>`;
   R.innerHTML=`<div class="wb-dim" data-act="mnClose"></div><div class="wb-pan" role="dialog" aria-modal="true" aria-label="${esc(tn(it))}: моя оцінка" tabindex="-1"><div class="wb-grab"></div>
     <button class="wb-x" data-act="mnClose" aria-label="Закрити">${ic('x')}</button>
     <div class="wb-hd mn-hd"><img class="mn-poster" src="${imgSrc(it.poster)}" alt="" data-fb><div>
       <b class="wb-tt">${esc(tn(it))}</b><div class="wb-mt">${esc(it.year||'')} · ${tl(it.type)}</div>
-      ${it.rating?`<div class="mn-r" aria-label="Моя оцінка ${esc(it.rating)} з 10">${ic('star')}<b>${esc(it.rating)}</b><span>з 10</span></div>`:''}</div></div>
-    ${it.comment?`<p class="mn-c">${esc(it.comment)}</p>`:'<p class="mn-c none">Коментаря ще немає</p>'}
-    <div class="wb-acts"><button class="wb-b mn-edit" data-act="mnEdit">${ic('star')}Змінити оцінку й коментар</button></div></div>`;
+      ${it.rating&&!edit?`<div class="mn-r" aria-label="Моя оцінка ${esc(it.rating)} з 10">${ic('star')}<b>${esc(it.rating)}</b><span>з 10</span></div>`:''}</div></div>
+    ${body}</div>`;
   document.body.classList.add('mn-on');_inertSync();
   const pan=R.querySelector('.wb-pan');
   sheetSwipe(pan,{close:()=>mnClose(),handle:'.wb-grab,.mn-hd'});
-  _lyOpen('mn',()=>mnClose());
-  _focusIn(pan,_mnFocus);
+  if(opening){_lyOpen('mn',()=>mnClose());_focusIn(pan,_mnFocus);}
+  else (edit?R.querySelector('#starsBox .star[tabindex="0"]'):R.querySelector('.mn-edit'))?.focus();
 }
 function mnClose(){
   if(!document.body.classList.contains('mn-on'))return;
   document.body.classList.remove('mn-on');const R=document.getElementById('mnSheet');if(R)R.innerHTML='';
   _inertSync();_focusBack(_mnFocus);_lyDone('mn');
 }
-function mnEdit(){const id=_mnId;mnClose();editW(id);} /* at once: the dialog takes over the sheet's history entry (ui.js layers), so the sheet's «back» does not close it */
+function mnEdit(){myNote(_mnId,true);}
+function mnView(){myNote(_mnId,false);}
+function mnSave(){
+  const it=watched.find(i=>i.id===_mnId);if(!it)return;
+  it.rating=parseInt(document.getElementById('eR')?.value)||0;
+  it.comment=(document.getElementById('eCm')?.value||'').trim();
+  saveAll();rWatched();myNote(_mnId,false);toast('Збережено','ok',1600);
+}
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('mn-on'))mnClose();});
 
 /* ── EDIT WATCHED ── */

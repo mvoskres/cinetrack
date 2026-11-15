@@ -2072,7 +2072,7 @@ body.ts-on{overflow:hidden;}
    phone: the page under a sheet / menu / card is NOT locked with overflow:hidden — on Android Chrome that brings the
    address bar back, which shoves the bottom dock up and leaves its taps landing in the old place. ui.js cancels the
    finger drags that would scroll the page instead. */
-@media(max-width:700px){html body.nav-on,html body.wb-on,html body.mn-on,html body.fs-on,html body.cs-on,html body.tg-on,html body.srch-on,html body.ts-on{overflow-x:hidden;overflow-y:auto;}} /* = the normal body values: no change at all */
+@media(max-width:700px){html body.nav-on,html body.wb-on,html body.mn-on,html body.md-on,html body.fs-on,html body.cs-on,html body.tg-on,html body.srch-on,html body.ts-on{overflow-x:hidden;overflow-y:auto;}} /* = the normal body values: no change at all */
 
 /* ── SEARCH: empty state (1.30, js/ui.js) ── */
 .se{margin-top:18px;}
@@ -2119,3 +2119,21 @@ body.mn-on .mn-sh{display:block;position:fixed;inset:0;z-index:520;}
 .mn-r b{font:700 1.6rem var(--serif);}.mn-r span{color:var(--muted);font-size:.85rem;}
 .mn-c{white-space:pre-wrap;line-height:1.55;color:var(--text);background:var(--ink-3);border:1px solid var(--line);border-radius:12px;padding:.8rem .9rem;margin:16px 0;max-height:40vh;overflow-y:auto;}
 .mn-c.none{color:var(--muted);text-align:center;}
+
+/* ── dialogs as bottom sheets on a phone (the «Дивлюсь» sheet look): grab bar, slide up, swipe down to close ── */
+.m-grab{display:none;}
+.modal-poster{display:block;width:auto;height:min(30vh,220px);max-width:100%;aspect-ratio:2/3;margin:0 auto 1.1rem;}
+@media(max-width:700px){
+  .modal-bg{align-items:flex-end;padding:0;background:rgba(0,0,0,.6);backdrop-filter:none;-webkit-backdrop-filter:none;}
+  .modal-bg .modal{max-width:none;width:100%;border-radius:26px 26px 0 0;border-width:1px 0 0;background:var(--ink-2);padding:6px 18px 18px;max-height:88dvh;animation:wbUp .26s cubic-bezier(.3,.7,.2,1);}
+  .modal-bg .modal::before{display:none;}
+  .m-grab{display:block;width:44px;height:5px;border-radius:3px;background:#3a424e;margin:6px auto 12px;flex:none;}
+  .modal-bg .st-modal{height:auto;max-height:92dvh;display:flex;flex-direction:column;padding:0;border-radius:26px 26px 0 0;border:0;border-top:1px solid var(--line);}
+  .modal-bg .st-modal .m-grab{margin:8px auto 2px;}
+  .modal-bg .st-modal .st-body{overflow-y:auto;overscroll-behavior:contain;min-height:0;}
+}
+@media(max-width:700px) and (prefers-reduced-motion:reduce){.modal-bg .modal{animation:none;}}
+.mn-ed{margin-top:16px;}
+.mn-ed .form-ta{min-height:96px;}
+.mn-save{flex:1;background:var(--gold);border-color:var(--gold);color:var(--gold-ink);}
+@media(hover:hover){.mn-save:hover{background:var(--gold-2);border-color:var(--gold-2);}}

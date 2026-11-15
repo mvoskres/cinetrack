@@ -22,8 +22,11 @@ let _modalPrev=null;
 function modal(h){
   const box=document.getElementById('mbox');
   if(!box.innerHTML.trim())_modalPrev=document.activeElement; /* a modal replacing another keeps the first return point */
-  box.innerHTML=`<div class="modal-bg" data-act="_bgClose" data-args="${A('$ev','$el','closeModal')}"><div class="modal" role="dialog" aria-modal="true" tabindex="-1">${h}</div></div>`;
+  box.innerHTML=`<div class="modal-bg" data-act="_bgClose" data-args="${A('$ev','$el','closeModal')}"><div class="modal" role="dialog" aria-modal="true" tabindex="-1"><div class="m-grab" aria-hidden="true"></div>${h}</div></div>`;
   const m=box.querySelector('.modal'),t=m.querySelector('.modal-title');
+  /* on a phone every dialog is a bottom sheet: pull it down by the grab bar (or from its top) to close */
+  document.body.classList.add('md-on');
+  if(typeof sheetSwipe==='function')sheetSwipe(m,{close:()=>closeModal(),handle:'.m-grab,.st-head',scroller:m.querySelector('.st-body')?'.st-body':null});
   if(t){t.id='modalTitle';m.setAttribute('aria-labelledby','modalTitle');}else m.setAttribute('aria-label','Вікно');
   document.removeEventListener('keydown',_modalKeys);document.addEventListener('keydown',_modalKeys);
   _lyOpen('mbox',()=>closeModal()); /* Back / the swipe gesture closes the dialog (ui.js layers) */
@@ -31,7 +34,7 @@ function modal(h){
   (m.querySelector(_FOCUSABLE)||m).focus({preventScroll:true});
 }
 function closeModal(){
-  document.getElementById('mbox').innerHTML='';document.removeEventListener('keydown',_modalKeys);
+  document.getElementById('mbox').innerHTML='';document.removeEventListener('keydown',_modalKeys);document.body.classList.remove('md-on');
   _lyDone('mbox');_inertSync();
   const p=_modalPrev;_modalPrev=null;if(p&&p.isConnected&&typeof p.focus==='function')p.focus({preventScroll:true});
   if(typeof searchResume==='function')searchResume();

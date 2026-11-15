@@ -244,7 +244,7 @@ async function sugAddAs(mt,id,list){
    the body does that, but on Android Chrome it also brings the address bar back: the bottom dock jumps up and its taps
    keep landing in the old place. So on a phone the body keeps scrolling and a drag that would move the page is
    cancelled here; a drag inside something that can still scroll that way (the sheet, the card, chip rows) goes through. */
-const _LOCKS=['nav-on','wb-on','mn-on','fs-on','cs-on','tg-on','srch-on','ts-on'];
+const _LOCKS=['nav-on','wb-on','mn-on','md-on','fs-on','cs-on','tg-on','srch-on','ts-on'];
 let _lkX=0,_lkY=0;
 document.addEventListener('touchstart',e=>{const t=e.touches[0];if(t){_lkX=t.clientX;_lkY=t.clientY;}},{passive:true,capture:true});
 document.addEventListener('touchmove',e=>{
