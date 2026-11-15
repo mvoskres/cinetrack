@@ -120,10 +120,13 @@ function loadGameTab(){
 }
 function setGameFilter(k){_game.filter=k;loadGameTab();}
 function setGameType(k){if(!GAME_TYPES[k]&&k!=='puzzle'&&k!=='chrono')return;_game.type=k;_game.next=null;_lsSet('ct_game_type',k);
-  if(_gxPhone()&&_gxList){_gxList=false;loadGameTab();scrollTo(0,0);document.querySelector('#gameStart .gx-back')?.focus();return;}loadGameTab();}
+  if(_gxPhone()&&_gxList){_gxList=false;_gxLy=true;_lyOpen('gxGame',()=>{_gxLy=false;_gxList=true;loadGameTab();scrollTo(0,0);});
+    loadGameTab();scrollTo(0,0);document.querySelector('#gameStart .gx-back')?.focus();return;}loadGameTab();}
 let _gxList=true; /* phone: the «Ігри» tab opens on the list of games */
 const _gxPhone=()=>matchMedia('(max-width:700px)').matches;
-function gxBack(){_gxList=true;loadGameTab();scrollTo(0,0);document.querySelector(`#gameStart .gx-card[data-args*="${_game.type}"]`)?.focus();}
+let _gxLy=false; /* phone: the game screen has its own history entry, so Back returns to the list */
+function _gxLayerDone(){if(_gxLy){_gxLy=false;_lyDone('gxGame');}}
+function gxBack(){_gxLayerDone();_gxList=true;loadGameTab();scrollTo(0,0);document.querySelector(`#gameStart .gx-card[data-args*="${_game.type}"]`)?.focus();}
 
 /* bumped on every start and close: an answer that arrives for an older game must not paint over the current one */
 let _gameRun=0;

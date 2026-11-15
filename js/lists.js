@@ -17,6 +17,7 @@ function goTab(id,btn){
   if(id==='planned')rPlanned();
   if(id==='collections')loadCollections();
   if(id==='people')renderPeopleTab();
+  if(typeof _gxLayerDone==='function')_gxLayerDone(); /* leaving (or reopening) the tab drops the phone's «game screen» Back entry */
   if(id==='game'){if(typeof _gxList!=='undefined')_gxList=true;loadGameTab();}
   const ds=document.getElementById('dashSection');if(ds)ds.hidden=id!=='watching'; /* air strip belongs to Дивлюсь */
   closeMenu();navClose();searchClose();
