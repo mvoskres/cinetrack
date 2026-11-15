@@ -64,7 +64,7 @@ function chStart(){
   if(typeof _pzStop==='function')_pzStop();
   document.getElementById('gamePlay').classList.add('hidden');document.getElementById('gameOver').classList.add('hidden');w.classList.remove('hidden');
   m.classList.add('ch-on');
-  document.getElementById('gameTitle').textContent=`Хронологія · ${_ch.n} постерів`;
+  document.getElementById('gameTitle').textContent='Хронологія';
   if(bg.classList.contains('hidden')){_gameFocus.el=null;bg.classList.remove('hidden');_lyOpen('game',()=>closeGameModal());_inertSync();_focusIn(m,_gameFocus);}
   chNext();
 }
