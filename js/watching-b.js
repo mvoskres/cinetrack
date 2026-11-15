@@ -37,10 +37,12 @@ function _wbInfo(i){
   const aired=las?Object.keys(se).filter(k=>k<las).reduce((a,k)=>a+se[k],0)+lae:0;
   const seen=Object.keys(se).filter(k=>k<s).reduce((a,k)=>a+se[k],0)+e;
   const pct=ser?(aired?Math.min(100,Math.round(100*seen/aired)):_seasonPct(i)):0;
+  /* the current season alone, back to zero with every new season: aired episodes for the airing season, else its length */
+  const slen=ser?(las===s&&lae?lae:se[s]||0):0,spct=slen?Math.min(100,Math.round(100*e/slen)):0;
   const nd=ls.nextEpDate&&_wbDays(ls.nextEpDate)>=0?ls.nextEpDate:null;
   const fresh=ahead>0&&ls.lastAiredDate&&-_wbDays(ls.lastAiredDate)<=14;
   const state=!ser?'movie':fresh?'new':ahead>0?'go':'wait';
-  return {i,ls,demo,ser,s,e,se,las,lae,ahead,aired,seen,pct,nd,state,tot:i.totalSeasons||Object.keys(se).length||1};
+  return {i,ls,demo,ser,s,e,se,las,lae,ahead,aired,seen,pct,slen,spct,nd,state,tot:i.totalSeasons||Object.keys(se).length||1};
 }
 const _wbEp=(s,e)=>`S${s}·E${e}`;
 function _wbBadge(x){
@@ -166,7 +168,7 @@ function _wbSheetDraw0(){
       <button class="wb-sq" data-act="wbAdj" data-args="${A(i.id,-1)}" aria-label="Мінус серія">${ic('minus')}</button>
       <div class="wb-cv"><b>${_wbEp(x.s,x.e)}</b><span>сезон ${x.s} з ${x.tot}${x.se[x.s]?` · серія ${x.e} з ${x.se[x.s]}`:''}</span></div>
       <button class="wb-sq p" data-act="wbAdj" data-args="${A(i.id,1)}" aria-label="Плюс серія">${ic('plus')}</button></div>
-    <div class="wb-prog"><div class="wb-bar"><i style="width:${x.pct}%"></i></div><div class="wb-pl"><span>Переглянуто ${x.pct}%${x.aired?` · ${x.seen} з ${x.aired} серій, що вийшли`:''}</span></div>
+    <div class="wb-prog"><div class="wb-bar"><i style="width:${x.spct}%"></i></div><div class="wb-pl"><span>Сезон ${x.s}${x.slen?` · ${x.e} з ${x.slen} серій${x.s===x.las&&!x.ls.isEnded?', що вийшли':''}`:''}</span><span>${x.slen?x.spct+'%':''}</span></div>
       ${x.tot>1&&x.tot<=40?`<div class="wb-segs" style="--n:${x.tot}">${segs}</div>`:''}</div>`:'';
   if(!L.querySelector('.wb-in'))L.innerHTML=`<div class="wb-dim" data-act="wbClose"></div><div class="wb-pan" role="dialog" aria-modal="true" tabindex="-1"><div class="wb-grab"></div>
     <button class="wb-x" data-act="wbClose" aria-label="Закрити">${ic('x')}</button><div class="wb-in"></div></div>`;
