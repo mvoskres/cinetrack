@@ -2135,5 +2135,5 @@ body.mn-on .mn-sh{display:block;position:fixed;inset:0;z-index:520;}
 @media(max-width:700px) and (prefers-reduced-motion:reduce){.modal-bg .modal{animation:none;}}
 .mn-ed{margin-top:16px;}
 .mn-ed .form-ta{min-height:96px;}
-.mn-save{flex:1;background:var(--gold);border-color:var(--gold);color:var(--gold-ink);}
-@media(hover:hover){.mn-save:hover{background:var(--gold-2);border-color:var(--gold-2);}}
+.wb-b.mn-save{flex:1;background:var(--gold);border-color:var(--gold);color:var(--gold-ink);}
+@media(hover:hover){.wb-b.mn-save:hover{background:var(--gold-2);border-color:var(--gold-2);}}
