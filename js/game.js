@@ -67,11 +67,12 @@ const GX_SCREEN={
 };
 function loadGameTab(){
   const el=document.getElementById('gameStart');if(!el)return;
+  setTimeout(()=>{const t=el.querySelector('.gx-t.on'),r=t?.parentElement;if(t&&r&&r.scrollWidth>r.clientWidth)r.scrollLeft=Math.max(0,t.offsetLeft-r.offsetLeft-16);},0); /* phone: the chosen game is in view */
   const all=_gameEligible(),cnt={all:all.length,movie:0,series:0,anim:0};all.forEach(i=>cnt[_gameKind(i)]++);
   if(_game.filter!=='all'&&cnt[_game.filter]<4)_game.filter='all';
   const V=_gxVisuals();
   const h=document.querySelector('#tab-game .section-title'),sb=document.querySelector('#tab-game .recs-sub');
-  if(h)h.textContent=_game.type==='puzzle'||_game.type==='chrono'?'Ігри':'Впізнай';if(sb)sb.textContent='';
+  if(h)h.textContent='Ігри';if(sb)sb.textContent='';
   const img=(p,w)=>_tsImg(p,w);
   const thumb={
     frame:V.frame2||V.frame?`<img src="${esc(img(V.frame2||V.frame,'w300'))}" alt="">`:`<span class="gx-th-ic">${ic('frame')}</span>`,
