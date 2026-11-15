@@ -2111,7 +2111,9 @@ button.pc-note:hover{color:var(--text-2);}
 /* rating sheet (myNote): the «Дивлюсь» sheet look, from the bottom on a phone */
 .mn-sh{display:none;}
 body.mn-on .mn-sh{display:block;position:fixed;inset:0;z-index:520;}
-.mn-hd img.mn-poster{width:112px;height:auto;aspect-ratio:2/3;object-fit:cover;border-radius:12px;cursor:default;box-shadow:0 10px 26px rgba(0,0,0,.45);}
+.mn-pbtn{flex:none;padding:0;border:0;background:none;border-radius:12px;cursor:pointer;}
+.mn-pbtn:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
+.mn-hd img.mn-poster{display:block;width:112px;height:auto;aspect-ratio:2/3;object-fit:cover;border-radius:12px;cursor:pointer;box-shadow:0 10px 26px rgba(0,0,0,.45);}
 .mn-hd>div{justify-content:center;}
 .mn-edit{flex:1;}
 .mn-r{display:flex;align-items:center;gap:.35rem;margin:.4rem 0 0;color:var(--gold);}

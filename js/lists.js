@@ -471,7 +471,7 @@ function myNote(id,edit){
     <div class="wb-acts"><button class="wb-b mn-edit" data-act="mnEdit">${ic('star')}${it.rating||it.comment?'Змінити оцінку й коментар':'Додати оцінку й коментар'}</button></div>`;
   R.innerHTML=`<div class="wb-dim" data-act="mnClose"></div><div class="wb-pan" role="dialog" aria-modal="true" aria-label="${esc(tn(it))}: моя оцінка" tabindex="-1"><div class="wb-grab"></div>
     <button class="wb-x" data-act="mnClose" aria-label="Закрити">${ic('x')}</button>
-    <div class="wb-hd mn-hd"><img class="mn-poster" src="${imgSrc(it.poster)}" alt="" data-fb><div>
+    <div class="wb-hd mn-hd"><button class="mn-pbtn" data-act="mnCard" aria-label="Відкрити картку: ${esc(tn(it))}"><img class="mn-poster" src="${imgSrc(it.poster)}" alt="" data-fb></button><div>
       <b class="wb-tt">${esc(tn(it))}</b><div class="wb-mt">${esc(it.year||'')} · ${tl(it.type)}</div>
       ${it.rating&&!edit?`<div class="mn-r" aria-label="Моя оцінка ${esc(it.rating)} з 10">${ic('star')}<b>${esc(it.rating)}</b><span>з 10</span></div>`:''}</div></div>
     ${body}</div>`;
@@ -487,6 +487,8 @@ function mnClose(){
   _inertSync();_focusBack(_mnFocus);_lyDone('mn');
 }
 function mnEdit(){myNote(_mnId,true);}
+/* the poster opens the title card; at once, so the card takes over the sheet's history entry */
+function mnCard(){const it=watched.find(i=>i.id===_mnId);if(!it)return;mnClose();openTitle(it.imdbID);}
 function mnView(){myNote(_mnId,false);}
 function mnSave(){
   const it=watched.find(i=>i.id===_mnId);if(!it)return;
