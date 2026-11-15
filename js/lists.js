@@ -476,7 +476,7 @@ function mnClose(){
   document.body.classList.remove('mn-on');const R=document.getElementById('mnSheet');if(R)R.innerHTML='';
   _inertSync();_focusBack(_mnFocus);_lyDone('mn');
 }
-function mnEdit(){const id=_mnId;mnClose();setTimeout(()=>editW(id),0);}
+function mnEdit(){const id=_mnId;mnClose();editW(id);} /* at once: the dialog takes over the sheet's history entry (ui.js layers), so the sheet's «back» does not close it */
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('mn-on'))mnClose();});
 
 /* ── EDIT WATCHED ── */
