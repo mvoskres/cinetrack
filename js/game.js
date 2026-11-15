@@ -20,7 +20,7 @@ const GAME_TYPES={frame:{name:'Кадр',sub:'Кадр без тексту з т
   quote:{name:'Цитата',sub:'Гасло з картки тайтлу, який ти переглянув. Вгадай, звідки воно',unit:'цитат',load:'Шукаю цитату…',what:'цитату',many:'Цитати'}};
 GAME_TYPES.frame.what='кадр';GAME_TYPES.frame.many='Кадри';
 const GAME_ROUND=10;
-let _game={type:Object.hasOwn(GAME_TYPES,localStorage.getItem('ct_game_type')||'')?localStorage.getItem('ct_game_type'):'frame',mode:'streak',filter:'all',pool:[],q:0,score:0,streak:0,recent:[],log:[],answered:true,current:null,next:null};
+let _game={type:Object.hasOwn(GAME_TYPES,localStorage.getItem('ct_game_type')||'')||localStorage.getItem('ct_game_type')==='puzzle'?localStorage.getItem('ct_game_type'):'frame',mode:'streak',filter:'all',pool:[],q:0,score:0,streak:0,recent:[],log:[],answered:true,current:null,next:null};
 
 /* Ukrainian titles for the options: one TMDB /find call per title (it returns the localized title), kept for good.
    '' = TMDB has no title for it; the original title is used then */
@@ -69,10 +69,9 @@ function loadGameTab(){
   const el=document.getElementById('gameStart');if(!el)return;
   const all=_gameEligible(),cnt={all:all.length,movie:0,series:0,anim:0};all.forEach(i=>cnt[_gameKind(i)]++);
   if(_game.filter!=='all'&&cnt[_game.filter]<4)_game.filter='all';
-  const n=cnt[_game.filter],T=GAME_TYPES[_game.type],S=GX_SCREEN[_game.type],V=_gxVisuals(),b=_gb();
+  const V=_gxVisuals();
   const h=document.querySelector('#tab-game .section-title'),sb=document.querySelector('#tab-game .recs-sub');
-  if(h)h.textContent='Впізнай';if(sb)sb.textContent='';
-  const blocked=!TMDB_KEY||_tmdbBlocked?'Потрібен TMDB API-ключ у налаштуваннях, щоб підтягувати кадри й фото.':n<4?`Для гри потрібно щонайменше 4 переглянуті тайтли, а тут ${n}.`:'';
+  if(h)h.textContent=_game.type==='puzzle'?'Ігри':'Впізнай';if(sb)sb.textContent='';
   const img=(p,w)=>_tsImg(p,w);
   const thumb={
     frame:V.frame2||V.frame?`<img src="${esc(img(V.frame2||V.frame,'w300'))}" alt="">`:`<span class="gx-th-ic">${ic('frame')}</span>`,
@@ -80,13 +79,18 @@ function loadGameTab(){
     quote:'<span class="gx-th-q">«»</span>',
   };
   const tdesc={frame:'назви фільм за кадром',actor:'де грало це обличчя',quote:'звідки це гасло'};
+  const types=`<div class="gx-types" role="group" aria-label="Гра">${Object.entries(GAME_TYPES).map(([k,v])=>`<button class="gx-t${_game.type===k?' on':''}" aria-pressed="${_game.type===k}" data-act="setGameType" data-args="${A(`${k}`)}">
+      <span class="gx-th">${thumb[k]}</span><span class="gx-t-tx"><b>${v.name}</b><span>${tdesc[k]}</span></span></button>`).join('')}<button class="gx-t${_game.type==='puzzle'?' on':''}" aria-pressed="${_game.type==='puzzle'}" data-act="setGameType" data-args="[&quot;puzzle&quot;]">
+      <span class="gx-th"><span class="gx-th-pz">${'<i></i>'.repeat(9)}</span></span><span class="gx-t-tx"><b>П'ятнашки</b><span>склади постер</span></span></button></div>`;
+  if(_game.type==='puzzle'){el.innerHTML=types+pzScreen();return;}
+  const n=cnt[_game.filter],T=GAME_TYPES[_game.type],S=GX_SCREEN[_game.type],b=_gb();
+  const blocked=!TMDB_KEY||_tmdbBlocked?'Потрібен TMDB API-ключ у налаштуваннях, щоб підтягувати кадри й фото.':n<4?`Для гри потрібно щонайменше 4 переглянуті тайтли, а тут ${n}.`:'';
   let bg='',peek='';
   if(_game.type==='frame'&&V.frame){const u=esc(img(V.frame,'w780'));bg=`<img class="gx-bg" src="${u}" alt="">`;peek=`<div class="gx-peek"><img src="${u}" alt=""><i>?</i></div>`;}
   else if(_game.type==='actor'&&V.faces.length){const u=esc(img(V.faces[0],'h632'));bg=`<img class="gx-bg" src="${u}" alt="">`;peek=`<div class="gx-peek gx-peek-p"><img src="${u}" alt=""><i>?</i></div>`;}
   else if(_game.type==='quote'){peek=`<div class="gx-peek gx-peek-q"><p>${esc(V.quote||'Її хоробрість змінить світ!')}</p></div>`;}
   el.innerHTML=`
-    <div class="gx-types" role="group" aria-label="Гра">${Object.entries(GAME_TYPES).map(([k,v])=>`<button class="gx-t${_game.type===k?' on':''}" aria-pressed="${_game.type===k}" data-act="setGameType" data-args="${A(`${k}`)}">
-      <span class="gx-th">${thumb[k]}</span><span class="gx-t-tx"><b>${v.name}</b><span>${tdesc[k]}</span></span></button>`).join('')}</div>
+    ${types}
     <section class="gx-screen gx-${_game.type}">${bg}${peek}
       <div class="gx-in">
         <div class="gx-k">Впізнай ${T.what}</div>
@@ -104,12 +108,12 @@ function loadGameTab(){
     <p class="game-keys">Клавіші: <kbd>1</kbd>–<kbd>4</kbd> відповідь · <kbd>Enter</kbd> далі · <kbd>Esc</kbd> вийти</p>`;
 }
 function setGameFilter(k){_game.filter=k;loadGameTab();}
-function setGameType(k){if(!GAME_TYPES[k])return;_game.type=k;_game.next=null;_lsSet('ct_game_type',k);loadGameTab();}
+function setGameType(k){if(!GAME_TYPES[k]&&k!=='puzzle')return;_game.type=k;_game.next=null;_lsSet('ct_game_type',k);loadGameTab();}
 
 /* bumped on every start and close: an answer that arrives for an older game must not paint over the current one */
 let _gameRun=0;
 function startGame(mode){
-  _gameRun++;
+  _gameRun++;if(typeof _pzStop==='function')_pzStop();document.querySelector('#gameModalBg .game-modal')?.classList.remove('pz-on');
   mode=mode||_game.mode;
   const pool=_gameEligible().filter(i=>_game.filter==='all'||_gameKind(i)===_game.filter);
   if(pool.length<4)return;
@@ -124,7 +128,7 @@ function startGame(mode){
 }
 const _gameFocus={el:null}; /* the start button that opened the game window */
 function closeGameModal(){
-  _gameRun++;document.getElementById('gameModalBg').classList.add('hidden');_game.answered=true;
+  _gameRun++;if(typeof _pzStop==='function')_pzStop();document.getElementById('gameModalBg').classList.add('hidden');_game.answered=true;
   _lyDone('game');_inertSync();loadGameTab();
   _focusBack(_gameFocus,()=>document.querySelector('#gameStart button')); /* the start screen was redrawn: its first button */
 }
