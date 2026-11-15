@@ -422,7 +422,7 @@ function _tagPill(i){const t=i.tags||[];return t.length?`<button class="tg-pill"
 function myCard(list,i){
   return `<article class="pc">
     <div class="pc-art"><a href="${imdbHref(i)}" target="_blank" rel="noopener" tabindex="-1" data-act="_tsClick" data-args="${A('$ev',`${i.imdbID}`)}"><img src="${posterSrc(i.poster)}" data-pf="${esc(i.imdbID)}" alt="" loading="lazy"></a>
-      ${i.rating?`<button class="pc-my${i.comment?' has-c':''}" data-act="myNote" data-args="${A(i.id)}" aria-label="Моя оцінка ${esc(i.rating)} з 10${i.comment?', є коментар':''}">${ic('star')}${esc(i.rating)}</button>`:''}
+      ${i.rating?`<button class="pc-my" data-act="myNote" data-args="${A(i.id)}" aria-label="Моя оцінка ${esc(i.rating)} з 10${i.comment?', є коментар':''}">${ic('star')}${esc(i.rating)}</button>`:''}
       ${i.streamUrl&&safeUrl(i.streamUrl)?`<a class="pc-fab play" href="${esc(safeUrl(i.streamUrl))}" target="_blank" rel="noopener" aria-label="Дивитись ${esc(tn(i))}">${ic('play')}</a>`:''}
       <button class="pc-fab more" data-act="cardMenu" data-args="${A('$ev',`${list}`,(i.id))}" aria-label="Дії: ${esc(tn(i))}">${ic('dots')}</button>${_tagPill(i)}</div>
     <div class="pc-t"><a href="${imdbHref(i)}" target="_blank" rel="noopener" data-act="_tsClick" data-args="${A('$ev',`${i.imdbID}`)}">${esc(tn(i))}</a></div>
@@ -452,7 +452,7 @@ function rPlanned(){
 /* tap on your rating (or the comment line) on a card: your mark and the whole comment, with «Змінити» → editW */
 function myNote(id){
   const it=watched.find(i=>i.id===id);if(!it)return;
-  modal(`<img class="modal-poster" src="${imgSrc(it.poster)}" loading="lazy" data-fb alt="">
+  modal(`<img class="mn-poster" src="${imgSrc(it.poster)}" loading="lazy" data-fb alt="">
     <h2 class="modal-title">${esc(tn(it))}</h2>
     <div class="modal-sub">${esc(it.year||'')} · ${tl(it.type)}</div>
     ${it.rating?`<div class="mn-r" aria-label="Моя оцінка ${esc(it.rating)} з 10">${ic('star')}<b>${esc(it.rating)}</b><span>з 10</span></div>`:''}
