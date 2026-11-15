@@ -123,14 +123,14 @@ function _wbShelves(xs){
   if(F.watching.sort!=='air'){ /* another sort was chosen: keep its order inside every shelf */
     const sh=[['Дата наступної серії відома',x=>x.ser&&!x.ls.isEnded&&x.nd],['Дата невідома',x=>x.ser&&!x.ls.isEnded&&!x.nd],['Серіал завершено',x=>x.ser&&x.ls.isEnded],['Фільми',x=>!x.ser]]
       .map(([t,f])=>[t,xs.filter(f)]).filter(g=>g[1].length);
-    return sh.map(([t,a])=>`<div class="wb-h"><b>${t}</b><span>${a.length}</span></div><div class="wb-g">${a.map(_wbTile).join('')}</div>`).join('');
+    return sh.map(([t,a])=>`<div class="wb-h"><b>${t}</b><span>${a.length}</span></div><div class="wb-g${t==='Дата невідома'?' wb-nodate':''}">${a.map(_wbTile).join('')}</div>`).join('');
   }
   const sh=[
     ['Дата наступної серії відома',xs.filter(x=>x.ser&&!x.ls.isEnded&&x.nd).sort((a,b)=>_wbDays(a.nd)-_wbDays(b.nd))],
     ['Дата невідома',xs.filter(x=>x.ser&&!x.ls.isEnded&&!x.nd).sort((a,b)=>back(a)-back(b)||(la(b)>la(a)?1:-1))],
     ['Серіал завершено',xs.filter(x=>x.ser&&x.ls.isEnded).sort((a,b)=>back(a)-back(b)||b.ahead-a.ahead)],
     ['Фільми',xs.filter(x=>!x.ser)]].filter(g=>g[1].length);
-  return sh.map(([t,a])=>`<div class="wb-h"><b>${t}</b><span>${a.length}</span></div><div class="wb-g">${a.map(_wbTile).join('')}</div>`).join('');
+  return sh.map(([t,a])=>`<div class="wb-h"><b>${t}</b><span>${a.length}</span></div><div class="wb-g${t==='Дата невідома'?' wb-nodate':''}">${a.map(_wbTile).join('')}</div>`).join('');
 }
 let _wbTop=null;
 function wbTopSet(k){_wbTop=k;rWatching(true);}

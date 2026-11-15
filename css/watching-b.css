@@ -128,3 +128,5 @@ body.wb-on .wb-sh{display:block;position:fixed;inset:0;z-index:520;}
   .wb-sel button{flex-direction:row;height:42px;gap:6px;border-radius:11px;font:600 13px/1 var(--sans);}
   .wb-sel button span{font:700 17px/1 var(--serif);}
 }
+
+.wb-nodate .wb-run small{display:none;} /* the shelf title already says the date is unknown */
