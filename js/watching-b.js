@@ -170,7 +170,7 @@ function _wbSheetDraw0(){
       <button class="wb-sq p" data-act="wbAdj" data-args="${A(i.id,1)}" aria-label="Плюс серія">${ic('plus')}</button></div>
     <div class="wb-prog"><div class="wb-bar"><i style="width:${x.spct}%"></i></div><div class="wb-pl"><span>Сезон ${x.s}${x.slen?` · ${x.e} з ${x.slen} серій${x.s===x.las&&!x.ls.isEnded?', що вийшли':''}`:''}</span><span>${x.slen?x.spct+'%':''}</span></div>
       ${x.tot>1&&x.tot<=40?`<div class="wb-segs" style="--n:${x.tot}">${segs}</div>`:''}
-      <div class="wb-pl"><span>Весь серіал${x.aired?` · ${x.seen} з ${x.aired} серій, що вийшли`:''}</span><span>${x.pct}%</span></div></div>`:'';
+      ${x.tot>1?`<div class="wb-pl"><span>Весь серіал${x.aired?` · ${x.seen} з ${x.aired} серій, що вийшли`:''}</span><span>${x.pct}%</span></div>`:''}</div>`:'';
   if(!L.querySelector('.wb-in'))L.innerHTML=`<div class="wb-dim" data-act="wbClose"></div><div class="wb-pan" role="dialog" aria-modal="true" tabindex="-1"><div class="wb-grab"></div>
     <button class="wb-x" data-act="wbClose" aria-label="Закрити">${ic('x')}</button><div class="wb-in"></div></div>`;
   L.querySelector('.wb-pan').setAttribute('aria-label',tn(i));
