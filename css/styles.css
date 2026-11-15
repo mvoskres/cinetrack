@@ -2104,6 +2104,10 @@ body.ts-on{overflow:hidden;}
 
 /* your rating on a card is a button: it opens the rating + the whole comment (myNote) */
 .pc-my{border:0;pointer-events:auto;cursor:pointer;}
+button.pc-note{display:block;width:100%;padding:0;border:0;border-radius:0;background:none;color:var(--muted);font:inherit;font-size:.74rem;text-align:left;cursor:pointer;}
+button.pc-note:hover{color:var(--text-2);}
+.lrow-myb{display:inline-flex;align-items:center;gap:.2rem;padding:.15rem .35rem;border:0;border-radius:6px;background:none;color:inherit;font:inherit;cursor:pointer;}
+.lrow-myb:hover{background:var(--ink-3);}
 /* rating sheet (myNote): the «Дивлюсь» sheet look, from the bottom on a phone */
 .mn-sh{display:none;}
 body.mn-on .mn-sh{display:block;position:fixed;inset:0;z-index:520;}
