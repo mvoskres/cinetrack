@@ -256,7 +256,6 @@ function buildPersonBar(){
 function personTogglePan(){_personPanOpen=!_personPanOpen;buildPersonBar();}
 function personSetType(v){_personFilter.type=v;_personShown=PERSON_PAGE_SIZE;buildPersonBar();renderPersonList();}
 function personSetRole(v){_personFilter.role=v;_personShown=PERSON_PAGE_SIZE;buildPersonBar();renderPersonList();}
-function personMore(){_personShown+=PERSON_PAGE_SIZE;renderPersonList();}
 function personToggleMinor(){_personFilter.showMinor=!_personFilter.showMinor;if(!_personFilter.showMinor&&(_personFilter.type==='doc'||_personFilter.type==='talk'))_personFilter.type='all';buildPersonBar();renderPersonList();}
 let _personSearchT;
 function personListSearch(v){clearTimeout(_personSearchT);_personSearchT=setTimeout(()=>{_personFilter.q=v.trim();renderPersonList();},220);}

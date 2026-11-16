@@ -1,5 +1,4 @@
 /* ── TABS ── */
-const TITLES={watched:'Переглянуте',watching:'Дивлюсь',planned:'Планую',stats:'Статистика',recs:'Рекомендації',collections:'Франшизи',people:'Актори й режисери',game:'Ігри'};
 function goTab(id,btn){
   if(document.body.classList.contains('nav-on')&&matchMedia('(max-width:700px)').matches){
     document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('on',b.dataset.tab===id));
@@ -82,7 +81,7 @@ async function _tmdbSearch(q){
   return true;
 }
 function _sugOpen(mt,id){_seRemember();searchSuspend();openTitleTmdb(mt,id);}
-function _sugPerson(id,name,profile){_seRemember();const q=document.getElementById('searchInput')?.value||'';searchClose();_tsPerson(id,name,profile,{q});}
+function _sugPerson(id,name,profile){_seRemember();_srchToPerson(id,name,profile);}
 async function _omdbSearch(q){
   try{
     let r=_sCache[q];

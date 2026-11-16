@@ -153,7 +153,6 @@ localStorage.removeItem('ct_livecache');
    first resolve. Ended-status is taken from the item's liveStatus when we track the show
    in "Дивлюсь", otherwise defaults to "series → refresh every 2 days". */
 let _resolveCache=_lsJSON('ct_resolvecache',{});
-const RESOLVE_TV_TTL=2*24*60*60*1000; /* 2 days */
 function _resolveCacheSave(){
   const ks=Object.keys(_resolveCache);
   if(ks.length>2000){ /* soft cap: drop oldest 500 entries */
@@ -161,11 +160,6 @@ function _resolveCacheSave(){
       .slice(0,500).forEach(k=>delete _resolveCache[k]);
   }
   _lsSet('ct_resolvecache',JSON.stringify(_resolveCache));
-}
-function _resolveFresh(entry){
-  if(!entry)return false;
-  if(entry.ended)return true; /* movies, or series known-ended: never expire */
-  return Date.now()-entry.ts<RESOLVE_TV_TTL;
 }
 
 /* ── FILTER STATE ── */
@@ -184,7 +178,6 @@ const S_WN =[['air','За ефіром'],...S_ALL]; /* Дивлюсь: «За е
 function tList(t){return t==='watched'?watched:t==='watching'?watching:planned;}
 function barId(t) {return{watched:'wBar',watching:'wnBar',planned:'plBar'}[t];}
 function tagsId(t){return{watched:'wTags',watching:'wnTags',planned:'plTags'}[t];}
-function panId(t) {return{watched:'wPanel',watching:'wnPanel',planned:'plPanel'}[t];}
 function fN(t){const f=F[t];return f.cats.length+f.genres.length+f.decades.length+(f.ratings?.length||0)+(f.tags?.length||0)+(f.air?.length||0);}
 
 /* ── FILTER BAR ──
@@ -337,7 +330,6 @@ function fsTog(dim,val){
   if(i>=0)a.splice(i,1);else{if(dim==='ratings'||dim==='cats')a.length=0;a.push(val);}
   fsRender();
 }
-function fsSort(v){if(!_fs)return;_fs.st.sort=v;fsRender();}
 function fsMore(){if(!_fs)return;_fs.more=true;fsRender();}
 function fsView(v){if(!_fs)return;setView(_fs.t,v);fsRender();} /* the view is not a filter: it applies at once */
 function fsReset(){if(!_fs)return;const s=_fs.st;s.air=[];s.cats=[];s.genres=[];s.decades=[];s.ratings=[];s.tags=[];fsRender();}
@@ -361,7 +353,6 @@ function chip(t,dim,val){
   buildBar(t);buildTags(t);rerender(t);
 }
 function doSort(t,v){F[t].sort=v;buildBar(t);rerender(t);}
-function clearF(t){F[t].q='';clearChips(t);}
 function clearChips(t){const f=F[t];f.air=[];f.cats=[];f.genres=[];f.decades=[];f.ratings=[];f.tags=[];buildBar(t);buildTags(t);rerender(t);}
 function removeChip(t,dim,val){val=decodeURIComponent(val);const f=F[t];if(f[dim])f[dim]=f[dim].filter(v=>v!==val);buildTags(t);buildBar(t);rerender(t);}
 /* applied filters as gold chips under the toolbar */

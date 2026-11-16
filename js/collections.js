@@ -377,7 +377,6 @@ function renderCollections(preserveOrder){
 }
 
 const COLL_ROWS=12; /* parts shown before «Усі частини» */
-const _COLL_ST={ok:'Переглянуто',wn:'Дивлюсь',pl:'Заплановано'};
 /* the title opens the in-app sheet; ctrl/middle click keeps the IMDb/TMDB link */
 function _collLink(p,inner,cls=''){
   const link=p.imdbID?`https://www.imdb.com/title/${p.imdbID}/`:(p.id?`https://www.themoviedb.org/movie/${p.id}`:null);

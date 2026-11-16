@@ -221,7 +221,16 @@ function _seShow(){const q=document.getElementById('searchInput')?.value.trim();
 function seRun(q){const i=document.getElementById('searchInput');if(!i)return;i.value=q;handleSearch();i.focus({preventScroll:true});}
 function seClear(){_lsSet(_SE_KEY,'[]');_seRender();_seShow();}
 function seOpen(imdb){searchSuspend();openTitle(imdb);}
-function seFace(id,name,profile){const q=document.getElementById('searchInput')?.value||'';searchClose();_tsPerson(id,name,profile,{q});}
+function seFace(id,name,profile){_srchToPerson(id,name,profile);}
+/* search → a person: closing the search with history entries steps back asynchronously; the person's Back entry
+   is added only after that step has landed, or the step would take it away again */
+function _srchToPerson(id,name,profile){
+  const q=document.getElementById('searchInput')?.value||'',step=!_cwMode&&!!history.state?.ctOv;
+  searchClose();
+  if(!step){_tsPerson(id,name,profile,{q});return;}
+  let done=false;const go=()=>{if(done)return;done=true;_tsPerson(id,name,profile,{q});};
+  addEventListener('popstate',()=>setTimeout(go,0),{once:true});setTimeout(go,400);
+}
 function sugAdd(ev,mt,id){
   ev.stopPropagation();
   openMenu(ev,[{icon:'check',label:'Переглянуто',fn:'sugAddAs',args:[mt,id,'watched']},{icon:'play',label:'Дивлюсь',fn:'sugAddAs',args:[mt,id,'watching']},

@@ -64,13 +64,6 @@ function _wbNext(x){ /* «Далі S38·E7 · нд, 15 лист.» / «Сері�
   return `<span class="wb-a">Дані ефіру завантажуються…</span>`;
 }
 function _wbStatus(x){return `<div class="wb-air">${_wbLast(x)}${_wbNext(x)}</div>`;}
-function _wbStatusOld(x){
-  if(x.state==='new'||x.state==='go')return `<div class="wb-st${x.state==='new'?' g':''}">Вийшла ${_wbEp(x.las,x.lae)} · ${_wbAgo(x.ls.lastAiredDate)} · ще ${x.ahead} ${_wbPl(x.ahead,'серія','серії','серій')}</div>`;
-  if(x.nd)return `<div class="wb-st b">Наступна ${_wbEp(x.ls.nextEpSeason,x.ls.nextEpNum)} · ${_wbWhen(x.nd)}, ${_wbDow(x.nd)}</div>`;
-  if(x.ser&&x.ls.isEnded)return `<div class="wb-st">Серіал завершено</div>`;
-  if(x.ser&&x.ls.lastAiredSeason)return `<div class="wb-st">Наздогнав · дата нової серії невідома</div>`;
-  return x.ser?`<div class="wb-st">Дані ефіру завантажуються…</div>`:'';
-}
 const _wbYear=i=>esc(String(i.year||'').replace(/[^\d–-]/g,'').replace(/-/g,'–'));
 function _wbMeta(i,full){
   const g=full&&i.genre?(i.genre.split(',').slice(0,3).map(s=>{s=s.trim();return (typeof SX_GENRE!=='undefined'&&SX_GENRE[s])||s;}).join(', ')):'';

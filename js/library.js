@@ -96,7 +96,6 @@ function tagEdit(id){
   sheetSwipe(L.querySelector('.tg-pan'),{close:()=>tagClose(),handle:'.tg-grab,.tg-hd'});
   if(_cwMode)_cwAdd('tg',()=>tagClose(true));else try{_tgBase=history.state?.ctLy||0;history.pushState({tgSheet:1},'');}catch(e){} /* Back closes the sheet (ui.js BACK) */
 }
-function addTag(id){tagEdit(id);} /* old name, still used by the title card */
 const _tgFocus={el:null}; /* what had focus when the sheet opened */
 function tagClose(fromHistory){
   if(!document.body.classList.contains('tg-on'))return;
@@ -124,7 +123,6 @@ function tagNew(){
   it.tags=it.tags||[];if(!it.tags.includes(t))it.tags.push(t);_tgSaved();
   const ni=document.getElementById('tgInp');if(ni){ni.value='';ni.focus();}
 }
-function saveTag(id){tagNew();}
 /* a tag on a card/poster: show the list filtered by it (the tab that is open) */
 function tagGo(ev,t){
   ev?.stopPropagation?.();ev?.preventDefault?.();t=decodeURIComponent(t);
@@ -132,7 +130,6 @@ function tagGo(ev,t){
   if(document.body.classList.contains('wb-on'))wbClose?.();
   F[tab].tags=[t];buildBar(tab);buildTags(tab);rerender(tab);window.scrollTo({top:0,behavior:'smooth'});
 }
-function rmTag(id,tag){tag=decodeURIComponent(tag);const it=findItem(id);if(!it||!it.tags)return;it.tags=it.tags.filter(t=>t!==tag);save();rWatched();rWatching();rPlanned();}
 function delGlobalTag(tag){
   tag=decodeURIComponent(tag);
   const snap=[...watched,...watching,...planned].map(i=>({id:i.id,tags:i.tags?[...i.tags]:[]}));

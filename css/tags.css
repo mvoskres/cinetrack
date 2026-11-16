@@ -1,5 +1,4 @@
 /* tags (TEST): #chips line, a label on the poster, the tag sheet */
-.card-utags{display:none;}
 .tg-line{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
 .tg-c{font:600 12.5px var(--sans);color:var(--gold);background:var(--gold-d);border:1px solid var(--gold-b);border-radius:999px;padding:3px 10px;cursor:pointer;}
 .tg-c:hover{filter:brightness(1.15);}
