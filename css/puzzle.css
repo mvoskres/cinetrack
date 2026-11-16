@@ -52,7 +52,7 @@
 /* the board: a 2:3 poster; tiles sit in their cell via --c/--r and show their own piece via --x/--y */
 .game-modal.pz-on{width:min(560px,100%);}
 .pz-wrap{align-items:center;gap:.8rem;}
-.pz-board{position:relative;width:min(100%,calc((92dvh - 13rem) * 2 / 3),440px);aspect-ratio:2/3;border-radius:12px;overflow:hidden;background:#07080a;border:1px solid var(--line);touch-action:manipulation;user-select:none;}
+.pz-board{position:relative;width:min(100%,calc((92dvh - 13rem) * 2 / 3),440px);aspect-ratio:2/3;border-radius:12px;overflow:hidden;background:#07080a;border:1px solid var(--line);touch-action:none;user-select:none;-webkit-user-select:none;}
 .pz-tile{position:absolute;left:0;top:0;width:calc(100% / var(--n));height:calc(100% / var(--n));padding:0;border:0;cursor:pointer;
   transform:translate(calc(var(--c) * 100%),calc(var(--r) * 100%));transition:transform .12s ease-out;
   background-image:var(--img);background-size:calc(var(--n) * 100%) calc(var(--n) * 100%);

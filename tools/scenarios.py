@@ -194,3 +194,52 @@ def _title_fail(c):
 def _menu_back(c):
     _open(c, 'menu'); c.close_top() if c.mode != 'android' else c.b.back()
     c.wait("!document.querySelector('.ct-menu')", 2, 'меню ⋯ закрилось системним «Назад»')
+
+
+# ───────────── 1.40: оцінка з картки, «Назад» з людини до картки, свайп у п'ятнашках ─────────────
+@scenario('title/rate-sheet', modes=('android', 'history', 'desktop'))
+def _title_rate(c):
+    base = _inert_state(c)
+    c.eval("openTitle(watched.find(i=>i.imdbID).imdbID)")
+    c.wait("!document.getElementById('titleSheet').classList.contains('hidden')&&!!document.querySelector('#tsActions [data-act=\"myNote\"]')", 6, 'картка з кнопкою оцінки')
+    c.eval("document.querySelector('#tsActions [data-act=\"myNote\"]').click()")
+    c.wait("document.body.classList.contains('mn-on')&&!!document.querySelector('#mnSheet.over #starsBox')", 3, 'шторка оцінки (редактор) поверх картки')
+    c.assert_(not c.eval("!!document.getElementById('mbox').innerHTML.trim()"), 'відкрилось старе вікно editW')
+    c.assert_(c.eval("!document.querySelector('#mnSheet .wb-pan').closest('[inert]')"), 'шторка inert')
+    c.snap('sheet')
+    c.close_top()
+    c.wait("!document.body.classList.contains('mn-on')", 3, 'шторка закрилась')
+    c.sleep(0.3)
+    c.assert_(c.eval("!document.getElementById('titleSheet').classList.contains('hidden')"), 'разом зі шторкою закрилась і картка')
+    c.close_top()
+    c.wait("document.getElementById('titleSheet').classList.contains('hidden')", 3, 'картка закрилась')
+    _sane(c, base)
+
+
+@scenario('title/person-back', modes=('android', 'history'))
+def _title_person(c):
+    base = _inert_state(c)
+    c.eval("goTab('watched')")
+    _open(c, 'title')
+    c.eval("_tsPerson(287,'Brad Pitt','')")
+    c.wait("!document.getElementById('tab-people').classList.contains('hidden')&&document.getElementById('titleSheet').classList.contains('hidden')", 4, 'відкрились «Люди»')
+    c.sleep(0.4)
+    c.close_top()
+    c.wait("!document.getElementById('tab-watched').classList.contains('hidden')", 4, '«Назад» повернув на попередню вкладку')
+    c.wait(OVERLAYS['title']['is_open'], 6, '«Назад» повернув картку')
+    c.close_top(); _closed(c, 'title'); _sane(c, base)
+
+
+@scenario('game/puzzle-swipe', modes=('android', 'desktop'))
+def _pz_swipe(c):
+    c.eval("_pz.pick={title:'t',img:'',thumb:''};_pz.n=3;pzStart()")
+    c.wait("!!document.getElementById('pzBoard')", 3, 'поле')
+    c.eval("_pz.board=[0,1,2,3,4,5,6,8,7];_pzPlace()")  # порожнє на позиції 7, клітинка 7 праворуч
+    r = c.eval("(()=>{const t=document.querySelector('#pzBoard .pz-tile[data-id=\"7\"]').getBoundingClientRect();return [t.x+t.width/2,t.y+t.height/2,t.width]})()")
+    x, y, w = r
+    c.eval(f"""(()=>{{const t=document.querySelector('#pzBoard .pz-tile[data-id="7"]');
+      const o=(type,x)=>new PointerEvent(type,{{bubbles:true,isPrimary:true,pointerType:'touch',clientX:x,clientY:{y}}});
+      t.dispatchEvent(o('pointerdown',{x}));t.dispatchEvent(o('pointerup',{x - w*0.6}));t.click();}})()""")
+    c.sleep(0.2)
+    c.assert_(c.eval("_pz.won&&_pz.moves===1"), f'свайп не посунув клітинку: {c.eval("JSON.stringify([_pz.board,_pz.moves])")}')
+    c.eval("closeGameModal()")

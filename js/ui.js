@@ -307,8 +307,9 @@ const _isOn=(id,cls)=>()=>document.body.classList.contains(cls)?document.getElem
 const _OVL=[ /* bottom to top = by z-index */
   _isOn('srch','srch-on'),_isOn('fsh','fs-on'),_isOn('csh','cs-on'),
   ()=>{const e=document.getElementById('gameModalBg');return e&&!e.classList.contains('hidden')?e:null;},
-  _isOn('wbSheet','wb-on'),_isOn('mnSheet','mn-on'),
+  _isOn('wbSheet','wb-on'),()=>{const e=_isOn('mnSheet','mn-on')();return e&&!e.classList.contains('over')?e:null;},
   ()=>{const e=document.getElementById('titleSheet');return e&&!e.classList.contains('hidden')?e:null;},
+  ()=>{const e=_isOn('mnSheet','mn-on')();return e&&e.classList.contains('over')?e:null;}, /* the rating sheet opened from a card */
   ()=>{const e=document.getElementById('mbox');return e&&e.innerHTML.trim()?e:null;},
   _isOn('tgSheet','tg-on')];
 const _inertSet=new Set();

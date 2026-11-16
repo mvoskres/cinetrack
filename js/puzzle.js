@@ -71,7 +71,7 @@ function pzScreen(){
     <div class="gx-in">
       <div class="gx-k">Склади постер</div>
       <h2 class="gx-q">П'ятнашки</h2>
-      <p class="gx-d">Постер розрізано на клітинки, одна порожня. Пересувай сусідні в порожню, поки картинка не складеться.</p>
+      <p class="gx-d">Постер розрізано на клітинки, одна порожня. Торкнись або проведи клітинку в порожнє місце, поки картинка не складеться.</p>
       <p class="pz-lbl">Складність</p><div class="pz-sizes" role="group" aria-label="Складність">${sizes}</div>
       <p class="pz-lbl">Постер</p>${chosen}
       <div class="gx-modes"><button class="gx-mode p" data-act="pzStart"><b>Почати</b><span>${b?`рекорд ${n}×${n}: <span class="num">${b.m}</span> ${_pzPl(b.m)} · ${_pzTime(b.t)}`:p?'перемішаю клітинки навмання':'без вибору — випадковий постер'}</span></button></div>
@@ -160,6 +160,29 @@ function pzNums(){_pz.nums=!_pz.nums;_lsSet('ct_pz_nums',_pz.nums?'1':'0');docum
 function pzPeek(){const bd=document.getElementById('pzBoard'),on=!bd?.classList.contains('peek');bd?.classList.toggle('peek',on);
   const b=document.querySelector('[data-act="pzPeek"]');if(b){b.setAttribute('aria-pressed',on);b.classList.toggle('on',on);}}
 function _pzStop(){clearInterval(_pz.timer);const w=document.getElementById('pzWrap');if(w){w.classList.add('hidden');w.innerHTML='';}document.querySelector('#gameModalBg .game-modal')?.classList.remove('pz-on');}
+/* swipe (1.40): a tile swiped toward the gap slides (with its line, as a tap); a swipe that starts elsewhere moves the tile
+   next to the gap in the swipe direction, like the arrows. The tap that follows a swipe is swallowed. */
+let _pzSw=null,_pzSwAt=0;
+document.addEventListener('pointerdown',e=>{
+  const bd=e.target.closest?.('#pzBoard');if(!bd||_pz.won||!e.isPrimary)return;
+  _pzSw={x:e.clientX,y:e.clientY,id:e.target.closest('.pz-tile')?.dataset.id,w:bd.getBoundingClientRect().width/_pz.n};
+});
+document.addEventListener('pointerup',e=>{
+  const s=_pzSw;_pzSw=null;if(!s||_pz.won||!document.getElementById('pzBoard'))return;
+  const dx=e.clientX-s.x,dy=e.clientY-s.y,ax=Math.abs(dx),ay=Math.abs(dy);
+  if(Math.max(ax,ay)<Math.max(18,s.w*.22))return; /* a tap: the click handler does it */
+  _pzSwAt=Date.now();
+  const d=ax>ay?[0,dx>0?1:-1]:[dy>0?1:-1,0]; /* [row, col] of the movement */
+  const n=_pz.n,b=_pz.board,e0=b.indexOf(n*n-1),er=Math.floor(e0/n),ec=e0%n;
+  if(s.id!=null){
+    const p=b.indexOf(+s.id),pr=Math.floor(p/n),pc=p%n;
+    if((d[0]&&pc===ec&&Math.sign(er-pr)===d[0])||(d[1]&&pr===er&&Math.sign(ec-pc)===d[1])){pzTap(+s.id);return;}
+  }
+  const r=er-d[0],c=ec-d[1];
+  if(r>=0&&c>=0&&r<n&&c<n)pzTap(b[r*n+c]);
+});
+document.addEventListener('pointercancel',()=>{_pzSw=null;});
+document.addEventListener('click',e=>{if(Date.now()-_pzSwAt<400&&e.target.closest?.('#pzBoard')){e.stopPropagation();e.preventDefault();}},true);
 /* arrows: the tile next to the gap moves into it (← takes the one on the gap's right, etc.) */
 document.addEventListener('keydown',e=>{
   if(!document.getElementById('pzBoard')||document.getElementById('gameModalBg')?.classList.contains('hidden')||_pz.won)return;

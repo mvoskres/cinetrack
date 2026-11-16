@@ -17,6 +17,7 @@ function goTab(id,btn){
   if(id==='planned')rPlanned();
   if(id==='collections')loadCollections();
   if(id==='people')renderPeopleTab();
+  if(typeof _tsPplDrop==='function')_tsPplDrop(); /* left «Люди» by the menu: no way back to the card */
   if(typeof _gxLayerDone==='function')_gxLayerDone(); /* leaving (or reopening) the tab drops the phone's «game screen» Back entry */
   if(id==='game'){if(typeof _gxList!=='undefined')_gxList=true;loadGameTab();}
   const ds=document.getElementById('dashSection');if(ds)ds.hidden=id!=='watching'; /* air strip belongs to Дивлюсь */
@@ -459,6 +460,7 @@ function myNote(id,edit){
   let R=document.getElementById('mnSheet');
   if(!R){R=document.createElement('div');R.id='mnSheet';R.className='mn-sh';document.body.appendChild(R);}
   const opening=!document.body.classList.contains('mn-on');
+  if(opening)R.classList.toggle('over',!document.getElementById('titleSheet')?.classList.contains('hidden')); /* from a title card: on top of it */
   if(opening)_mnFocus.el=document.activeElement;
   const body=edit?`<div class="mn-ed">
       <div class="form-g"><label class="form-lbl" id="starsLbl">Моя оцінка</label>
@@ -488,7 +490,7 @@ function mnClose(){
 }
 function mnEdit(){myNote(_mnId,true);}
 /* the poster opens the title card; at once, so the card takes over the sheet's history entry */
-function mnCard(){const it=watched.find(i=>i.id===_mnId);if(!it)return;mnClose();openTitle(it.imdbID);}
+function mnCard(){const it=watched.find(i=>i.id===_mnId);if(!it)return;const over=document.getElementById('mnSheet')?.classList.contains('over');mnClose();if(!over)openTitle(it.imdbID);} /* over the card: it is already there */
 function mnView(){myNote(_mnId,false);}
 function mnSave(){
   const it=watched.find(i=>i.id===_mnId);if(!it)return;
@@ -496,7 +498,7 @@ function mnSave(){
   it.comment=(document.getElementById('eCm')?.value||'').trim();
   saveAll();rWatched();myNote(_mnId,false);toast('Збережено','ok',1600);
 }
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('mn-on'))mnClose();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('mn-on')){mnClose();e.stopImmediatePropagation();}}); /* only the sheet, not the card under it */
 
 /* ── EDIT WATCHED ── */
 function editW(id){

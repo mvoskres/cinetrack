@@ -163,7 +163,7 @@ function _tsActions(d){
     const it=own.item,lbl=[...{watched:['ok','check','Переглянуто'],watching:['wn','play','Дивлюсь'],planned:['pl','bookmark','Заплановано']}[own.list]];
     const extra=own.list==='watching'&&it.type==='series'?` · ${_epLabel(it)}`:own.list==='watched'&&it.rating?` · твоя оцінка ${it.rating}/10`:'';
     if(own.list==='watching'&&watched.some(x=>x.imdbID===d.imdbID))lbl[2]='Дивлюсь знову';
-    const main=own.list==='watched'?`<button class="btn" data-act="editW" data-args="${A((it.id))}">${ic('star')}Оцінка і коментар</button>`
+    const main=own.list==='watched'?`<button class="btn" data-act="myNote" data-args="${A(it.id,true)}">${ic('star')}Оцінка і коментар</button>`
       :own.list==='planned'?`<button class="btn" data-act="plToW" data-args="${A((it.id))}">${ic('check')}Переглянуто</button><button class="btn" data-act="plToWn" data-args="${A((it.id))}">${ic('play')}Почати дивитись</button>${_tsSkipBtn(d)}`
       :`<button class="btn" data-act="mvToW" data-args="${A((it.id))}">${ic('check')}Переглянуто повністю</button>`;
     return `<button class="chip-s st-sw ${lbl[0]}" data-act="_tsStatusMenu" data-args="${A('$ev')}" aria-haspopup="menu" title="Змінити стан">${ic(lbl[1])}${lbl[2]}${extra}<span class="st-car" aria-hidden="true">▾</span></button>${main}
@@ -252,8 +252,21 @@ function _tsPerson(id,name,profile){
   _personPreview=_trackedPeople.find(t=>t.id===id)?null:{id,name,profile,dept:''};
   _personLast=id;
   const detail=document.getElementById('personDetail');if(detail)detail.innerHTML=''; /* renderPeopleTab opens _personLast */
-  closeTitle();goTab('people',document.getElementById('ni-people'));
+  const card=!document.getElementById('titleSheet')?.classList.contains('hidden'),ref=_tsCur?.ref||_tsStack[_tsStack.length-1];
+  const tab=document.querySelector('[id^="tab-"]:not(.hidden)')?.id.slice(4)||'watched';
+  closeTitle();_tsPplNav=true;goTab('people',document.getElementById('ni-people'));_tsPplNav=false;
+  if(card&&ref){const k='tsPpl'+(++_tsPplN);_tsPplStk.push({k,tab,ref});_lyOpen(k,()=>_tsPplBack(k));}
 }
+/* 1.40: a person opened from a card — Back returns to that tab and the card (it used to land on «exit the app»).
+   A stack: card → person → card → person goes back step by step. Going to another page by the menu drops it (goTab). */
+let _tsPplStk=[],_tsPplN=0,_tsPplNav=false;
+function _tsPplBack(k){
+  const i=_tsPplStk.findIndex(x=>x.k===k);if(i<0)return;
+  const e=_tsPplStk[i];_tsPplStk.splice(i);
+  _tsPplNav=true;goTab(e.tab,document.getElementById('ni-'+e.tab));_tsPplNav=false;
+  setTimeout(()=>_tsOpen(e.ref,true),0); /* after the popstate that called us is done with its layer list */
+}
+function _tsPplDrop(){if(_tsPplNav)return;while(_tsPplStk.length)_lyDone(_tsPplStk.pop().k);}
 
 function _tsRender(){
   const d=_tsCur.data,own=_tsOwned(d.imdbID)?.item;
