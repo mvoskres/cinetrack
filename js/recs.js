@@ -264,7 +264,8 @@ async function buildRecs(manual){
       const top=_topGenreIds(3),tvTop=_tvGenres(top),seeds=_recSeedsPick(rot,13);
       /* rot turns the pages of the broad shelves too, so "Оновити" changes them, not only the seed shelves */
       const fp=1+rot%3,ap=1+(rot*2)%10,sp=1+(rot*2)%6;
-      const [sr,fresh,anim,anime,animTv,trend]=await Promise.all([
+      const fresh0=watched.length<5; /* 1.43: (almost) nothing watched yet — nothing to build «because of X» from */
+      const [sr,fresh,anim,anime,animTv,trend,best]=await Promise.all([
         Promise.all(seeds.map(s=>soft(_seedRecs(s)))),
         top.length?soft(_shelfDiscover('fresh','Свіжі релізи у твоїх жанрах',`За останні півтора року · ${top.map(_genreNameById).join(', ')}`,
           [['movie',`with_genres=${top.join('|')}&primary_release_date.gte=${since}&vote_count.gte=150&sort_by=popularity.desc&page=${fp}`],
@@ -280,12 +281,15 @@ async function buildRecs(manual){
           [sp,sp+1,sp+2].map(p=>['tv',`with_genres=16&vote_average.gte=7.5&vote_count.gte=150&sort_by=vote_count.desc&page=${p}`]),known,150,7.5,(a,b)=>b.rating-a.rating,it=>it.lang!=='ja')):null,
         soft(tmdbFetch('/trending/all/week?language=uk-UA').then(d=>({id:'trend',title:'Популярне цього тижня',why:'Тренди TMDB без того, що вже є у твоїх списках',
           items:(d?.results||[]).filter(r=>r.media_type==='movie'||r.media_type==='tv').map(r=>_recItem(r)).filter(it=>it.poster&&it.votes>=50&&!known.has(it)).slice(0,18)}))),
+        fresh0?soft(_shelfDiscover('best','Найкраще за всі часи','Поки списки майже порожні — класика з найвищими оцінками. Додай кілька переглянутих, і підбірка стане твоєю',
+          [['movie','vote_count.gte=5000&sort_by=vote_average.desc'],['tv','vote_count.gte=2000&sort_by=vote_average.desc']],known,2000,8,(a,b)=>b.rating-a.rating)):null,
       ]);
       _recSrcSave();
       /* the first three seeds that brought something get a shelf each; the others are merged into «Для тебе» */
       const ok=sr.filter(r=>r&&r.items.length),mine=ok.slice(0,3).map(r=>_shelfSeed(r,known));
       /* interleave so the page alternates "because of X" with broader shelves */
-      ordered=[ok.length>=5?_shelfForYou(ok.slice(3),known):null,franchise,mine[0],fresh,mine[1],anim,mine[2],_shelfPeople(known),anime,animTv,trend];
+      ordered=fresh0?[trend,best,mine[0],franchise,_shelfPeople(known)]
+        :[ok.length>=5?_shelfForYou(ok.slice(3),known):null,franchise,mine[0],fresh,mine[1],anim,mine[2],_shelfPeople(known),anime,animTv,trend];
     }else ordered=[franchise,_shelfPeople(known)];
     /* a title shows up only in the first shelf that has it */
     const seen=new Set();

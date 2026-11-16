@@ -18,8 +18,19 @@ function _pzMine(){const seen=new Set();return [...watched,...watching,...planne
 function _pzItem(i){return {title:tn(i),sub:[i.year,catLabel(i.customCategory||i.type)].filter(Boolean).join(' · '),img:_pzBig(i.poster),thumb:ps(i.poster)};}
 function _pzFr(){return Object.values(typeof _collDetails==='object'?_collDetails:{}).filter(d=>d&&d.name&&d.poster);}
 
-function pzRandom(){
-  const all=_pzMine();if(!all.length){toast('У списках немає тайтлів із постерами','err',2400);return;}
+/* 1.43: nothing in the lists yet — a random popular film from TMDB */
+let _pzPop=null;
+async function _pzPopPick(){
+  if(!TMDB_KEY||_tmdbBlocked)return null;
+  if(!_pzPop){try{const d=await tmdbFetch('/trending/movie/week?language=uk-UA');_pzPop=(d?.results||[]).filter(r=>r.poster_path);}catch(e){_pzPop=null;}}
+  if(!_pzPop?.length){_pzPop=null;return null;}
+  const r=_pzPop[Math.floor(Math.random()*_pzPop.length)];
+  return {title:r.title||r.name||'',sub:[(r.release_date||'').slice(0,4),'фільм'].filter(Boolean).join(' · '),img:_pzBig(r.poster_path),thumb:_tsImg(r.poster_path,'w92')};
+}
+const _pzNoPoster=()=>toast(TMDB_KEY?'Не вдалося взяти постер: перевір з’єднання':'Додай ключ TMDB у Налаштуваннях — тоді постери братимуться з популярного','err',3200);
+async function pzRandom(){
+  const all=_pzMine();
+  if(!all.length){const p=await _pzPopPick();if(!p){_pzNoPoster();return;}_pz.pick=p;_pz.q='';_pz.sug=[];loadGameTab();return;}
   let i;for(let k=0;k<5;k++){i=all[Math.floor(Math.random()*all.length)];if(_pzItem(i).title!==_pz.pick?.title)break;}
   _pz.pick=_pzItem(i);_pz.q='';_pz.sug=[];loadGameTab();
 }
@@ -94,8 +105,10 @@ function _pzShuffle(n){
   }while(a.every((x,k)=>x===k));
   return a;
 }
-function pzStart(again){
-  if(!_pz.pick||again==='new'){const all=_pzMine();if(!all.length){toast('У списках немає тайтлів із постерами','err',2400);return;}_pz.pick=_pzItem(all[Math.floor(Math.random()*all.length)]);}
+async function pzStart(again){
+  if(!_pz.pick||again==='new'){const all=_pzMine();
+    if(all.length)_pz.pick=_pzItem(all[Math.floor(Math.random()*all.length)]);
+    else{const p=await _pzPopPick();if(!p){_pzNoPoster();return;}_pz.pick=p;}}
   _gameRun++;clearInterval(_pz.timer);if(typeof _chStop==='function')_chStop();
   Object.assign(_pz,{board:_pzShuffle(_pz.n),moves:0,t0:0,won:false});
   const bg=document.getElementById('gameModalBg'),m=bg.querySelector('.game-modal');

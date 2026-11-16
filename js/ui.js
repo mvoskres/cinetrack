@@ -185,7 +185,16 @@ function _dockWall(){
   if(_dockWallDone)return;_dockWallDone=true;
   const ps=watched.filter(i=>/^https:\/\//.test(i.poster||'')).sort((a,b)=>(parseFloat(b.imdbRating)||0)-(parseFloat(a.imdbRating)||0)).slice(0,36)
     .map(i=>i.poster.replace(/\._V1_[^/]*\.jpg$/,'._V1_SX160.jpg'));
-  if(!ps.length)return;
+  if(!ps.length){_dockWallPop();return;}
+  _dockWallPut(ps);
+}
+/* 1.43: nothing watched yet — the wall shows this week's popular films */
+async function _dockWallPop(){
+  if(!TMDB_KEY||_tmdbBlocked)return;
+  try{const d=await tmdbFetch('/trending/movie/week?language=uk-UA');
+    const ps=(d?.results||[]).map(r=>_tsImg(r.poster_path,'w185')).filter(Boolean);if(ps.length)_dockWallPut(ps);}catch(e){}
+}
+function _dockWallPut(ps){
   const html=[...ps,...ps].slice(0,60).map(u=>`<i><img src="${esc(u)}" alt="" loading="lazy" decoding="async" data-fb></i>`).join('');
   ['dkWall','srchWall'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=html;});
 }
