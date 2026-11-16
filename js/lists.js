@@ -404,7 +404,7 @@ function cardMenu(ev,list,id,from){
     {icon:'link',label:it.streamUrl?'Змінити посилання':'Додати посилання',fn:'editUrl',args:[id]},
     {icon:'tag',label:(it.tags||[]).length?'Теги ('+it.tags.length+')':'Теги',fn:'tagEdit',args:[id]},'-'];
   const items={
-    watched:[{icon:'star',label:'Оцінка і коментар',fn:'editW',args:[id]},!watching.some(x=>x.imdbID===it.imdbID)&&{icon:'play',label:'Дивитись знову',fn:'wToWn',args:[id]},...common,{icon:'trash',label:'Видалити',fn:'_menuDel',args:['watched',id],danger:1}],
+    watched:[{icon:'star',label:'Оцінка і коментар',fn:'myNote',args:[id,true]},!watching.some(x=>x.imdbID===it.imdbID)&&{icon:'play',label:'Дивитись знову',fn:'wToWn',args:[id]},...common,{icon:'trash',label:'Видалити',fn:'_menuDel',args:['watched',id],danger:1}],
     planned:[{icon:'check',label:'Переглянуто',fn:'plToW',args:[id]},{icon:'play',label:'Почати дивитись',fn:'plToWn',args:[id]},...common,{icon:'trash',label:'Видалити',fn:'_menuDel',args:['planned',id],danger:1}],
     watching:[ser&&{icon:'refresh',label:'Оновити дані ефіру',fn:'relive',args:[it.imdbID]},ser&&it.season<(it.totalSeasons||1)&&{icon:'plus',label:'Наступний сезон',fn:'adj',args:[id,'s',1]},ser&&it.season>1&&{icon:'minus',label:'Попередній сезон',fn:'adj',args:[id,'s',-1]},
       {icon:'check',label:'Переглянуто повністю',fn:'mvToW',args:[id]},...common,{icon:'trash',label:'Видалити',fn:'_menuDel',args:['watching',id],danger:1}],
@@ -467,7 +467,9 @@ function myNote(id,edit){
         <div class="stars" id="starsBox" role="radiogroup" aria-labelledby="starsLbl">${buildStars(it.rating||0)}</div>
         <input type="hidden" id="eR" value="${+it.rating||0}"></div>
       <div class="form-g"><label class="form-lbl" for="eCm">Коментар</label>
-        <textarea class="form-ta" id="eCm" rows="4" placeholder="Враження…">${esc(it.comment||'')}</textarea></div></div>
+        <textarea class="form-ta" id="eCm" rows="4" placeholder="Враження…">${esc(it.comment||'')}</textarea></div>
+      <div class="form-g"><label class="form-lbl" for="eC">Категорія</label>
+        <select class="form-sel" id="eC">${[['movie','Фільм'],['series','Серіал'],['anime','Аніме'],['cartoon','Мульт'],['other','Інше']].map(([v,l])=>`<option value="${v}"${(it.customCategory||it.type)===v?' selected':''}>${l}</option>`).join('')}</select></div></div>
     <div class="wb-acts"><button class="wb-b mn-save" data-act="mnSave">${ic('check')}Зберегти</button><button class="wb-b" data-act="mnView">Скасувати</button></div>`
     :`${it.comment?`<p class="mn-c">${esc(it.comment)}</p>`:'<p class="mn-c none">Коментаря ще немає</p>'}
     <div class="wb-acts"><button class="wb-b mn-edit" data-act="mnEdit">${ic('star')}${it.rating||it.comment?'Змінити оцінку й коментар':'Додати оцінку й коментар'}</button></div>`;
@@ -496,6 +498,7 @@ function mnSave(){
   const it=watched.find(i=>i.id===_mnId);if(!it)return;
   it.rating=parseInt(document.getElementById('eR')?.value)||0;
   it.comment=(document.getElementById('eCm')?.value||'').trim();
+  const c=document.getElementById('eC')?.value;if(c)it.customCategory=c;
   saveAll();rWatched();myNote(_mnId,false);toast('Збережено','ok',1600);
 }
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('mn-on')){mnClose();e.stopImmediatePropagation();}}); /* only the sheet, not the card under it */
