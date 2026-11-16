@@ -148,7 +148,8 @@ const COLL_PAGE_SIZE=12;
 async function loadCollections(force){
   const g=document.getElementById('collGrid');
   if(!TMDB_KEY||_tmdbBlocked){
-    g.innerHTML=`<div class="empty"><span class="empty-icon">${ic('stack')}</span><div class="empty-txt">Потрібен TMDB API-ключ у налаштуваннях, щоб визначати франшизи</div></div>`;
+    g.innerHTML=TMDB_KEY?`<div class="es"><span class="empty-icon">${ic('stack')}</span><b>TMDB зараз не відповідає</b><p>Франшизи визначаються через TMDB. Спробуй трохи згодом.</p></div>`
+      :`<div class="es"><span class="empty-icon">${ic('stack')}</span><b>Франшизи визначає TMDB</b><p>Додай безкоштовний ключ TMDB — і тут зберуться серії фільмів із твоїх списків.</p><button class="btn primary" data-act="openIO" data-args="[&quot;stKeys&quot;]">${ic('key')}Додати ключ</button></div>`;
     document.getElementById('collBar').innerHTML='';
     return;
   }

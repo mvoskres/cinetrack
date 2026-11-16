@@ -53,7 +53,7 @@ function _recCard(it){
   const open=`href="${href}" target="_blank" rel="noopener" data-act="_tsClickT" data-args="${A('$ev',`${it.mt}`,(it.id))}"`;
   return `<article class="rv-c" id="rc-${esc(String(it.k).replace(':','-'))}">
     <div class="rv-art"><a ${open} tabindex="-1"><img src="${poster}" alt="" loading="lazy" data-fb></a>
-      <button class="rv-x" data-act="recAct" data-args="${A(`${it.k}`,'hide')}" title="Не цікаво" aria-label="Не цікаво: ${esc(it.title)}">${ic('minus')}</button>
+      <button class="rv-x" data-act="recAct" data-args="${A(`${it.k}`,'hide')}" title="Не цікаво" aria-label="Не цікаво: ${esc(it.title)}">${ic('x')}</button>
       <button class="fa-lbl miss rv-add" data-act="recMenu" data-args="${A('$ev',`${it.k}`)}" aria-label="Додати: ${esc(it.title)}">${ic('plus')}Додати</button></div>
     <div class="fa-cap"><a class="fa-t" ${open}>${esc(it.title)}</a><span>${meta}</span>${it.note?`<em title="${esc(it.note)}">${esc(it.note)}</em>`:''}</div>
   </article>`;
@@ -87,7 +87,9 @@ function renderRecs(){
   }
   if(!_recs){if(!_recBusy)g.innerHTML='';return;}
   const shelves=_recs.shelves.map(s=>({...s,items:s.items.filter(fresh).filter(_recTypeOk)})).filter(s=>s.items.length);
-  const noKey=!TMDB_KEY?`<div class="recs-note">${ic('info')}<span>Більшість підбірок будує TMDB. Додай безкоштовний ключ у Налаштуваннях, щоб їх побачити.</span></div>`:'';
+  ['recsGenres','rv-hidden','recsRefresh'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.display=TMDB_KEY?'':'none';}); /* without a key they do nothing */
+  if(!TMDB_KEY){if(sub)sub.textContent='';g.innerHTML=`<div class="es"><span class="empty-icon">${ic('spark')}</span><b>Рекомендації будує TMDB</b><p>Додай безкоштовний ключ TMDB — і тут з’являться підбірки під твої смаки та популярне зараз.</p><button class="btn primary" data-act="openIO" data-args="[&quot;stKeys&quot;]">${ic('key')}Додати ключ</button></div>`;return;}
+  const noKey='';
   if(!shelves.length){g.innerHTML=noKey+`<div class="empty"><span class="empty-icon">${ic('spark')}</span><div class="empty-txt">Поки нічого не підібралось. Спробуй «Оновити» або інший тип</div></div>`;return;}
   /* each shelf is a horizontal strip; «Усі N» unfolds it into a grid */
   g.innerHTML=noKey+shelves.map(s=>{

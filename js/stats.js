@@ -121,7 +121,7 @@ function renderStats(){
     if(watched.filter(i=>ps(i.poster)).length<4)_sxWallPop(); /* 1.46: the wall behind it — your posters, or this week's popular ones */
     el.innerHTML=`<div class="es es-wall"><div class="es-bgw" aria-hidden="true" id="sxWall">${_sxWallHtml(watched.map(i=>posterSrc(i.poster)).filter(u=>u!=='data:,'))}</div><span class="empty-icon">${ic('film')}</span><b>Тут буде твій кінопортрет</b><p>Він складеться з «Переглянутого» — що більше тайтлів, то точніше.</p>
       <ul><li>${ic('star')}Улюблені жанри й твої оцінки проти IMDb</li><li>${ic('chart')}Десятиліття й роки, які дивишся найчастіше</li><li>${ic('spark')}Країни, з яких твоє кіно</li><li>${ic('play')}Скільки годин уже переглянуто</li><li>${ic('person')}Актори й режисери, яких бачиш найчастіше</li></ul>
-      <div class="prog" role="progressbar" aria-valuemin="0" aria-valuemax="10" aria-valuenow="${total}"><i style="width:${total*10}%"></i></div><small>${total} з 10 тайтлів — з 10 портрет стане змістовним</small></div>`;return;}
+      <div class="prog" role="progressbar" aria-valuemin="0" aria-valuemax="10" aria-valuenow="${total}"><i style="width:${total*10}%"></i></div><small>${total} з 10 тайтлів — з 10 портрет стане змістовним</small><p style="margin:14px 0 0"><button class="btn primary" data-act="searchOpen">${ic('search')}Додати переглянуте</button></p></div>`;return;}
 
   /* ── categories ── */
   const catCount={movie:0,series:0,anime:0,cartoon:0,other:0};

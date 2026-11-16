@@ -1910,7 +1910,7 @@ body.mn-on .mn-sh.over{z-index:900;} /* opened from a title card (ts-bg 800) */
 .es>b{display:block;color:var(--text);font-size:16px;margin-bottom:6px;}
 .es p{margin:0 auto 16px;font-size:14px;line-height:1.5;}
 .es ul{list-style:none;padding:0;margin:0 0 16px;display:grid;gap:8px;text-align:left;}
-.es li{display:flex;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--ink-2);color:var(--text);font-size:13.5px;}
+.es li{cursor:default;display:flex;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--ink-2);color:var(--text);font-size:13.5px;}
 .es li svg{width:16px;height:16px;color:var(--gold);flex:none;}
 .es .prog{height:6px;border-radius:3px;background:var(--ink-3);overflow:hidden;margin:4px 0 6px;}.es .prog i{display:block;height:100%;background:var(--gold);}
 .es small{font-size:12.5px;}
@@ -1982,3 +1982,9 @@ body.mn-on .mn-sh.over{z-index:900;} /* opened from a title card (ts-bg 800) */
 /* 1.48: TMDB's score (no IMDb one) is grey */
 .pc-m .imdb.tm{color:var(--muted);}
 @media(max-width:700px){.st-app{flex-wrap:wrap;}.st-app>div{flex:1 1 calc(100% - 90px);}.st-app>.btn{order:3;margin-left:54px;}.st-app-x{order:2;}}
+
+/* 1.49: the search answers with a reason */
+.sug-msg{padding:18px 4px;color:var(--muted);font-size:14px;line-height:1.5;grid-column:1/-1;}
+#suggestions .sug-msg .btn{display:inline-flex;align-items:center;gap:6px;margin-top:12px;min-height:40px;padding:0 16px;border-radius:10px;font-size:14px;width:auto;}
+#suggestions .sug-msg .btn svg{width:16px;height:16px;}
+.recs-note .btn{margin-left:auto;flex:none;}

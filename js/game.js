@@ -91,13 +91,14 @@ function loadGameTab(){
       <span class="gx-th">${thumb[k]}</span><span class="gx-ct"><b>${l}</b><span>${k!=='puzzle'&&_gameLocked()?`Відкриється з ${GAME_MIN} переглянутих · зараз ${watched.length}`:d}</span></span><span class="gx-chev" aria-hidden="true">›</span></button>`).join('')}</div>`;
     return;
   }
+  if(!_gxPhone()&&_gameLocked()&&!_gxPicked&&_game.type!=='puzzle')_game.type='puzzle'; /* 1.49: only П’ятнашки are open yet */
   const types=_gxPhone()?`<button class="gx-back" data-act="gxBack"><span aria-hidden="true">‹</span>Усі ігри</button>`
     :`<div class="gx-types" role="group" aria-label="Гра">${GL.map(([k,l,t])=>`<button class="gx-t${_game.type===k?' on':''}" aria-pressed="${_game.type===k}" data-act="setGameType" data-args="${A(`${k}`)}">
-      <span class="gx-th">${thumb[k]}</span><span class="gx-t-tx"><b>${l}</b><span>${t}</span></span></button>`).join('')}</div>`;
+      <span class="gx-th">${thumb[k]}</span><span class="gx-t-tx"><b>${l}</b><span>${k!=='puzzle'&&_gameLocked()?`з ${GAME_MIN} переглянутих`:t}</span></span></button>`).join('')}</div>`;
   if(_game.type==='puzzle'){el.innerHTML=types+pzScreen();return;}
   if(_game.type==='chrono'){el.innerHTML=types+chScreen();return;}
   const n=cnt[_game.filter],T=GAME_TYPES[_game.type],S=GX_SCREEN[_game.type],b=_gb();
-  const blocked=!TMDB_KEY||_tmdbBlocked?'Потрібен TMDB API-ключ у налаштуваннях, щоб підтягувати кадри й фото.':_gameLocked()?`Гра відкриється, коли в «Переглянутому» буде ${GAME_MIN} тайтлів. Зараз ${watched.length}.`:n<4?`Для гри потрібно щонайменше 4 переглянуті тайтли, а тут ${n}.`:'';
+  const blocked=!TMDB_KEY?'Кадри й фото бере TMDB — додай ключ у Налаштуваннях.':_tmdbBlocked?'TMDB зараз не відповідає, кадри й фото не завантажити. Спробуй трохи згодом.':_gameLocked()?`Гра відкриється, коли в «Переглянутому» буде ${GAME_MIN} тайтлів. Зараз ${watched.length}.`:n<4?`Для гри потрібно щонайменше 4 переглянуті тайтли, а тут ${n}.`:'';
   let bg='',peek='';
   if(_game.type==='frame'&&V.frame){const u=esc(img(V.frame,'w780'));bg=`<img class="gx-bg" src="${u}" alt="">`;peek=`<div class="gx-peek"><img src="${u}" alt=""><i>?</i></div>`;}
   else if(_game.type==='actor'&&V.faces.length){const u=esc(img(V.faces[0],'h632'));bg=`<img class="gx-bg" src="${u}" alt="">`;peek=`<div class="gx-peek gx-peek-p"><img src="${u}" alt=""><i>?</i></div>`;}
@@ -109,7 +110,7 @@ function loadGameTab(){
         <div class="gx-k">Впізнай ${T.what}</div>
         <h2 class="gx-q">${S.q}</h2>
         <p class="gx-d">${S.d}</p>
-        ${blocked?`<div class="recs-note">${ic('info')}<span>${blocked}</span></div>`:''}
+        ${blocked?`<div class="recs-note">${ic('info')}<span>${blocked}</span>${!TMDB_KEY?`<button class="btn" data-act="openIO" data-args="[&quot;stKeys&quot;]">Додати ключ</button>`:''}</div>`:''}
         <div class="gx-modes">
           <button class="gx-mode p" data-act="startGame" data-args="[&quot;streak&quot;]" ${blocked?'disabled':''}><b>Серія</b><span>до першої помилки · рекорд <span class="num">${b.streak}</span></span></button>
           <button class="gx-mode" data-act="startGame" data-args="[&quot;round&quot;]" ${blocked?'disabled':''}><b>Раунд з ${GAME_ROUND}</b><span>найкраще <span class="num">${b.round}</span> з ${GAME_ROUND}</span></button>
@@ -121,7 +122,8 @@ function loadGameTab(){
     <p class="game-keys">Клавіші: <kbd>1</kbd>–<kbd>4</kbd> відповідь · <kbd>Enter</kbd> далі · <kbd>Esc</kbd> вийти</p>`;
 }
 function setGameFilter(k){_game.filter=k;loadGameTab();}
-function setGameType(k){if(!GAME_TYPES[k]&&k!=='puzzle'&&k!=='chrono')return;_game.type=k;_game.next=null;_lsSet('ct_game_type',k);
+let _gxPicked=false;
+function setGameType(k){_gxPicked=true;if(!GAME_TYPES[k]&&k!=='puzzle'&&k!=='chrono')return;_game.type=k;_game.next=null;_lsSet('ct_game_type',k);
   if(_gxPhone()&&_gxList){_gxList=false;_gxLy=true;_lyOpen('gxGame',()=>{_gxLy=false;_gxList=true;loadGameTab();scrollTo(0,0);});
     loadGameTab();scrollTo(0,0);document.querySelector('#gameStart .gx-back')?.focus();return;}loadGameTab();}
 let _gxList=true; /* phone: the «Ігри» tab opens on the list of games */

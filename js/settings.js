@@ -39,7 +39,7 @@ const _stRow=(icon,title,sub,val,attrs)=>`<${attrs?.tag||'button'} class="stz-r"
 function _stDataHtml(){
   const n=_storageChars(),pct=Math.round(n/STORAGE_QUOTA_CHARS*100);
   return `<div class="stz-l">
-    ${_stRow('upload','Імпорт з IMDb / Letterboxd','CSV з оцінками або «Watchlist»','',{tag:'label',a:'for="csvFile" id="stCsv"'})}
+    ${_stRow('upload','Імпорт з IMDb / Letterboxd','IMDb: Your Ratings або Watchlist → ⋯ → Export (CSV). Letterboxd: Settings → Data → Export, розпакуй ZIP і вибери ratings.csv чи watched.csv','',{tag:'label',a:'for="csvFile" id="stCsv"'})}
     <input type="file" id="csvFile" accept=".csv,text/csv" data-change="doCsvImport" data-args="[&quot;$ev&quot;]" hidden><div id="csvBox" class="stz-in"></div>
     ${_stRow('refresh','Оновити франшизи','Нові частини, дати й постери. Само — раз на 2 тижні','',{a:'data-act="collRefreshFromSettings"'})}
     ${_stRow('check','Перевірка даних','Дублі й сумнівні категорії','',{a:'data-act="runCleanScan"'})}
@@ -58,7 +58,7 @@ function _stKeyRow(id,name,key,save,url,role,bad,hint){
       ${has?'':`<a href="${url}" target="_blank" rel="noopener" class="st-link">отримати ключ →</a>`}</div>
     ${bad?'<p class="st-hint" style="color:var(--rose)">TMDB недоступний з цієї мережі, спробуй VPN</p>':!has&&hint?`<p class="st-hint">${hint}</p>`:''}
     <div class="st-ed" id="${id}Ed"${has?' style="display:none"':''}>
-      <input class="api-inp" id="${id}K" type="text" placeholder="Вставте ключ…" aria-label="Ключ ${name}" data-enter="${save}">
+      <input class="api-inp" id="${id}K" type="text" placeholder="Встав ключ…" aria-label="Ключ ${name}" data-enter="${save}">
       <button class="st-save-btn" data-act="${save}">Зберегти</button>${has?`<a href="${url}" target="_blank" rel="noopener" class="st-link">отримати новий ключ →</a>`:''}</div>
     <div id="${id}Msg" class="st-msg"></div></div>`;
 }
@@ -92,8 +92,15 @@ function clearCaches(){
   const info=document.getElementById('stoInfo');if(info)info.innerHTML=_storageInfo();
   const m=document.getElementById('stoMsg');if(m){m.style.color='var(--jade-2)';m.textContent=`Звільнено ${(freed/1e6).toFixed(2)} млн символів`;}
 }
-function saveKey(){const v=(document.getElementById('apiK').value||'').trim(),m=document.getElementById('apiMsg');if(!v){m.style.color='var(--rose)';m.textContent='Введіть ключ';return;}API=v;_lsSet('ct_apikey',v);m.style.color='var(--jade-2)';m.textContent='Ключ збережено';openIO('stKeys');/* redraw: the row turns compact and OMDb leaves the top */}
-function saveTMDBKey(){const v=(document.getElementById('tmdbK').value||'').trim(),m=document.getElementById('tmdbMsg');if(!v){m.style.color='var(--rose)';m.textContent='Введіть ключ';return;}TMDB_KEY=v;_tmdbBlocked=false;_tmdbNetFails=0;_lsSet('ct_tmdbkey',v);/* Clear TMDB cache so next fetch uses the new key */Object.keys(_tmdbCache).forEach(k=>delete _tmdbCache[k]);document.getElementById('tmdbK').value='';openIO('stKeys');setTimeout(()=>{const n=document.getElementById('tmdbMsg');if(n){n.style.color='var(--jade-2)';n.textContent='Ключ збережено';}},0);refreshRecs();}
+function saveKey(){const v=(document.getElementById('apiK').value||'').trim(),m=document.getElementById('apiMsg');if(!v){m.style.color='var(--rose)';m.textContent='Встав ключ';return;}API=v;_lsSet('ct_apikey',v);m.style.color='var(--jade-2)';m.textContent='Ключ збережено';openIO('stKeys');/* redraw: the row turns compact and OMDb leaves the top */}
+async function saveTMDBKey(){
+  const inp=document.getElementById('tmdbK'),m=document.getElementById('tmdbMsg'),v=(inp?.value||'').trim();
+  if(!v){m.style.color='var(--rose)';m.textContent='Встав ключ';return;}
+  m.style.color='var(--muted)';m.textContent='Перевіряю ключ…';
+  const r=await _tmdbKeyTry(v);
+  if(r!=='ok'){const n=document.getElementById('tmdbMsg');if(n){n.style.color='var(--rose)';n.textContent=_TMDB_KEY_MSG[r];}inp?.focus();return;}
+  openIO('stKeys');setTimeout(()=>{const n=document.getElementById('tmdbMsg');if(n){n.style.color='var(--jade-2)';n.textContent='Ключ збережено';}},0);
+}
 /* Quiet maintenance: both fixers touch no DOM and return how many titles they changed.
    They run by themselves (after an import, and weekly), see runMaintenance. */
 async function fixAnime(){
@@ -514,7 +521,7 @@ addEventListener('beforeinstallprompt',e=>{e.preventDefault();_instEvt=e;const b
 addEventListener('appinstalled',()=>{_instEvt=null;document.getElementById('stApp')?.remove();});
 function _stAppHtml(){
   let hid=false;try{hid=sessionStorage.getItem('ct_app_hide')==='1';}catch(e){}
-  if(!_instEvt||_isApp()||hid)return '';
+  if(!_instEvt||_isApp()||hid||!TMDB_KEY)return '';
   return `<div class="st-app" id="stApp"><span class="st-app-ic" aria-hidden="true">Кп</span><div><b>Встановити Кінопис</b><small>Як застосунок на головному екрані чи робочому столі: без адресного рядка, одним дотиком.</small></div><button class="btn primary" data-act="appInstall">Встановити</button><button class="st-app-x" data-act="appHide" aria-label="Сховати до наступного відкриття">✕</button></div>`;
 }
 function appHide(){try{sessionStorage.setItem('ct_app_hide','1');}catch(e){}document.getElementById('stApp')?.remove();}
@@ -593,6 +600,7 @@ function doImport(e,mode,asked){
 
 /* ── VERSION and CHANGELOG: newest first; bump APP_VERSION and add an entry with every change pushed to the site ── */
 const CHANGELOG=[
+  {v:'1.49',d:'16.11.2026',n:['Пошук більше не мовчить: без ключа пояснює й веде додати ключ, а коли нічого не знайдено — так і каже','Ключ TMDB у Налаштуваннях перевіряється так само, як у картці «Почнімо» (і розпізнає довгий «Read Access Token»); після збереження все одразу оновлюється','Порожній список — без рядка «Знайти в списку / Фільтри»','Без ключа: Рекомендації, Франшизи й Ігри пояснюють, навіщо ключ, і мають кнопку «Додати ключ»','Імпорт підказує, де взяти CSV в IMDb і Letterboxd','Дрібниці: «Не цікаво» в рекомендаціях — ✕; на комп’ютері до 20 переглянутих Ігри відкриваються на П’ятнашках; «Встановити» — лише коли є ключ; звертання скрізь на «ти»; у порожній Статистиці — кнопка «Додати переглянуте»']},
   {v:'1.48.3',d:'16.11.2026',n:['Прибрано стилі, що лишились від старих Налаштувань і старої заглушки статистики']},
   {v:'1.48.2',d:'16.11.2026',n:['Вигляд: пояснення, що вибране в Налаштуваннях зберігається й переходить із бекапом, а перемикач над списком — лише до наступного відкриття']},
   {v:'1.48.1',d:'16.11.2026',n:['Бекап: в обох картках однакові кнопки — «Зберегти» (головна) і «Відновити…», без повторів назви картки','Телефон: у картці «Встановити Кінопис» кнопка під текстом']},

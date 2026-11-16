@@ -30,9 +30,20 @@ function handleSearch(){const q=document.getElementById('searchInput').value.tri
 const _sCache={};
 /* TMDB answers in Ukrainian and does not spend the 1000/day OMDb quota */
 async function doSearch(q){
+  if(!TMDB_KEY&&!API){_sugMsg(`Пошук працює з ключем TMDB — без нього шукати ніде.<br><button class="btn primary" data-act="srchKey">${ic('key')}Додати ключ</button>`);return;}
   if(TMDB_KEY&&!_tmdbBlocked){try{if(await _tmdbSearch(q))return;}catch(e){console.warn('TMDB search:',e);}}
+  if(!API){if(document.getElementById('searchInput').value.trim()===q)_sugNone(q);return;}
   return _omdbSearch(q);
 }
+/* 1.49: the search always answers — a reason or «nothing found» instead of a silent empty box */
+function _sugMsg(html){
+  const box=document.getElementById('suggestions');if(!box)return;
+  box.classList.remove('hidden');box.innerHTML=`<div class="sug-msg">${html}</div>`;
+  document.querySelector('#srch .search-wrap')?.classList.remove('loading');_sugSync('searchInput','suggestions');
+}
+function _sugNone(q){_sugMsg(`За «${esc(q)}» нічого не знайшлось. Спробуй оригінальну назву або додай рік.`);}
+/* no key: close the search and go where the key goes in */
+function srchKey(){searchClose();if(!watched.length){goTab('watched');setTimeout(()=>document.getElementById('obKey')?.focus(),350);}else openIO('stKeys');}
 let _ownIdx=null;
 /* "movie:603" -> imdbID, from the two TMDB id caches; rebuilt per search, both only grow */
 function _tmdbOwnedId(mt,id){
@@ -96,8 +107,8 @@ async function _omdbSearch(q){
       if(r&&r.Search)_sCache[q]=r;
     }
     if(document.getElementById('searchInput').value.trim()!==q)return; /* typed on meanwhile (as in the TMDB path) */
-    if(!r||!r.Search){hideSug();return;}
-    const res=r.Search.filter(m=>m.Type!=='episode');if(!res.length){hideSug();return;}
+    if(!r||!r.Search){_sugNone(q);return;}
+    const res=r.Search.filter(m=>m.Type!=='episode');if(!res.length){_sugNone(q);return;}
     const box=document.getElementById('suggestions');box.classList.remove('hidden');
     document.querySelector('#srch .search-wrap').classList.remove('loading');
     box.innerHTML=res.slice(0,10).map(m=>{
@@ -468,7 +479,7 @@ function rWatched(){
 function _onboard(){
   const k=!!TMDB_KEY;
   return `<section class="ob" aria-labelledby="obH"><h3 id="obH">${k?'Залишився один крок':'Почнімо з двох кроків'}</h3>
-    <p class="ob-d">Кінопис бере назви, постери й описи з TMDB — безкоштовної бази фільмів. Для цього потрібен твій особистий ключ.</p>
+    <p class="ob-d">${k?'Ключ є — додай перші фільми, і тут з’явиться твоя колекція.':'Кінопис бере назви, постери й описи з TMDB — безкоштовної бази фільмів. Для цього потрібен твій особистий ключ.'}</p>
     <div class="ob-bk"><div class="ob-bk-h">${ic('upload')}<span><b>Вже маєш бекап?</b><small>Разом зі списками повернуться й ключі</small></span></div>
       <div class="ob-row ob-bk-a"><button class="btn" data-act="gdSignIn">З Google Drive</button><label class="btn" for="obFile">З файлу</label><input type="file" id="obFile" accept=".json" data-change="doImport" data-args="[&quot;$ev&quot;]" hidden></div></div>
     <div class="ob-s${k?' done':''}"><span class="ob-n">${k?ic('check'):'1'}</span><b>${k?'Ключ TMDB додано':'Отримай ключ TMDB'}</b>
@@ -484,16 +495,26 @@ function _onboard(){
       <div class="ob-l">${ic('bookmark')}<b>Планую</b><small>Черга: що хочеш подивитись колись.</small></div></div>
   </section>`;
 }
+/* 1.49: the TMDB key — checked the same way from the first-visit card and from Settings */
+async function _tmdbKeyTry(v){
+  if(!/^[0-9a-f]{32}$/i.test(v))return /^eyJ/.test(v)?'token':'fmt';
+  const old=TMDB_KEY;TMDB_KEY=v;_tmdbBlocked=false;_tmdbNetFails=0;Object.keys(_tmdbCache).forEach(k=>delete _tmdbCache[k]);
+  let ok=false,st=0;try{ok=!!(await tmdbFetch('/configuration',8000,true))?.images;}catch(e){st=e?.status||0;}
+  if(!ok){TMDB_KEY=old;return st===401?'bad':'net';}
+  _lsSet('ct_tmdbkey',v);
+  _dockWallDone=false;_dockWall();rWatched();if(typeof refreshRecs==='function')refreshRecs();
+  return 'ok';
+}
+const _TMDB_KEY_MSG={fmt:'Схоже, це не той ключ: потрібен «API Key» — 32 символи з цифр і літер a–f',
+  token:'Це «Read Access Token» (довгий, починається з eyJ). Потрібен коротший «API Key» — 32 символи, він на тій самій сторінці',
+  bad:'TMDB не прийняв цей ключ: перевір, чи скопійовано повністю',net:'TMDB зараз не відповідає. Спробуй ще раз трохи згодом (або з VPN)'};
 async function obSaveKey(){
   const inp=document.getElementById('obKey'),m=document.getElementById('obMsg'),v=(inp?.value||'').trim();
   const say=(t,bad)=>{if(m){m.textContent=t;m.classList.toggle('bad',!!bad);}};
-  if(!/^[0-9a-f]{32}$/i.test(v)){say('Схоже, це не той ключ: потрібен «API Key» — 32 символи з цифр і літер a–f',true);inp?.focus();return;}
   say('Перевіряю ключ…');
-  const old=TMDB_KEY;TMDB_KEY=v;_tmdbBlocked=false;_tmdbNetFails=0;Object.keys(_tmdbCache).forEach(k=>delete _tmdbCache[k]);
-  let ok=false,st=0;try{ok=!!(await tmdbFetch('/configuration',8000,true))?.images;}catch(e){st=e?.status||0;}
-  if(!ok){TMDB_KEY=old;say(st===401?'TMDB не прийняв цей ключ: перевір, чи скопійовано повністю':'TMDB зараз не відповідає. Спробуй ще раз трохи згодом (або з VPN)',true);inp?.focus();return;}
-  _lsSet('ct_tmdbkey',v);toast('Ключ TMDB збережено','ok',2000);
-  _dockWallDone=false;_dockWall();rWatched();
+  const r=await _tmdbKeyTry(v);
+  if(r!=='ok'){say(_TMDB_KEY_MSG[r],true);inp?.focus();return;}
+  toast('Ключ TMDB збережено','ok',2000);
   document.querySelector('.ob [data-act="searchOpen"]')?.focus();
 }
 

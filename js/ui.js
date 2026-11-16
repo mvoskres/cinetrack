@@ -226,7 +226,7 @@ function _seRender(){
     +(ppl.length?`<section class="se-s"><div class="se-h"><h3>Люди, за якими стежиш</h3></div><div class="se-p">${ppl.map(p=>`<button class="se-f" data-act="seFace" data-args="${A(p.id,p.name,p.profile)}"><img src="${_tsImg(p.profile,'w185')}" alt="" loading="lazy"><span>${esc(p.name)}</span></button>`).join('')}</div></section>`:'');
 }
 function _seShow(){const q=document.getElementById('searchInput')?.value.trim();const el=document.getElementById('srchEmpty');if(el)el.hidden=!!q;
-  document.getElementById('srchHint')?.toggleAttribute('hidden',!q&&!!el?.innerHTML.trim());}
+  document.getElementById('srchHint')?.toggleAttribute('hidden',!!q||!!el?.innerHTML.trim());}
 function seRun(q){const i=document.getElementById('searchInput');if(!i)return;i.value=q;handleSearch();i.focus({preventScroll:true});}
 function seClear(){_lsSet(_SE_KEY,'[]');_seRender();_seShow();}
 function seOpen(imdb){searchSuspend();openTitle(imdb);}

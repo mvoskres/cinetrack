@@ -51,7 +51,7 @@ function _lsBadRelease(){
   _lsBad.clear();
 }
 function _lsSet(k,v){
-  if(_lsBad.has(k)){try{toast('Збережене в браузері «'+k+'» пошкоджено, тому зміни не записуються, щоб не затерти його. Відновіть дані з бекапу: Налаштування','err',9000);}catch(_){}return false;}
+  if(_lsBad.has(k)){try{toast('Збережене в браузері «'+k+'» пошкоджено, тому зміни не записуються, щоб не затерти його. Віднови дані з бекапу: Налаштування','err',9000);}catch(_){}return false;}
   try{localStorage.setItem(k,v);return true;}catch(e){}
   _freeCacheSpace();
   if(k==='ct_apicache')return true; /* _freeCacheSpace just wrote the pruned cache */
@@ -178,6 +178,8 @@ const S_WN =[['air','За ефіром'],...S_ALL]; /* Дивлюсь: «За е
 
 function tList(t){return t==='watched'?watched:t==='watching'?watching:planned;}
 function barId(t) {return{watched:'wBar',watching:'wnBar',planned:'plBar'}[t];}
+/* 1.49: an empty list has nothing to search or filter — the row would only be mistaken for the title search */
+function _barEmpty(t){const b=document.getElementById(barId(t));if(b)b.style.display=tList(t).length?'':'none';}
 function tagsId(t){return{watched:'wTags',watching:'wnTags',planned:'plTags'}[t];}
 function fN(t){const f=F[t];return f.cats.length+f.genres.length+f.decades.length+(f.ratings?.length||0)+(f.tags?.length||0)+(f.air?.length||0);}
 
@@ -476,7 +478,7 @@ function save(){
   updateStats();
   return !failed;
 }
-function saveAll(){const ok=save();['watched','watching','planned'].forEach(buildBar);if(typeof _bkNudge==='function')_bkNudge();return ok;}
+function saveAll(){const ok=save();['watched','watching','planned'].forEach(buildBar);['watched','watching','planned'].forEach(_barEmpty);if(typeof _bkNudge==='function')_bkNudge();return ok;}
 function updateStats(){
   const nf=n=>n.toLocaleString('uk-UA'),cn={watched:watched.length,watching:watching.length,planned:planned.length};
   document.querySelectorAll('[data-nb]').forEach(el=>{el.textContent=nf(cn[el.dataset.nb]??0);});
