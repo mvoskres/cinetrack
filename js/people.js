@@ -136,7 +136,7 @@ function _personUk(uk,en){
   const out={},enT={};
   if(en)[...(en.cast||[]),...(en.crew||[])].forEach(c=>{enT[(c.media_type==='tv'?'tv':'movie')+':'+c.id]=c.title||c.name;});
   [...(uk?.cast||[]),...(uk?.crew||[])].forEach(c=>{const k=(c.media_type==='tv'?'tv':'movie')+':'+c.id;
-    const t=_ukTitle(c.title||c.name,c.original_title||c.original_name,enT[k]);if(t)out[k]=t;});
+    const t=_ukTitle(c.title||c.name,c.original_title||c.original_name,enT[k],c.original_language);if(t)out[k]=t;});
   return out;
 }
 function _personAllCredits(credits){

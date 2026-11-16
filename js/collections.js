@@ -30,7 +30,7 @@ async function _fetchCollection(id){
   const old={};(_collDetails[id]?.parts||[]).forEach(p=>{old[p.id]=p;});
   const ukp={};(uk?.parts||[]).forEach(p=>{ukp[p.id]=p;});
   _collDetails[id]={name:d.name,uname:uk?_ukTitle(uk.name,'',d.name):'',uk:uk?1:0,poster:d.poster_path,ts:Date.now(),
-    parts:(d.parts||[]).filter(p=>p.title).map(p=>({id:p.id,title:p.title,ut:_ukTitle(ukp[p.id]?.title,p.original_title,p.title),year:(p.release_date||'').slice(0,4),date:p.release_date||'',
+    parts:(d.parts||[]).filter(p=>p.title).map(p=>({id:p.id,title:p.title,ut:_ukTitle(ukp[p.id]?.title,p.original_title,p.title,p.original_language),year:(p.release_date||'').slice(0,4),date:p.release_date||'',
       poster:p.poster_path||null,vote:typeof p.vote_average==='number'&&p.vote_count>=20?Math.round(p.vote_average*10)/10:null,
       imdbID:old[p.id]?.imdbID,imdbRating:old[p.id]?.imdbRating}))};
 }
@@ -46,7 +46,7 @@ async function _collUkFill(){
       try{const uk=await tmdbFetch(`/collection/${id}?language=uk-UA`);const det=_collDetails[id];if(!uk||!det)return;
         const ukp={};(uk.parts||[]).forEach(p=>{ukp[p.id]=p;});
         det.uname=_ukTitle(uk.name,'',det.name);
-        (det.parts||[]).forEach(p=>{const u=ukp[p.id];if(u)p.ut=_ukTitle(u.title,u.original_title,p.title);});
+        (det.parts||[]).forEach(p=>{const u=ukp[p.id];if(u)p.ut=_ukTitle(u.title,u.original_title,p.title,u.original_language);});
         det.uk=1;any=true;fails=0;}catch(e){fails++;}
     }));
   }

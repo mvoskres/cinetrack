@@ -335,3 +335,11 @@ def _add_no_omdb(c):
         c.wait("planned.some(i=>i.imdbID==='tt7770001'&&i.title)", 4, 'тайтл додано без OMDb')
     finally:
         c.eval("API=window.__api;tmdbFetch=window.__tf;planned=planned.filter(i=>i.imdbID!=='tt7770001');save()")
+
+
+@scenario('uk-title/ukrainian-original', modes=('android',))
+def _uk_orig(c):
+    # українська назва українського фільму = оригінальна; її треба брати, а японську «назву» японського — ні
+    c.assert_(c.eval("_ukTitle('Довбуш','Довбуш','Dovbush','uk')") == 'Довбуш', 'українську оригінальну назву відкинуто')
+    c.assert_(c.eval("_ukTitle('七人の侍','七人の侍','Seven Samurai','ja')") == '', 'японську оригінальну назву взято як українську')
+    c.assert_(c.eval("_ukTitle('Сім самураїв','七人の侍','Seven Samurai','ja')") == 'Сім самураїв', 'переклад відкинуто')

@@ -239,7 +239,9 @@ function blank(){return"data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/200
 /* Map OMDb genre names to TMDB genre IDs for discover endpoint */
 /* a Ukrainian title is used only when TMDB really translated it: an untranslated entry repeats the original
    (Chinese, Japanese…) and then the English title reads better */
-function _ukTitle(loc,orig,en){loc=(loc||'').trim();return loc&&loc!==orig&&loc!==en?loc:'';}
+/* the Ukrainian title, if TMDB has one: a «translation» equal to the original is usually just the original repeated
+   (a Japanese film keeps its Japanese name) — unless the film itself is Ukrainian (lang 'uk'), then that IS the title (1.49.3) */
+function _ukTitle(loc,orig,en,lang){loc=(loc||'').trim();return loc&&loc!==en&&(loc!==orig||lang==='uk')?loc:'';}
 /* «Термінатор | Колекція», «Terminator Collection» → «Термінатор» */
 function _collName(det,fallback){return String(det?.uname||det?.name||fallback||'').replace(/\s*[|(]\s*Колекці[яї]\)?\s*$/i,'').replace(/ Collection$/,'');}
 let _ukListBusy=false;
@@ -254,7 +256,7 @@ async function _ukListFill(){
       try{
         const d=await tmdbFetch(`/find/${i.imdbID}?external_source=imdb_id&language=uk-UA`);
         const m=d?.movie_results?.[0],t=d?.tv_results?.[0],r=i.type==='series'?(t||m):(m||t);
-        _ukList[i.imdbID]=r?_ukTitle(r.title||r.name,r.original_title||r.original_name,i.title):'';
+        _ukList[i.imdbID]=r?_ukTitle(r.title||r.name,r.original_title||r.original_name,i.title,r.original_language):'';
         if(!_findCache[i.imdbID]&&(m||t)){_findCache[i.imdbID]={m:m?.id||0,t:t?.id||0};}
         fails=0;n++;
       }catch(e){fails++;}

@@ -6,6 +6,9 @@ if(!TMDB_KEY&&(watched.length||watching.length||planned.length))
 _backupStateRender();
 _versionNotice();
 if(!API)setTimeout(_tmdbRatingFill,4000); /* 1.48: no OMDb key — TMDB scores for the titles that have none */
+/* 1.49.3: Ukrainian films were stored without their Ukrainian title (it equals the original one) — ask TMDB again, once */
+try{if(!localStorage.getItem('ct_uk_fix1')){let n=0;[...watched,...watching,...planned].forEach(i=>{if(/Ukraine/i.test(i.country||'')&&_ukList[i.imdbID]===''){delete _ukList[i.imdbID];n++;}});
+  if(n)_lsSet('ct_uk_titles',JSON.stringify(_ukList));_lsSet('ct_uk_fix1','1');}}catch(e){}
 setTimeout(_ukListFill,2500);
 /* a user key that would not parse was left untouched in storage (core.js _lsJSON): say so, loudly */
 if(_lsBad.size)setTimeout(()=>toast('Не вдалося прочитати збережене в браузері: '+[..._lsBad].join(', ')+'. Воно лишилось як є, нічого не перезаписано. Віднови дані з бекапу: Налаштування','err',15000),500);
