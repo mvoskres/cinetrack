@@ -483,12 +483,16 @@ function _onboard(){
     <div class="ob-bk"><div class="ob-bk-h">${ic('upload')}<span><b>Вже маєш бекап?</b><small>Разом зі списками повернуться й ключі</small></span></div>
       <div class="ob-row ob-bk-a"><button class="btn" data-act="gdSignIn">З Google Drive</button><label class="btn" for="obFile">З файлу</label><input type="file" id="obFile" accept=".json" data-change="doImport" data-args="[&quot;$ev&quot;]" hidden></div></div>
     <div class="ob-s${k?' done':''}"><span class="ob-n">${k?ic('check'):'1'}</span><b>${k?'Ключ TMDB додано':'Отримай ключ TMDB'}</b>
-      ${k?'':`<small>Безкоштовно, ~2 хвилини: зареєструйся на themoviedb.org і скопіюй «API Key» у розділі API.</small>
-      <div class="ob-row"><a class="btn" href="https://www.themoviedb.org/settings/api" target="_blank" rel="noopener">Відкрити themoviedb.org ↗</a></div>
+      ${k?'':`<ol class="ob-how">
+        <li><span>Зареєструйся на themoviedb.org і підтверди пошту — лист прийде за хвилину.</span></li>
+        <li><span>Відкрий <b>Settings → API → Create → Developer</b>. Анкета англійською: назва застосунку будь-яка (напр. «Kinopys»), сайт — <code>mvoskres.github.io</code>, мета — «personal use».</span></li>
+        <li><span>Скопіюй рядок <b>API Key</b> і встав нижче.</span></li></ol>
+      <p class="ob-warn">На тій сторінці два ключі. Потрібен <b>API Key</b> — 32 символи (цифри й a–f). Довгий «API Read Access Token», що починається з <code>eyJ</code>, не підійде.</p>
+      <div class="ob-row"><a class="btn" href="https://www.themoviedb.org/settings/api" target="_blank" rel="noopener">Відкрити themoviedb.org/settings/api ↗</a></div>
       <div class="ob-row"><input class="api-inp" id="obKey" type="text" placeholder="Встав ключ сюди" aria-label="Ключ TMDB" autocomplete="off" spellcheck="false" data-enter="obSaveKey"><button class="btn primary" data-act="obSaveKey">Зберегти</button></div>
       <p class="ob-msg" id="obMsg" role="status"></p>`}</div>
-    <div class="ob-s${k?'':' off'}"><span class="ob-n">2</span><b>Додай перші фільми</b><small>Знайди через пошук або перенеси все переглянуте з IMDb чи Letterboxd.</small>
-      <div class="ob-row"><button class="btn${k?' primary':''}" data-act="searchOpen" ${k?'':'disabled'}>${ic('search')}Пошук</button><button class="btn" data-act="openIO" data-args="[&quot;stCsv&quot;]" ${k?'':'disabled'}>${ic('upload')}Імпорт з IMDb / Letterboxd</button></div></div>
+    <div class="ob-s${k?'':' off'}"><span class="ob-n">2</span><b>Додай перші фільми</b><small>Обери з популярного зараз і найкращого за всі часи, знайди через пошук або перенеси все з IMDb чи Letterboxd.</small>
+      <div class="ob-row"><button class="btn${k?' primary':''}" data-act="goTab" data-args="[&quot;recs&quot;]" ${k?'':'disabled'}>${ic('spark')}Обрати з популярного</button><button class="btn" data-act="searchOpen" ${k?'':'disabled'}>${ic('search')}Пошук</button><button class="btn" data-act="openIO" data-args="[&quot;stCsv&quot;]" ${k?'':'disabled'}>${ic('upload')}Імпорт з IMDb / Letterboxd</button></div></div>
     <div class="ob-lists"><h4>Три списки — для чого кожен</h4>
       <div class="ob-l">${ic('check')}<b>Переглянуте</b><small>Що вже бачив. Тут ставиш оцінку й пишеш враження — з цього будуються статистика, рекомендації й ігри.</small></div>
       <div class="ob-l">${ic('play')}<b>Дивлюсь</b><small>Серіали, які дивишся зараз: на якій ти серії, коли вийде наступна.</small></div>
@@ -515,7 +519,7 @@ async function obSaveKey(){
   const r=await _tmdbKeyTry(v);
   if(r!=='ok'){say(_TMDB_KEY_MSG[r],true);inp?.focus();return;}
   toast('Ключ TMDB збережено','ok',2000);
-  document.querySelector('.ob [data-act="searchOpen"]')?.focus();
+  document.querySelector('.ob [data-act="goTab"]')?.focus();
 }
 
 /* ── RENDER PLANNED ── */

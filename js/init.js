@@ -21,6 +21,18 @@ function _bkNudge(){
     <div class="nb-a"><button class="btn primary" data-act="gdSignIn">На Google Drive</button><button class="btn" data-act="doExport">У файл</button><button class="btn nb-later" data-act="bkLater">Пізніше</button></div>
     <small class="nb-n">Drive зберігає сам раз на кілька днів; файл — коли натиснеш.</small></div></div>`:'';
 }
+/* 1.50: titles 1–19 — what the ratings feed, and how far to Статистика (10) and Ігри (20); ✕ hides it for good */
+function _hlRender(){
+  const el=document.getElementById('hlLine');if(!el)return;
+  let hid=false;try{hid=localStorage.getItem('ct_hl_hide')==='1';}catch(e){}
+  const n=watched.length;
+  if(hid||n<1||n>=GAME_MIN){el.innerHTML='';return;}
+  const rated=watched.filter(i=>+i.rating).length,bar=(v,m)=>`<i aria-hidden="true"><em style="width:${Math.min(100,Math.round(v/m*100))}%"></em></i>`;
+  el.innerHTML=`<div class="hl" role="note">${ic('star')}<span class="hl-t"><b>Оціни переглянуте</b> — з оцінок будуються рекомендації й статистика · оцінено ${rated} з ${n}</span>
+    <span class="hl-s"><span>Статистика ${bar(n,10)} ${Math.min(n,10)}/10</span><span>Ігри ${bar(n,GAME_MIN)} ${n}/${GAME_MIN}</span></span>
+    <button class="hl-x" data-act="hlHide" aria-label="Сховати підказку">✕</button></div>`;
+}
+function hlHide(){_lsSet('ct_hl_hide','1');_hlRender();}
 function bkLater(){_lsSet('ct_bk_later',String(Date.now()+7*864e5));_bkNudge();}
 function _backupStateRender(){
   const last=parseInt(localStorage.getItem('ct_last_export')||'0');
@@ -29,6 +41,6 @@ function _backupStateRender(){
   document.querySelectorAll('[data-bk]').forEach(el=>{el.textContent=t;el.classList.toggle('stale',stale);});
   document.querySelectorAll('.dock .av').forEach(el=>el.classList.toggle('stale',stale));
   const me=document.getElementById('backupState');if(me)me.title='Налаштування · '+t;
-  _bkNudge();
+  _bkNudge();_hlRender();
   const bs=document.querySelector('#stBackup .bk-st');if(bs&&typeof _stBackupHtml==='function'){const t=document.createElement('div');t.innerHTML=_stBackupHtml();const n=t.querySelector('.bk-st');if(n)bs.replaceWith(n);}
 }
