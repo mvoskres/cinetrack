@@ -263,7 +263,7 @@ function setView(t,v){_views[t]=v;buildBar(t);rerender(t);}
 function setViewDef(t,v){_viewDef[t]=v;_lsSet('ct_views_def',JSON.stringify(_viewDef));delete _views[t];buildBar(t);rerender(t);const el=document.getElementById('stView');if(el)el.outerHTML=_stViewHtml();} /* redraw only this block: reopening the whole settings modal made it flicker and jump */
 function _stViewHtml(){
   const row=(t,n,icn)=>`<div class="stz-r stz-static">${ic(icn)}<span class="stz-t"><b>${n}</b><small>відкривається як</small></span><span class="stz-v"><span class="seg" role="group" aria-label="${n}: вигляд за замовчуванням">${VIEWS.map(([k,l])=>`<button class="seg-b${viewDefOf(t)===k?' on':''}" aria-pressed="${viewDefOf(t)===k}" data-act="setViewDef" data-args="${A(`${t}`,`${k}`)}">${l}</button>`).join('')}</span></span></div>`;
-  return `<div class="stz-l" id="stView">${row('watched','Переглянуте','film')}${row('planned','Планую','bookmark')}<p class="stz-note">Перемикач над списком змінює вигляд лише до наступного відкриття сайту</p></div>`;
+  return `<div class="stz-l" id="stView">${row('watched','Переглянуте','film')}${row('planned','Планую','bookmark')}<p class="stz-note">Вибране тут зберігається й переходить разом із бекапом. Перемикач над самим списком змінює вигляд лише до наступного відкриття сайту.</p></div>`;
 }
 
 function viewSeg(t){
