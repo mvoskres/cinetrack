@@ -28,6 +28,7 @@
         await _gdTokFetch('select_account'); /* drive.js; Google refuses emails that are not Test users */
         try{localStorage.setItem('ct_gate','1');}catch(e){}
         document.documentElement.classList.remove('locked');g.remove();
+        try{if(typeof gdAfterGate==='function')gdAfterGate();}catch(e){} /* drive.js: that sign-in already allows Drive */
       }catch(e){
         const m=e&&e.message||'';
         err.textContent=m==='net'?'Немає звʼязку з Google. Перевір інтернет і спробуй ще раз.'

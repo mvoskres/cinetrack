@@ -139,6 +139,16 @@ async function gdSignIn(){
     await gdAuto(true);
   }catch(e){_gdFail(e);}
 }
+/* 1.49.1: the entry sign-in already grants Drive — connect it right away and, if a backup is there, offer it
+   (someone coming back would otherwise start with empty lists and a second Google window) */
+async function gdAfterGate(){
+  try{
+    const u=await(await _gdApi('about?fields=user(emailAddress)')).json();
+    _lsSet('ct_gd_on','1');_lsSet('ct_gd_email',u.user?.emailAddress||'');
+    _gdRender();if(typeof _bkNudge==='function')_bkNudge();
+    await _gdCheckRemote();
+  }catch(e){console.warn('Drive after sign-in:',e);}
+}
 function gdSignOut(){
   try{if(_gdTok&&window.google?.accounts?.oauth2)google.accounts.oauth2.revoke(_gdTok);}catch(e){}
   _gdTokClr();
