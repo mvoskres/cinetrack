@@ -172,7 +172,8 @@ function aFetch(p,retries=2){
 
 /* ── HELPERS ── */
 /* poster URL from OMDb/TMDB/a file: http(s) or nothing ('N/A' and javascript: both end up as '') */
-function ps(p){return safeUrl(p);}
+const _POSTER_RE=/^https:\/\/(m\.media-amazon\.com|image\.tmdb\.org)\/[\w\-./%@,+~=]+$/;
+function ps(p){const u=safeUrl(p);return _POSTER_RE.test(u)?u:'';} /* 1.49.2: posters come only from the two hosts the CSP lets images load from */
 /* A card poster that 404s (OMDb's Amazon links rot) or was never stored ('data:,' fails on purpose):
    TMDB /find first — the title sheet already shows TMDB posters — then OMDb; the found URL is saved on
    the item so it is fixed once. Queued 3 at a time: a grid can hold dozens of broken posters */

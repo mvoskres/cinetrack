@@ -137,6 +137,7 @@ let _gameRun=0;
 function startGame(mode){
   _gameRun++;if(typeof _pzStop==='function')_pzStop();if(typeof _chStop==='function')_chStop();document.querySelector('#gameModalBg .game-modal')?.classList.remove('pz-on');
   mode=mode||_game.mode;
+  if(!Object.hasOwn(GAME_TYPES,_game.type))_game.type='frame'; /* 1.49.2: П’ятнашки/Хронологія start elsewhere */
   const pool=_gameEligible().filter(i=>_game.filter==='all'||_gameKind(i)===_game.filter);
   if(pool.length<4||_gameLocked())return;
   _game={..._game,mode,pool,q:0,score:0,streak:0,recent:[],used:new Set(),log:[],answered:true,current:null,next:null};

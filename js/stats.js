@@ -16,8 +16,8 @@ const SX_GENRE={Action:'Бойовик',Adventure:'Пригоди',Animation:'А
 const SX_GENRE_PL={Action:'бойовики',Adventure:'пригоди',Animation:'анімація',Biography:'біографії',Comedy:'комедії',Crime:'кримінальне кіно',
   Documentary:'документальне кіно',Drama:'драми',Family:'сімейне кіно',Fantasy:'фентезі',History:'історичне кіно',Horror:'жахи',Music:'музичне кіно',
   Musical:'мюзикли',Mystery:'детективи',Romance:'мелодрами','Sci-Fi':'фантастика',Sport:'спортивне кіно',Thriller:'трилери',War:'воєнне кіно',Western:'вестерни'};
-const sxGenre=g=>SX_GENRE[g]||g;
-const sxGenrePl=g=>SX_GENRE_PL[g]||sxGenre(g).toLowerCase();
+const sxGenre=g=>Object.hasOwn(SX_GENRE,g)?SX_GENRE[g]:g; /* 1.49.2: own keys only — «constructor» from a file is just a word */
+const sxGenrePl=g=>Object.hasOwn(SX_GENRE_PL,g)?SX_GENRE_PL[g]:String(sxGenre(g)).toLowerCase();
 /* OMDb gives English country names: map them to ISO codes once, then let the browser name them in Ukrainian */
 const SX_COUNTRY_FIX={'Soviet Union':'Радянський Союз','West Germany':'Західна Німеччина','East Germany':'НДР','Yugoslavia':'Югославія',
   'Czechoslovakia':'Чехословаччина','Federal Republic of Yugoslavia':'Югославія','Serbia and Montenegro':'Сербія і Чорногорія','UK':'Велика Британія',
@@ -129,14 +129,14 @@ function renderStats(){
   const anim=(catCount.anime||0)+(catCount.cartoon||0);
 
   /* ── genres: count and mean IMDb ── */
-  const gN={},gS={},gR={};
+  const gN=Object.create(null),gS=Object.create(null),gR=Object.create(null);
   watched.forEach(i=>{const r=parseFloat(i.imdbRating||0);(i.genre||'').split(',').forEach(g=>{g=g.trim();if(!g||g==='N/A')return;gN[g]=(gN[g]||0)+1;if(r>0){gS[g]=(gS[g]||0)+r;gR[g]=(gR[g]||0)+1;}});});
   const gAvg=g=>gR[g]?gS[g]/gR[g]:0;
   const genres=Object.entries(gN).sort((a,b)=>b[1]-a[1]);
   const bestGenre=genres.filter(([g,n])=>n>=Math.max(10,total*.03)&&g!=='Animation').sort((a,b)=>gAvg(b[0])-gAvg(a[0]))[0];
 
   /* ── countries ── */
-  const cN={};
+  const cN=Object.create(null);
   watched.forEach(i=>(i.country||'').split(',').forEach(c=>{c=c.trim();if(c&&c!=='N/A'){c=sxCountry(c);cN[c]=(cN[c]||0)+1;}}));
   const countries=Object.entries(cN).sort((a,b)=>b[1]-a[1]);
 

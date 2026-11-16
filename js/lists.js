@@ -303,8 +303,8 @@ const VSHELF_N=20;
 const VSHELF_L={movie:'Фільми',series:'Серіали',anime:'Аніме',cartoon:'Мульти',other:'Інше'};
 function _shelvesHtml(t,list,cardFn){
   if(F[t].cats.length){ /* one category chosen: its shelves are the genres (a title sits on every shelf of its genres) */
-    const by={};list.forEach(i=>(i.genre||'').split(',').map(g=>g.trim()).filter(g=>g&&g!=='N/A').forEach(g=>(by[g]??=[]).push(i)));
-    const uk=g=>(typeof SX_GENRE!=='undefined'&&SX_GENRE[g])||g;
+    const by=Object.create(null);list.forEach(i=>(i.genre||'').split(',').map(g=>g.trim()).filter(g=>g&&g!=='N/A').forEach(g=>(by[g]??=[]).push(i)));
+    const uk=g=>typeof sxGenre==='function'?sxGenre(g):g;
     const gs=Object.keys(by).sort((a,b)=>by[b].length-by[a].length);
     if(gs.length>1)return gs.map(g=>`<section class="shelf">
     <div class="shelf-h"><h2>${esc(uk(g))}</h2><span class="num">${by[g].length}</span>

@@ -85,7 +85,7 @@ function cleanApply(){
 
 /* ── TAG SHEET: every tag you already use as a toggle + a field for a new one; changes save at once ── */
 let _tgId=null;
-function _tgAll(){const c={};[...watched,...watching,...planned].forEach(i=>(i.tags||[]).forEach(t=>c[t]=(c[t]||0)+1));return Object.keys(c).sort((a,b)=>c[b]-c[a]||a.localeCompare(b,'uk')).map(t=>[t,c[t]]);}
+function _tgAll(){const c=Object.create(null);[...watched,...watching,...planned].forEach(i=>(i.tags||[]).forEach(t=>c[t]=(c[t]||0)+1));return Object.keys(c).sort((a,b)=>c[b]-c[a]||a.localeCompare(b,'uk')).map(t=>[t,c[t]]);}
 function tagEdit(id){
   if(!findItem(id))return;_tgId=id;closeMenu?.();
   let L=document.getElementById('tgSheet');

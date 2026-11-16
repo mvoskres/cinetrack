@@ -129,7 +129,7 @@ function _pzHud(){
 }
 function _pzDraw(){
   const w=document.getElementById('pzWrap');if(!w)return;
-  const n=_pz.n,N=n*n,img=esc(_pz.pick.img);
+  const n=_pz.n,N=n*n,img=esc(String(_pz.pick.img||'').replace(/['()\\]/g,c=>'%'+c.charCodeAt(0).toString(16))); /* 1.49.2: it sits inside url('…') */
   w.innerHTML=`<div class="pz-board${_pz.nums?' nums':''}" id="pzBoard" style="--n:${n};--img:url('${img}')" role="grid" aria-label="Поле п'ятнашок ${n} на ${n}">
       ${Array.from({length:N-1},(_,id)=>`<button class="pz-tile" data-id="${id}" data-act="pzTap" data-args="${A(id)}" style="--x:${id%n};--y:${Math.floor(id/n)}" aria-label="Клітинка ${id+1}"><i>${id+1}</i></button>`).join('')}
       <div class="pz-full" aria-hidden="true"></div>

@@ -270,7 +270,7 @@ async function _csvResolve(e){
       let mt=null,id=0;
       if(imdb){const f=await tmdbFindIds(imdb);mt=e.series?(f.t?'tv':f.m?'movie':null):(f.m?'movie':f.t?'tv':null);id=mt==='tv'?f.t:f.m;}
       else{const q=`/search/movie?query=${encodeURIComponent(e.title)}&language=en-US`;
-        let r=await tmdbFetch(q+(e.year?`&year=${e.year}`:''));
+        let r=await tmdbFetch(q+(/^\d{4}$/.test(e.year||'')?`&year=${e.year}`:''));
         if(!r?.results?.length&&e.year)r=await tmdbFetch(q); /* Letterboxd and TMDB disagree on the year now and then */
         const hit=r?.results?.[0];if(hit){mt='movie';id=hit.id;}}
       if(id){const en=await tmdbFetch(`/${mt}/${id}?language=en-US&append_to_response=external_ids`);
@@ -305,7 +305,9 @@ async function runCsvImport(){
       customCategory:gc(m),addedAt:id0-k};
     if(list==='watched')Object.assign(it,{rating:withRatings?todo[k].rating||0:0,comment:''});
     if(list==='watching')Object.assign(it,{season:1,episode:1,totalSeasons:parseInt(m.totalSeasons)||1});
-    added.push(it);
+    if(m.tmdbRating)it.tmdbRating=m.tmdbRating;
+    const nr=_normItem(it,list);if(nr.bad)return; /* 1.49.2: the same limits as a restored backup */
+    added.push(nr.item);
   });
   target.unshift(...added);
   saveAll();rWatched();rWatching();rPlanned();updateStats();
@@ -600,6 +602,7 @@ function doImport(e,mode,asked){
 
 /* ── VERSION and CHANGELOG: newest first; bump APP_VERSION and add an entry with every change pushed to the site ── */
 const CHANGELOG=[
+  {v:'1.49.2',d:'16.11.2026',n:['Безпека імпорту й бекапу: жанр чи тег на кшталт «constructor» більше не ламає фільтри й статистику; постери — лише з TMDB і IMDb; рядки з CSV проходять ту саму перевірку, що й бекап (оцінка 0–10, тривалість, довжина); рік Letterboxd перевіряється']},
   {v:'1.49.1',d:'16.11.2026',n:['Після входу через Google Drive підключається одразу: якщо там є бекап — Кінопис пропонує його підтягнути, без другого вікна Google']},
   {v:'1.49',d:'16.11.2026',n:['Пошук більше не мовчить: без ключа пояснює й веде додати ключ, а коли нічого не знайдено — так і каже','Ключ TMDB у Налаштуваннях перевіряється так само, як у картці «Почнімо» (і розпізнає довгий «Read Access Token»); після збереження все одразу оновлюється','Порожній список — без рядка «Знайти в списку / Фільтри»','Без ключа: Рекомендації, Франшизи й Ігри пояснюють, навіщо ключ, і мають кнопку «Додати ключ»','Імпорт підказує, де взяти CSV в IMDb і Letterboxd','Дрібниці: «Не цікаво» в рекомендаціях — ✕; на комп’ютері до 20 переглянутих Ігри відкриваються на П’ятнашках; «Встановити» — лише коли є ключ; звертання скрізь на «ти»; у порожній Статистиці — кнопка «Додати переглянуте»']},
   {v:'1.48.3',d:'16.11.2026',n:['Прибрано стилі, що лишились від старих Налаштувань і старої заглушки статистики']},

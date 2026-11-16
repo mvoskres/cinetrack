@@ -190,7 +190,7 @@ function fN(t){const f=F[t];return f.cats.length+f.genres.length+f.decades.lengt
 function buildBar(t){
   const el=document.getElementById(barId(t));if(!el)return;
   const f=F[t],n=fN(t),opts=t==='watched'?S_W:t==='watching'?S_WN:S_ALL;
-  const list=tList(t),counts={};list.forEach(i=>{const c=i.customCategory||i.type;if(c)counts[c]=(counts[c]||0)+1;});
+  const list=tList(t),counts=Object.create(null);list.forEach(i=>{const c=i.customCategory||i.type;if(c)counts[c]=(counts[c]||0)+1;});
   if(f.cats[0]&&!counts[f.cats[0]])f.cats=[]; /* its last title left the list: don't leave an invisible filter on an empty-looking list */
   const open=document.body.classList.contains('fs-on')&&_fs&&_fs.t===t;
   el.className='filter-row fbar';
@@ -280,11 +280,11 @@ function fsRender(){
   const {t,st}=_fs,list=tList(t);
   /* focus and scroll survive the redraw */
   const old=root.querySelector('.fsh-body'),sc=old?old.scrollTop:0,fk=document.activeElement?.getAttribute?.('data-k');
-  const cnt=arr=>{const m={};arr.forEach(k=>{if(k!=null&&k!=='')m[k]=(m[k]||0)+1;});return m;};
+  const cnt=arr=>{const m=Object.create(null);arr.forEach(k=>{if(k!=null&&k!=='')m[k]=(m[k]||0)+1;});return m;};
   const cats=cnt(list.map(i=>i.customCategory||i.type));
-  const gc={};list.forEach(i=>new Set((i.genre||'').split(',').map(g=>g.trim()).filter(Boolean)).forEach(g=>{gc[g]=(gc[g]||0)+1;}));
+  const gc=Object.create(null);list.forEach(i=>new Set((i.genre||'').split(',').map(g=>g.trim()).filter(Boolean)).forEach(g=>{gc[g]=(gc[g]||0)+1;}));
   const dc=cnt(list.map(i=>{const y=parseInt(i.year);return y?String(Math.floor(y/10)*10):null;}));
-  const tc={};list.forEach(i=>new Set(i.tags||[]).forEach(x=>{tc[x]=(tc[x]||0)+1;}));
+  const tc=Object.create(null);list.forEach(i=>new Set(i.tags||[]).forEach(x=>{tc[x]=(tc[x]||0)+1;}));
   st.tags=st.tags.filter(x=>tc[x]);
   const ch=(dim,val,label,n,extra='')=>{const on=st[dim].includes(val);return `<button type="button" class="fsh-chip${on?' on':''}${extra}" aria-pressed="${on}" data-k="${dim}:${esc(val)}" data-act="fsTog" data-args="${A(`${dim}`,`${uriSafe(val)}`)}">${esc(label)}${n!=null?`<span class="num">${n}</span>`:''}</button>`;};
   const grp=(title,body)=>`<section class="fsh-grp"><h3 class="fsh-lbl">${title}</h3><div class="fsh-chips">${body}</div></section>`;

@@ -66,7 +66,7 @@ function _wbNext(x){ /* «Далі S38·E7 · нд, 15 лист.» / «Сері�
 function _wbStatus(x){return `<div class="wb-air">${_wbLast(x)}${_wbNext(x)}</div>`;}
 const _wbYear=i=>esc(String(i.year||'').replace(/[^\d–-]/g,'').replace(/-/g,'–'));
 function _wbMeta(i,full){
-  const g=full&&i.genre?(i.genre.split(',').slice(0,3).map(s=>{s=s.trim();return (typeof SX_GENRE!=='undefined'&&SX_GENRE[s])||s;}).join(', ')):'';
+  const g=full&&i.genre?(i.genre.split(',').slice(0,3).map(s=>{s=s.trim();return typeof sxGenre==='function'?sxGenre(s):s;}).join(', ')):'';
   return [catLabel(i.customCategory||i.type),_wbYear(i),rateL(i),esc(g)].filter(Boolean).join(' · ');
 }
 function _wbTile(x){

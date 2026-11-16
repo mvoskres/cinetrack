@@ -64,7 +64,7 @@ function _recOk(it,minVotes,minRating){return it.poster&&it.title&&it.date&&it.d
 
 function _genreNameById(id){for(const n in TMDB_GENRES)if(TMDB_GENRES[n]===id)return n;return '';}
 function _topGenreIds(n){
-  const f={};watched.forEach(i=>(i.genre||'').split(',').map(s=>s.trim()).filter(Boolean).forEach(g=>{const id=TMDB_GENRES[g];if(id&&id!==16)f[id]=(f[id]||0)+1;}));
+  const f={};watched.forEach(i=>(i.genre||'').split(',').map(s=>s.trim()).filter(Boolean).forEach(g=>{const id=Object.hasOwn(TMDB_GENRES,g)?TMDB_GENRES[g]:0;if(id&&id!==16)f[id]=(f[id]||0)+1;}));
   return Object.entries(f).sort((a,b)=>b[1]-a[1]).slice(0,n).map(e=>+e[0]);
 }
 function _recCat(i){const c=i.customCategory||i.type;return c==='cartoon'||c==='anime'||c==='series'?c:'movie';}
