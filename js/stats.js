@@ -118,7 +118,8 @@ function renderStats(){
   const nf=n=>Number(n).toLocaleString('uk-UA');
   const total=watched.length;
   if(total<10){ /* 1.45: too few for a portrait — what it will show, and how far there is to go */
-    el.innerHTML=`<div class="es"><span class="empty-icon">${ic('film')}</span><b>Тут буде твій кінопортрет</b><p>Він складеться з «Переглянутого» — що більше тайтлів, то точніше.</p>
+    if(watched.filter(i=>ps(i.poster)).length<4)_sxWallPop(); /* 1.46: the wall behind it — your posters, or this week's popular ones */
+    el.innerHTML=`<div class="es es-wall"><div class="es-bgw" aria-hidden="true" id="sxWall">${_sxWallHtml(watched.map(i=>posterSrc(i.poster)).filter(u=>u!=='data:,'))}</div><span class="empty-icon">${ic('film')}</span><b>Тут буде твій кінопортрет</b><p>Він складеться з «Переглянутого» — що більше тайтлів, то точніше.</p>
       <ul><li>${ic('star')}Улюблені жанри й твої оцінки проти IMDb</li><li>${ic('chart')}Десятиліття й роки, які дивишся найчастіше</li><li>${ic('spark')}Країни, з яких твоє кіно</li><li>${ic('play')}Скільки годин уже переглянуто</li><li>${ic('person')}Актори й режисери, яких бачиш найчастіше</li></ul>
       <div class="prog" role="progressbar" aria-valuemin="0" aria-valuemax="10" aria-valuenow="${total}"><i style="width:${total*10}%"></i></div><small>${total} з 10 тайтлів — з 10 портрет стане змістовним</small></div>`;return;}
 
@@ -299,4 +300,12 @@ function renderStats(){
     ${tracked.length?`<section class="sv-sec"><h3 class="sv-h">Люди, за якими стежиш</h3><ol class="sv-countries">${tracked.map(p=>`<li><span></span><b>${esc(p.name)}</b><em class="num">${p.m} з ${p.t}</em></li>`).join('')}</ol></section>`:''}
   </div>`:''}`;
   if(collecting&&!_sxRun)setTimeout(_sxFill,300);
+}
+
+/* 1.46: the tilted poster wall behind the «кінопортрет» preview */
+function _sxWallHtml(us){if(!us.length)return '';const a=[];while(a.length<12)a.push(...us);return a.slice(0,12).map(u=>`<i><img src="${u}" alt="" loading="lazy" data-fb></i>`).join('');}
+async function _sxWallPop(){
+  if(!TMDB_KEY||_tmdbBlocked)return;
+  try{const d=await tmdbFetch('/trending/movie/week?language=uk-UA');const us=(d?.results||[]).map(r=>_tsImg(r.poster_path,'w185')).filter(Boolean);
+    const el=document.getElementById('sxWall');if(el&&us.length)el.innerHTML=_sxWallHtml(us.map(esc));}catch(e){}
 }

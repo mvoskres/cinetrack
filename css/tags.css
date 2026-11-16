@@ -10,6 +10,7 @@
 .tg-pill b{flex:none;}
 .pc-art .pc-my{height:22px;box-sizing:border-box;}
 .pc-art:has(.pc-my) .tg-pill{max-width:calc(100% - 64px);}
+.tg-pill.tg-cmp{padding:0 7px;gap:3px;}.tg-pill.tg-cmp svg{width:13px;height:13px;}.tg-pill.tg-cmp b{color:#f3d29c;}
 
 .wb-tags{display:flex;align-items:center;gap:10px;margin:0 0 14px;}
 .wb-tags .tg-line{margin:0;flex:1;}
