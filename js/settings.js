@@ -2,37 +2,53 @@
    One scrolling page, no tabs. openIO(target): optional id of an element to scroll to and flash
    (the backup pill and the empty «Переглянуте» state open it straight at their block). */
 function openIO(target){
-  const key=_stKeys(),acc=_stBackupHtml();
+  const S=_stSections(),pc=_stPC();
+  if(target&&_ST_TGT[target])_stSec=_ST_TGT[target];
+  else if(!_stSec||!S.some(x=>x.id===_stSec)||!TMDB_KEY)_stSec=S[0].id;
+  const body=pc
+    ?`<div class="stz-pc"><nav class="stz-nav" aria-label="Розділи налаштувань">${S.map(x=>`<button class="${x.id===_stSec?'on':''}" data-act="stGo" data-args="${A(x.id)}"${x.id===_stSec?' aria-current="true"':''}>${ic(x.ic)}<span>${x.t}</span>${x.dot?'<em class="stz-dot" aria-label="потрібна дія"></em>':''}</button>`).join('')}</nav>
+       <div class="stz-pane" id="stPane">${_stPane(S.find(x=>x.id===_stSec))}</div></div>`
+    :S.map(x=>`<section class="stz-g" id="sec-${x.id}"><h3>${x.t}</h3>${x.h()}</section>`).join('')+'<p class="stz-foot">Ключі й списки зберігаються лише в цьому браузері та в бекапі.</p>';
   modal(`
     <div class="st-head">
       <h2 class="modal-title">Налаштування</h2>
       <button class="st-x" data-act="closeModal" title="Закрити" aria-label="Закрити">✕</button>
     </div>
-    <div class="st-body">
-      ${_stAppHtml()}
-      ${TMDB_KEY?acc+key:key+acc}
-      ${_stAccentHtml()}
-      ${_stViewHtml()}
-      <div class="st-row">
-        <div class="st-row-head"><span class="st-lbl">Імпорт і обслуговування</span></div>
-        <label class="st-act" for="csvFile" id="stCsv">${ic('film')}<span><b>Імпорт з IMDb / Letterboxd</b><small>CSV з оцінками або watchlist</small></span></label>
-        <input type="file" id="csvFile" accept=".csv,text/csv" data-change="doCsvImport" data-args="[&quot;$ev&quot;]" hidden>
-        <div id="csvBox"></div>
-        <button class="st-act" data-act="collRefreshFromSettings">${ic('refresh')}<span><b>Оновити франшизи</b><small>Перечитати склад усіх франшиз: нові частини, дати, постери. Само це робиться раз на 2 тижні – 2 місяці</small></span></button>
-        <button class="st-act" data-act="runCleanScan">${ic('check')}<span><b>Перевірка даних</b><small>Дублі й сумнівні категорії</small></span></button>
-        <div id="cleanMsg" class="cl-msg"></div>
-        <div id="cleanList"></div>
-        ${_storageChars()/STORAGE_QUOTA_CHARS>=.7?`<div class="st-sto"><span class="st-lbl">Сховище браузера</span>
-          <p class="st-hint" id="stoInfo">${_storageInfo()}</p>
-          <button class="w-btn" data-act="clearCaches">Очистити кеші</button>
-          <div id="stoMsg" class="st-msg"></div></div>`:''}
-      </div>
-      <div class="st-row" id="stVer"><button class="st-act" data-act="openChangelog">${ic('film')}<span><b>Версія ${APP_VERSION}</b><small>від ${CHANGELOG[0].d} · історія змін</small></span></button></div>
-    </div>`);
-  document.querySelector('.modal-bg')?.classList.add('st-bg');document.querySelector('.modal')?.classList.add('st-modal');
+    <div class="st-body">${_stAppHtml()}${body}</div>`);
+  document.querySelector('.modal-bg')?.classList.add('st-bg');const md=document.querySelector('.modal');md?.classList.add('st-modal');md?.classList.toggle('st-wide',pc);
   const el=target&&document.getElementById(target);
   if(el){el.scrollIntoView({block:'center'});el.classList.add('st-flash');setTimeout(()=>el.classList.remove('st-flash'),1800);}
 }
+/* 1.48: Settings by sections. Without a TMDB key nothing works, so «Ключі API» comes first (and opens first on a computer) */
+let _stSec=null;
+const _stPC=()=>matchMedia('(min-width:701px)').matches;
+const _ST_TGT={stKeys:'keys',stCsv:'data',gdBox:'backup',stBackup:'backup',stAccent:'look',stView:'look',stVer:'about'};
+function _stSections(){
+  const S=[{id:'backup',ic:'save',t:'Бекап',h:_stBackupHtml},{id:'look',ic:'spark',t:'Вигляд',h:()=>_stAccentHtml()+_stViewHtml()},
+    {id:'data',ic:'upload',t:'Дані',h:_stDataHtml},{id:'keys',ic:'key',t:'Ключі API',h:_stKeys,dot:!TMDB_KEY},{id:'about',ic:'info',t:'Про застосунок',h:_stAboutHtml}];
+  if(!TMDB_KEY)S.unshift(S.splice(3,1)[0]);
+  return S;
+}
+function _stPane(x){return `<h2 class="stz-h">${x.t}</h2>${x.h()}`;}
+function stGo(id){
+  const x=_stSections().find(s=>s.id===id),p=document.getElementById('stPane');if(!x||!p)return;
+  _stSec=id;p.innerHTML=_stPane(x);p.scrollTop=0;
+  document.querySelectorAll('.stz-nav button').forEach(b=>{let on=false;try{on=JSON.parse(b.dataset.args)[0]===id;}catch(e){}b.classList.toggle('on',on);if(on)b.setAttribute('aria-current','true');else b.removeAttribute('aria-current');});
+}
+const _stRow=(icon,title,sub,val,attrs)=>`<${attrs?.tag||'button'} class="stz-r" ${attrs?.a||''}>${ic(icon)}<span class="stz-t"><b>${title}</b>${sub?`<small>${sub}</small>`:''}</span><span class="stz-v">${val||''}<i aria-hidden="true">›</i></span></${attrs?.tag||'button'}>`;
+function _stDataHtml(){
+  const n=_storageChars(),pct=Math.round(n/STORAGE_QUOTA_CHARS*100);
+  return `<div class="stz-l">
+    ${_stRow('upload','Імпорт з IMDb / Letterboxd','CSV з оцінками або «Watchlist»','',{tag:'label',a:'for="csvFile" id="stCsv"'})}
+    <input type="file" id="csvFile" accept=".csv,text/csv" data-change="doCsvImport" data-args="[&quot;$ev&quot;]" hidden><div id="csvBox" class="stz-in"></div>
+    ${_stRow('refresh','Оновити франшизи','Нові частини, дати й постери. Само — раз на 2 тижні','',{a:'data-act="collRefreshFromSettings"'})}
+    ${_stRow('check','Перевірка даних','Дублі й сумнівні категорії','',{a:'data-act="runCleanScan"'})}
+    <div id="cleanMsg" class="cl-msg stz-in"></div><div id="cleanList" class="stz-in"></div>
+    <div class="stz-r stz-sto">${ic('save')}<span class="stz-t"><b>Місце в браузері</b><small id="stoInfo">${pct}% зайнято · кеші можна очистити, списки не зачепить</small></span><span class="stz-v"><button class="btn" data-act="clearCaches">Очистити кеші</button></span></div>
+    <div id="stoMsg" class="st-msg stz-in"></div>
+  </div>`;
+}
+function _stAboutHtml(){return `<div class="stz-l" id="stVer">${_stRow('info','Що нового',`Кінопис ${APP_VERSION} · від ${CHANGELOG[0].d}`,'',{a:'data-act="openChangelog"'})}</div>`;}
 /* a key row is one compact line while the key exists; the input only shows after «Змінити» or when there is none */
 function _stKeyRow(id,name,key,save,url,role,bad,hint){
   const has=!!key;
@@ -47,11 +63,13 @@ function _stKeyRow(id,name,key,save,url,role,bad,hint){
     <div id="${id}Msg" class="st-msg"></div></div>`;
 }
 function _stKeys(){
-  return `<div class="st-row" id="stKeys"><div class="st-row-head"><span class="st-lbl">Ключі API</span></div>
-    ${_stKeyRow('tmdb','TMDB',TMDB_KEY,'saveTMDBKey','https://www.themoviedb.org/settings/api','обов’язковий',_tmdbBlocked&&!!TMDB_KEY,'Головне джерело: українські назви й описи, пошук, сезони, рекомендації, франшизи, люди, статистика й гра. Без нього більшість сторінок порожні.')}
-    ${_stKeyRow('api','OMDb',API,'saveKey','https://www.omdbapi.com/apikey.aspx','необов’язковий · рейтинг IMDb',false,'')}
-    <p class="st-hint">Ключі безкоштовні й зберігаються лише в цьому браузері та в бекапі.</p></div>`;
+  return `<div id="stKeys">${TMDB_KEY?'':`<div class="stz-warn">${ic('alert')}<div><b>Без ключа TMDB застосунок не працює</b><small>Пошук, постери, назви українською й рекомендації беруться з TMDB. Ключ безкоштовний, ~2 хвилини.</small></div></div>`}
+    <div class="stz-l stz-keys">
+    ${_stKeyRow('tmdb','TMDB',TMDB_KEY,'saveTMDBKey','https://www.themoviedb.org/settings/api','обов’язковий',_tmdbBlocked&&!!TMDB_KEY,'')}
+    ${_stKeyRow('api','OMDb',API,'saveKey','https://www.omdbapi.com/apikey.aspx','необов’язковий · рейтинг IMDb',false,'Без нього під фільмами — рейтинг TMDB.')}
+    </div></div>`;
 }
+
 function stKeyEdit(id){const e=document.getElementById(id+'Ed');if(!e)return;e.style.display='flex';document.getElementById(id+'K')?.focus();}
 const STORAGE_QUOTA_CHARS=5e6; /* Chrome/Edge/Firefox: ~5M chars per origin */
 function _storageInfo(){
@@ -321,6 +339,7 @@ function _normItem(src,list){
     year:_s(src.year,12),type:['movie','series','episode','game'].includes(src.type)?src.type:'movie',
     genre:_s(src.genre,200),country:_s(src.country,200),imdbUrl:`https://www.imdb.com/title/${imdbID}/`};
   const r=_s(src.imdbRating,5);o.imdbRating=/^(10(\.0)?|\d(\.\d)?)$/.test(r)?r:null;
+  {const t=parseFloat(src.tmdbRating);if(t>0&&t<=10)o.tmdbRating=String(Math.round(t*10)/10);}
   if(typeof src.customCategory==='string'&&Object.hasOwn(CAT,src.customCategory))o.customCategory=src.customCategory;
   const at=_n(src.addedAt,0,9e15);if(at!==null)o.addedAt=at;
   const rt=_i(src.rating,0,10);if(rt!==null)o.rating=rt;else if(list==='watched')o.rating=0;
@@ -466,7 +485,7 @@ function _snapshotMeta(){return _lsJSON(SNAP_META,null);}
 function _stBackupHtml(){
   const last=+localStorage.getItem('ct_last_export')||0,gd=+localStorage.getItem('ct_gd_last')||0;
   const st=last?`${ic('check')}Останній бекап: ${esc(_gdFmt(last))} <small>· ${gd&&gd>=last-5000?'Google Drive':'файл'}</small>`:`${ic('alert')}Бекапу ще не було <small>· списки зараз лише в цьому браузері</small>`;
-  return `<div class="st-row" id="stBackup"><div class="st-row-head"><span class="st-lbl">Бекап</span></div>
+  return `<div id="stBackup">
     <p class="bk-st${last?'':' none'}">${st}</p>
     <div class="bk-two">
       <div class="bk-c" id="gdBox">${_gdHtml()}</div>
@@ -494,9 +513,11 @@ let _instEvt=null;
 addEventListener('beforeinstallprompt',e=>{e.preventDefault();_instEvt=e;const b=document.getElementById('stApp');if(b)b.outerHTML=_stAppHtml();});
 addEventListener('appinstalled',()=>{_instEvt=null;document.getElementById('stApp')?.remove();});
 function _stAppHtml(){
-  if(!_instEvt||_isApp())return '';
-  return `<div class="st-app" id="stApp"><span class="st-app-ic" aria-hidden="true">Кп</span><div><b>Встановити Кінопис</b><small>Як застосунок на головному екрані чи робочому столі: без адресного рядка, одним дотиком.</small></div><button class="btn primary" data-act="appInstall">Встановити</button></div>`;
+  let hid=false;try{hid=sessionStorage.getItem('ct_app_hide')==='1';}catch(e){}
+  if(!_instEvt||_isApp()||hid)return '';
+  return `<div class="st-app" id="stApp"><span class="st-app-ic" aria-hidden="true">Кп</span><div><b>Встановити Кінопис</b><small>Як застосунок на головному екрані чи робочому столі: без адресного рядка, одним дотиком.</small></div><button class="btn primary" data-act="appInstall">Встановити</button><button class="st-app-x" data-act="appHide" aria-label="Сховати до наступного відкриття">✕</button></div>`;
 }
+function appHide(){try{sessionStorage.setItem('ct_app_hide','1');}catch(e){}document.getElementById('stApp')?.remove();}
 async function appInstall(){const e=_instEvt;if(!e)return;_instEvt=null;try{await e.prompt();await e.userChoice;}catch(x){}document.getElementById('stApp')?.remove();}
 function _snapshotRow(){
   const m=_snapshotMeta();if(!m||!m.ts)return '';
@@ -572,6 +593,7 @@ function doImport(e,mode,asked){
 
 /* ── VERSION and CHANGELOG: newest first; bump APP_VERSION and add an entry with every change pushed to the site ── */
 const CHANGELOG=[
+  {v:'1.48',d:'16.11.2026',n:['Нові Налаштування: на телефоні — групи рядків (Бекап, Вигляд, Дані, Ключі API, Про застосунок), на комп’ютері — розділи зліва, вміст справа','Поки немає ключа TMDB, «Ключі API» стоять першими з поясненням','«Встановити Кінопис» можна сховати ✕ — до наступного відкриття','Без ключа OMDb під фільмами — рейтинг TMDB (сірим, з підписом TMDB); сортування за рейтингом теж його враховує']},
   {v:'1.47',d:'16.11.2026',n:['Налаштування: «Бекап» тепер один блок — коли був останній, поруч Google Drive і файл; «Відновити з файлу…» питає вже після вибору: злити чи замінити','Зверху Налаштувань — «Встановити Кінопис», коли браузер це дозволяє','Біля TMDB — «обов’язковий», біля OMDb — «необов’язковий»']},
   {v:'1.46',d:'16.11.2026',n:['Постер з оцінкою: тег поруч показується компактно — значок і кількість; тап відкриває список тегів','Статистика до 10 переглянутих: за підказкою — напівпрозора стіна постерів (твоїх або популярних)']},
   {v:'1.45.1',d:'16.11.2026',n:['Тег на постері — в одному рядку з оцінкою (оцінка зліва, тег справа, однакова висота)','Кілька тегів: тап показує їх усі, і ти обираєш, за яким фільтрувати']},

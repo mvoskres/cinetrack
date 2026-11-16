@@ -5,6 +5,7 @@ if(!TMDB_KEY&&(watched.length||watching.length||planned.length))
   setTimeout(()=>toast('Додай ключ TMDB у Налаштуваннях: без нього немає українських назв, пошуку, рекомендацій і статистики.','',10000),800);
 _backupStateRender();
 _versionNotice();
+if(!API)setTimeout(_tmdbRatingFill,4000); /* 1.48: no OMDb key — TMDB scores for the titles that have none */
 setTimeout(_ukListFill,2500);
 /* a user key that would not parse was left untouched in storage (core.js _lsJSON): say so, loudly */
 if(_lsBad.size)setTimeout(()=>toast('Не вдалося прочитати збережене в браузері: '+[..._lsBad].join(', ')+'. Воно лишилось як є, нічого не перезаписано. Відновіть дані з бекапу: Налаштування','err',15000),500);

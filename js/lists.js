@@ -262,9 +262,10 @@ function viewOf(t){return _okView(_views[t])?_views[t]:viewDefOf(t);}
 function setView(t,v){_views[t]=v;buildBar(t);rerender(t);}
 function setViewDef(t,v){_viewDef[t]=v;_lsSet('ct_views_def',JSON.stringify(_viewDef));delete _views[t];buildBar(t);rerender(t);const el=document.getElementById('stView');if(el)el.outerHTML=_stViewHtml();} /* redraw only this block: reopening the whole settings modal made it flicker and jump */
 function _stViewHtml(){
-  const row=(t,n)=>`<div class="st-key-line"><span class="st-key-n">${n}</span><div class="seg" role="group" aria-label="${n}: вигляд за замовчуванням">${VIEWS.map(([k,l])=>`<button class="seg-b${viewDefOf(t)===k?' on':''}" aria-pressed="${viewDefOf(t)===k}" data-act="setViewDef" data-args="${A(`${t}`,`${k}`)}">${l}</button>`).join('')}</div></div>`;
-  return `<div class="st-row" id="stView"><div class="st-row-head"><span class="st-lbl">Вигляд за замовчуванням</span></div>${row('watched','Переглянуте')}${row('planned','Планую')}<p class="st-hint">Перемикач над списком змінює вигляд лише до наступного відкриття сайту</p></div>`;
+  const row=(t,n,icn)=>`<div class="stz-r stz-static">${ic(icn)}<span class="stz-t"><b>${n}</b><small>відкривається як</small></span><span class="stz-v"><span class="seg" role="group" aria-label="${n}: вигляд за замовчуванням">${VIEWS.map(([k,l])=>`<button class="seg-b${viewDefOf(t)===k?' on':''}" aria-pressed="${viewDefOf(t)===k}" data-act="setViewDef" data-args="${A(`${t}`,`${k}`)}">${l}</button>`).join('')}</span></span></div>`;
+  return `<div class="stz-l" id="stView">${row('watched','Переглянуте','film')}${row('planned','Планую','bookmark')}<p class="stz-note">Перемикач над списком змінює вигляд лише до наступного відкриття сайту</p></div>`;
 }
+
 function viewSeg(t){
   if(!(t in VIEW_LISTS))return '';
   const cur=viewOf(t);
@@ -427,7 +428,7 @@ function cardMenu(ev,list,id,from){
 }
 
 /* ── POSTER CARD — the one card for watched, planned, recs, people ── */
-function _myMeta(i){const c=i.customCategory||i.type;return `<div class="pc-m">${i.year?`<span class="num">${esc(i.year)}</span>`:''}<span>${catLabel(c)}</span>${rNum(i.imdbRating)?`<span class="imdb">${imdbL(i.imdbRating)}</span>`:''}</div>`;}
+function _myMeta(i){const c=i.customCategory||i.type;return `<div class="pc-m">${i.year?`<span class="num">${esc(i.year)}</span>`:''}<span>${catLabel(c)}</span>${rateL(i)?`<span class="imdb${rNum(i.imdbRating)?'':' tm'}">${rateL(i)}</span>`:''}</div>`;}
 /* tags: a quiet line of #chips (tap → show this tag in the list); edited in the tag sheet (tagEdit) */
 function _tagsHtml(i){return (i.tags||[]).length?`<div class="tg-line">${i.tags.map(t=>`<button class="tg-c" data-act="tagGo" data-args="${A('$ev',`${uriSafe(t)}`)}" title="Показати все з тегом «${esc(t)}»">#${esc(t)}</button>`).join('')}</div>`:'';}
 /* on a poster: the first tag (+N) as a small label in the corner */
@@ -577,7 +578,7 @@ function rWatching(skipLive){
       <div class="tr-body">
         <div class="tr-top"><div class="tr-head">
           <h3 class="tr-t"><a href="${imdbHref(i)}" target="_blank" rel="noopener" data-act="_tsClick" data-args="${A('$ev',`${i.imdbID}`)}">${esc(tn(i))}</a>${_isRewatch(i)?'<span class="dup-badge rw" title="Повторний перегляд: у Переглянутому лишається твоя оцінка">повторно</span>':_dupSet.has(i.imdbID)?'<span class="dup-badge" title="Цей тайтл є ще в іншому списку">дубль</span>':''}</h3>
-          <div class="tr-meta">${catLabel(i.customCategory||i.type)}${i.year?` · <span class="num">${esc(i.year)}</span>`:''}${rNum(i.imdbRating)?` · ${imdbL(i.imdbRating)}`:''}</div></div>
+          <div class="tr-meta">${catLabel(i.customCategory||i.type)}${i.year?` · <span class="num">${esc(i.year)}</span>`:''}${rateL(i)?` · ${rateL(i)}`:''}</div></div>
           <button class="icon-btn" data-act="cardMenu" data-args="${A('$ev','watching',(i.id))}" aria-label="Ще дії: ${esc(tn(i))}">${ic('dots')}</button></div>
         ${isSeries?`<div id="lv-${esc(i.imdbID)}">${lh}</div>
           <div class="tr-bar" title="Сезон ${esc(i.season)} з ${esc(i.totalSeasons||1)}"><i style="width:${+_seasonPct(i)||0}%"></i></div>

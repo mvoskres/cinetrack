@@ -98,11 +98,12 @@ function applyAccent(h){
 function accentNow(){const v=localStorage.getItem('ct_accent');return _hexRgb(v)?v.toLowerCase():ACCENTS[0][0];}
 function setAccent(h){if(!_hexRgb(h))return;_lsSet('ct_accent',h.toLowerCase());applyAccent(h);if(document.getElementById('stAccent'))document.getElementById('stAccent').outerHTML=_stAccentHtml();}
 function _stAccentHtml(){
-  const cur=accentNow(),custom=!ACCENTS.some(([h])=>h===cur);
-  return `<div class="st-row" id="stAccent"><div class="st-row-head"><span class="st-lbl">Акцентний колір</span></div>
-    <div class="acc-sw" role="group" aria-label="Акцентний колір">${ACCENTS.map(([h,n])=>`<button class="acc-b${h===cur?' on':''}" style="--c:${h}" data-act="setAccent" data-args="${A(h)}" title="${n}" aria-label="${n}" aria-pressed="${h===cur}"></button>`).join('')}
-      <label class="acc-b acc-own${custom?' on':''}" style="--c:${cur}" title="Свій колір"><input type="color" value="${cur}" data-change="setAccent" data-args="[&quot;$value&quot;]" aria-label="Свій колір"><span>${ic('plus')}</span></label></div></div>`;
+  const cur=accentNow(),own=ACCENTS.find(([h])=>h===cur),custom=!own;
+  return `<div class="stz-l" id="stAccent"><div class="stz-r stz-static">${ic('spark')}<span class="stz-t"><b>Колір акценту</b></span><span class="stz-v"><span class="stz-sw"></span>${own?own[1]:'Свій'}</span></div>
+    <div class="stz-in"><div class="acc-sw" role="group" aria-label="Колір акценту">${ACCENTS.map(([h,n])=>`<button class="acc-b${h===cur?' on':''}" style="--c:${h}" data-act="setAccent" data-args="${A(h)}" title="${n}" aria-label="${n}" aria-pressed="${h===cur}"></button>`).join('')}
+      <label class="acc-b acc-own${custom?' on':''}" style="--c:${cur}" title="Свій колір"><input type="color" value="${cur}" data-change="setAccent" data-args="[&quot;$value&quot;]" aria-label="Свій колір"><span>${ic('plus')}</span></label></div></div></div>`;
 }
+
 applyAccent(accentNow());
 
 /* Ukrainian titles for list items (imdbID -> title, '' = TMDB has no translation); the list item keeps its own
@@ -382,8 +383,8 @@ function sort(l,s){
     case 'title-asc':       return a.sort((x,y)=>tn(x).localeCompare(tn(y),'uk'));
     case 'genre-asc':       return a.sort((x,y)=>fg(x).localeCompare(fg(y),'uk'));
     case 'rating-desc':     return a.sort((x,y)=>(y.rating||0)-(x.rating||0));
-    case 'imdb-rating-desc':return a.sort((x,y)=>parseFloat(y.imdbRating||0)-parseFloat(x.imdbRating||0));
-    case 'imdb-rating-asc': return a.sort((x,y)=>parseFloat(x.imdbRating||0)-parseFloat(y.imdbRating||0));
+    case 'imdb-rating-desc':return a.sort((x,y)=>rateV(y)-rateV(x));
+    case 'imdb-rating-asc': return a.sort((x,y)=>rateV(x)-rateV(y));
     default:                return a.sort((x,y)=>(y.addedAt||0)-(x.addedAt||0));
   }
 }

@@ -333,3 +333,19 @@ async function tmdbFindIds(imdbID){
 /* one rating format everywhere: «IMDb 7,4» (decimal comma, one digit); ★ is kept for the viewer's own marks only */
 function rNum(r){const n=parseFloat(r);return n>0?n.toFixed(1).replace('.',','):'';}
 function imdbL(r){const n=rNum(r);return n?'IMDb '+n:'';}
+/* 1.48: an item's score line — IMDb, or TMDB's own score when there is no IMDb one (no OMDb key) */
+function rateL(i){return imdbL(i?.imdbRating)||(rNum(i?.tmdbRating)?'TMDB '+rNum(i.tmdbRating):'');}
+function rateV(i){return parseFloat(i?.imdbRating)||parseFloat(i?.tmdbRating)||0;}
+/* give the titles that came without an IMDb score TMDB's one (stored as tmdbRating) */
+function _setTmdbRating(imdbID,v){const n=parseFloat(v);if(!(n>0))return;[watched,watching,planned].forEach(l=>l.filter(i=>i.imdbID===imdbID&&!rNum(i.imdbRating)).forEach(i=>{i.tmdbRating=String(Math.round(n*10)/10);}));}
+let _tmdbRFill=false;
+async function _tmdbRatingFill(){
+  if(_tmdbRFill||!TMDB_KEY||_tmdbBlocked)return;_tmdbRFill=true;
+  const todo=[...new Set([...watched,...watching,...planned].filter(i=>i.imdbID&&!rNum(i.imdbRating)&&!rNum(i.tmdbRating)).map(i=>i.imdbID))].slice(0,80);
+  let n=0;
+  for(const id of todo){
+    try{const d=await tmdbFetch(`/find/${id}?external_source=imdb_id`);const r=d?.movie_results?.[0]||d?.tv_results?.[0];if(r?.vote_count>0){_setTmdbRating(id,r.vote_average);n++;}}catch(e){if(_tmdbBlocked)break;}
+    await new Promise(ok=>setTimeout(ok,250));
+  }
+  if(n){save();rWatched();rWatching();rPlanned();}
+}

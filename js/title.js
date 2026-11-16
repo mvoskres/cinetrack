@@ -200,7 +200,7 @@ async function _tsAdd(list){
   if(!_pendingMap[d.imdbID]&&d.id&&d.gid){try{_pmSet(d.imdbID,await _omdbShape(d));}catch(e){}}
   let ok=false;
   try{ok=await fn(d.imdbID);}catch(e){toast('Не вдалося додати: немає зв\'язку з OMDb','err');}
-  if(ok&&_pendingMap[d.imdbID]?._fromTmdb)_topUpImdbRating(d.imdbID);
+  if(ok&&_pendingMap[d.imdbID]?._fromTmdb){_setTmdbRating(d.imdbID,_pendingMap[d.imdbID].tmdbRating);save();_topUpImdbRating(d.imdbID);}
   _tsRefreshActions();
 }
 /* TMDB genre ids -> the English names OMDb uses, so stats, filters and gc() see one vocabulary */
@@ -222,7 +222,7 @@ function _shapeFromTmdb(mt,en){
   return{_fromTmdb:true,Response:'True',Title:en.title||en.name||'',
     Year:series?`${y}–${en.status==='Ended'||en.status==='Canceled'?(en.last_air_date||'').slice(0,4):''}`:y,Type:series?'series':'movie',
     Genre:genre,Country:iso.map(_enCountry).join(', '),Poster:_tsImg(en.poster_path,'w342'),
-    Runtime:rt?`${rt} min`:'N/A',imdbRating:'N/A',totalSeasons:String(en.number_of_seasons||1)};
+    Runtime:rt?`${rt} min`:'N/A',imdbRating:'N/A',tmdbRating:en.vote_count>0?String(en.vote_average||''):'',totalSeasons:String(en.number_of_seasons||1)};
 }
 /* One OMDb call after the add, for the IMDb rating only; a spent quota just leaves it empty */
 async function _topUpImdbRating(imdbID){
