@@ -20,7 +20,7 @@ const _chKey=()=>`${_ch.n}-${_ch.d}`;
 function chScreen(){
   const pool=watched.filter(i=>/^https:\/\//.test(i.poster||'')&&_chYear(i)),cnt={all:pool.length,movie:0,series:0,anim:0};pool.forEach(i=>cnt[_gameKind(i)]++);
   if(_ch.filter!=='all'&&cnt[_ch.filter]<12)_ch.filter='all';
-  const best=_chBest[_chKey()]||0,few=cnt[_ch.filter]<12;
+  const best=_chBest[_chKey()]||0,few=cnt[_ch.filter]<12||_gameLocked();
   const peek=pool.slice().sort((a,b)=>_chYear(a)-_chYear(b));
   const strip=peek.length>=4?[0,.33,.66,1].map(f=>peek[Math.round(f*(peek.length-1))]):[];
   return `<section class="gx-screen gx-chrono">
@@ -33,7 +33,7 @@ function chScreen(){
       <div class="ch-row" role="group" aria-label="Скільки постерів">${CH_COUNTS.map(k=>`<button class="pz-sz${_ch.n===k?' on':''}" aria-pressed="${_ch.n===k}" data-act="chCount" data-args="${A(k)}"><b>${k}</b><span>постерів</span></button>`).join('')}</div>
       <p class="pz-lbl">Складність</p>
       <div class="ch-row" role="group" aria-label="Складність">${CH_LEVELS.map(([k,l,s])=>`<button class="pz-sz${_ch.d===k?' on':''}" aria-pressed="${_ch.d===k}" data-act="chLevel" data-args="${A(k)}"><b>${l}</b><span>${s}</span></button>`).join('')}</div>
-      ${few?`<div class="recs-note">${ic('info')}<span>Для гри потрібно щонайменше 12 переглянутих тайтлів із роком і постером.</span></div>`:''}
+      ${few?`<div class="recs-note">${ic('info')}<span>${_gameLocked()?`Гра відкриється, коли в «Переглянутому» буде ${GAME_MIN} тайтлів. Зараз ${watched.length}.`:'Для гри потрібно щонайменше 12 переглянутих тайтлів із роком і постером.'}</span></div>`:''}
       <div class="gx-modes"><button class="gx-mode p" data-act="chStart" ${few?'disabled':''}><b>Почати</b><span>серія до першої помилки · рекорд <span class="num">${best}</span></span></button></div>
     </div></section>
     <div class="cat-seg game-filter" role="group" aria-label="З чого брати">${[['all','Усе'],['movie','Фільми'],['series','Серіали'],['anim','Анімація']].filter(([k])=>k==='all'||cnt[k]>=12)
@@ -56,6 +56,7 @@ function _chDeal(){
   return null;
 }
 function chStart(){
+  if(_gameLocked())return;
   _gameRun++;
   Object.assign(_ch,{streak:0,recent:[]});
   const bg=document.getElementById('gameModalBg'),m=bg.querySelector('.game-modal');

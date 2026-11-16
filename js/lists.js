@@ -450,8 +450,36 @@ function rWatched(){
   const list=applyF(watched,'watched');
   const cnt=document.getElementById('wCount');
   if(cnt)cnt.textContent=list.length!==watched.length?`${list.length} з ${watched.length} записів`:'';
-  if(!list.length){g.className='grid';g.innerHTML=watched.length?`<div class="empty"><span class="empty-icon">${ic('search')}</span><div class="empty-txt">Нічого не знайдено за фільтром</div></div>`:`<div class="empty"><span class="empty-icon">${ic('film')}</span><div class="empty-txt">Тут з'являтимуться переглянуті фільми та серіали</div><button class="w-btn gold empty-act" data-act="openIO" data-args="[&quot;stCsv&quot;]">${ic('upload')}Імпортувати з IMDb / Letterboxd</button></div>`;return;}
+  if(!list.length){g.className='grid';if(!watched.length){g.className='';g.innerHTML=_onboard();return;}g.innerHTML=watched.length?`<div class="empty"><span class="empty-icon">${ic('search')}</span><div class="empty-txt">Нічого не знайдено за фільтром</div></div>`:`<div class="empty"><span class="empty-icon">${ic('film')}</span><div class="empty-txt">Тут з'являтимуться переглянуті фільми та серіали</div><button class="w-btn gold empty-act" data-act="openIO" data-args="[&quot;stCsv&quot;]">${ic('upload')}Імпортувати з IMDb / Letterboxd</button></div>`;return;}
   _gridRender('watched',g,list,i=>myCard('watched',i));
+}
+
+/* 1.44: first visit — two steps on the empty «Переглянуте»: the TMDB key right here, then the first films */
+function _onboard(){
+  const k=!!TMDB_KEY;
+  return `<section class="ob" aria-labelledby="obH"><h3 id="obH">${k?'Залишився один крок':'Почнімо з двох кроків'}</h3>
+    <p class="ob-d">Кінопис бере назви, постери й описи з TMDB — безкоштовної бази фільмів. Для цього потрібен твій особистий ключ.</p>
+    <button class="ob-bk" data-act="openIO" data-args="[&quot;gdBox&quot;]">${ic('upload')}<span><b>Вже маєш бекап?</b><small>Віднови з Google Drive або з файлу — разом зі списками повернуться й ключі</small></span><i aria-hidden="true">›</i></button>
+    <div class="ob-s${k?' done':''}"><span class="ob-n">${k?ic('check'):'1'}</span><b>${k?'Ключ TMDB додано':'Отримай ключ TMDB'}</b>
+      ${k?'':`<small>Безкоштовно, ~2 хвилини: зареєструйся на themoviedb.org і скопіюй «API Key» у розділі API.</small>
+      <div class="ob-row"><a class="btn" href="https://www.themoviedb.org/settings/api" target="_blank" rel="noopener">Відкрити themoviedb.org ↗</a></div>
+      <div class="ob-row"><input class="api-inp" id="obKey" type="text" placeholder="Встав ключ сюди" aria-label="Ключ TMDB" autocomplete="off" spellcheck="false" data-enter="obSaveKey"><button class="btn primary" data-act="obSaveKey">Зберегти</button></div>
+      <p class="ob-msg" id="obMsg" role="status"></p>`}</div>
+    <div class="ob-s${k?'':' off'}"><span class="ob-n">2</span><b>Додай перші фільми</b><small>Знайди через пошук або перенеси все переглянуте з IMDb чи Letterboxd.</small>
+      <div class="ob-row"><button class="btn${k?' primary':''}" data-act="searchOpen" ${k?'':'disabled'}>${ic('search')}Пошук</button><button class="btn" data-act="openIO" data-args="[&quot;stCsv&quot;]" ${k?'':'disabled'}>${ic('upload')}Імпорт з IMDb / Letterboxd</button></div></div>
+  </section>`;
+}
+async function obSaveKey(){
+  const inp=document.getElementById('obKey'),m=document.getElementById('obMsg'),v=(inp?.value||'').trim();
+  const say=(t,bad)=>{if(m){m.textContent=t;m.classList.toggle('bad',!!bad);}};
+  if(!/^[0-9a-f]{32}$/i.test(v)){say('Схоже, це не той ключ: потрібен «API Key» — 32 символи з цифр і літер a–f',true);inp?.focus();return;}
+  say('Перевіряю ключ…');
+  const old=TMDB_KEY;TMDB_KEY=v;_tmdbBlocked=false;_tmdbNetFails=0;Object.keys(_tmdbCache).forEach(k=>delete _tmdbCache[k]);
+  let ok=false,st=0;try{ok=!!(await tmdbFetch('/configuration',8000,true))?.images;}catch(e){st=e?.status||0;}
+  if(!ok){TMDB_KEY=old;say(st===401?'TMDB не прийняв цей ключ: перевір, чи скопійовано повністю':'TMDB зараз не відповідає. Спробуй ще раз трохи згодом (або з VPN)',true);inp?.focus();return;}
+  _lsSet('ct_tmdbkey',v);toast('Ключ TMDB збережено','ok',2000);
+  _dockWallDone=false;_dockWall();rWatched();
+  document.querySelector('.ob [data-act="searchOpen"]')?.focus();
 }
 
 /* ── RENDER PLANNED ── */

@@ -1879,3 +1879,25 @@ body.mn-on .mn-sh.over{z-index:900;} /* opened from a title card (ts-bg 800) */
 .mn-ed .form-ta{min-height:96px;}
 .wb-b.mn-save{flex:1;background:var(--gold);border-color:var(--gold);color:var(--gold-ink);}
 @media(hover:hover){.wb-b.mn-save:hover{background:var(--gold-2);border-color:var(--gold-2);}}
+
+/* 1.44 first visit (lists.js _onboard) */
+.ob{max-width:520px;margin:28px auto 0;padding:22px 20px;border:1px solid var(--line);border-radius:16px;background:var(--ink-2);}
+.ob h3{font-size:18px;font-weight:700;line-height:1.25;margin:0 0 6px;color:var(--text);}
+.ob-d{margin:0 0 18px;color:var(--muted);font-size:14px;line-height:1.5;}
+.ob-bk{display:flex;align-items:center;gap:12px;width:100%;margin:0 0 16px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--ink-3);color:var(--text);text-align:left;cursor:pointer;font:inherit;}
+.ob-bk:hover{border-color:var(--gold-b);}.ob-bk svg{width:18px;height:18px;flex:none;color:var(--gold);}
+.ob-bk span{flex:1;display:flex;flex-direction:column;gap:2px;}.ob-bk b{font-size:14px;}.ob-bk small{font-size:12.5px;color:var(--muted);line-height:1.4;}
+.ob-bk i{font-style:normal;color:var(--muted);font-size:18px;}
+.ob-s{display:grid;grid-template-columns:28px 1fr;gap:4px 12px;padding:14px 0;border-top:1px solid var(--line);}
+.ob-n{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:14px;background:var(--gold-d);color:var(--gold);border:1px solid var(--gold-b);}
+.ob-n svg{width:15px;height:15px;}
+.ob-s.done .ob-n{background:transparent;color:var(--jade-2,var(--gold));border-color:var(--line);}
+.ob-s.done b{color:var(--muted);}
+.ob-s b{font-size:15px;color:var(--text);align-self:center;}
+.ob-s small{grid-column:2;color:var(--muted);font-size:13px;line-height:1.45;}
+.ob-row{grid-column:2;display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;}
+.ob-row .api-inp{flex:1;min-width:0;}
+.ob-s.off b,.ob-s.off small{opacity:.5;}
+.ob-msg{grid-column:2;margin:6px 0 0;font-size:13px;color:var(--muted);min-height:0;}
+.ob-msg:empty{display:none;}
+.ob-msg.bad{color:var(--rose);}

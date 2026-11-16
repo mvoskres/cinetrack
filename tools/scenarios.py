@@ -52,7 +52,7 @@ OVERLAYS = {
     'search':   dict(open="searchOpen()", is_open="document.body.classList.contains('srch-on')", root='#srch', focus=True),
     'dialog':   dict(open="modal('<div class=\"modal-title\">Тест</div><button class=\"btn\">Гаразд</button>')",
                      is_open="!!document.getElementById('mbox').innerHTML.trim()", root='#mbox', focus=True),
-    'game':     dict(open="startGame('round')", is_open="!" + HID.format('gameModalBg'), root='#gameModalBg', focus=True),
+    'game':     dict(open="GAME_MIN=0;startGame('round')", is_open="!" + HID.format('gameModalBg'), root='#gameModalBg', focus=True),
     'nav':      dict(open="navOpen()", is_open="document.body.classList.contains('nav-on')", root='.dk-big', phone=True),
     'filters':  dict(open="fsOpen('watched')", is_open="document.body.classList.contains('fs-on')", root='#fsh', focus=True),
     'watching': dict(open="goTab('watching'); wbOpen(watching[0].id)", is_open="document.body.classList.contains('wb-on')", root='#wbSheet', focus=True),
@@ -294,3 +294,33 @@ def _person_stats(c):
     c.sleep(0.3); c.close_top()
     c.wait("!document.getElementById('tab-stats').classList.contains('hidden')", 4, '«Назад» повернув статистику')
     c.assert_(c.eval('_cwL.length') == 0, 'шар лишився')
+
+
+# ───────────── 1.44: перший вхід, замок ігор, кінець гри без повторів ─────────────
+@scenario('onboard/card', modes=('android', 'desktop'))
+def _onboard(c):
+    c.eval("window.__w=watched.splice(0);window.__k=TMDB_KEY;TMDB_KEY='';goTab('watched');rWatched()")
+    try:
+        c.wait("!!document.querySelector('#tab-watched .ob #obKey')", 3, 'картка «два кроки» з полем ключа')
+        c.assert_(c.eval("document.querySelector('.ob [data-act=\"searchOpen\"]').disabled"), 'крок 2 активний без ключа')
+        c.eval("document.getElementById('obKey').value='abc';obSaveKey()")
+        c.wait("document.getElementById('obMsg').classList.contains('bad')", 2, 'невірний формат ключа — повідомлення')
+        c.snap('nokey')
+        c.eval("TMDB_KEY=window.__k;rWatched()")
+        c.wait("!!document.querySelector('.ob-s.done')&&!document.querySelector('.ob [data-act=\"searchOpen\"]').disabled", 2, 'з ключем крок 1 виконано, крок 2 активний')
+        c.assert_(c.eval("_gameLocked()"), 'ігри не заблоковані при 0 переглянутих')
+    finally:
+        c.eval("watched.push(...window.__w);TMDB_KEY=window.__k;rWatched()")
+
+
+@scenario('game/all-done', modes=('android',))
+def _game_done(c):
+    c.eval("GAME_MIN=0")
+    try:
+        c.eval("_game.type='quote';_game.filter='all';startGame('streak')")
+        c.wait("!document.getElementById('gameModalBg').classList.contains('hidden')", 3, 'гра відкрилась')
+        c.eval("_game.used=new Set(_game.pool.map(p=>p.imdbID));_game.next=null;gameNextQuestion()")
+        c.wait("/Пройдено всі|вгадав усі/.test(document.getElementById('gameOver').textContent)", 4, 'підсумок «усі пройдено»')
+        c.eval("closeGameModal()")
+    finally:
+        c.eval("GAME_MIN=20")
