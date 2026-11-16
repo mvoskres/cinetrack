@@ -271,3 +271,26 @@ def _menu_cat(c):
     c.wait("!document.getElementById('mbox').innerHTML.trim()", 3, 'шторка закрилась')
     c.assert_(c.eval("watched[0].customCategory!==window.__c0"), 'категорія не змінилась')
     c.eval("watched[0].customCategory=window.__c0;saveAll()")
+
+
+@scenario('person/back-to-search', modes=('android', 'history'))
+def _person_srch(c):
+    base = _inert_state(c)
+    c.eval("goTab('watched');searchOpen();document.getElementById('searchInput').value='pitt'")
+    c.wait("document.body.classList.contains('srch-on')", 3, 'пошук')
+    c.eval("_sugPerson(287,'Brad Pitt','')")
+    c.wait("!document.getElementById('tab-people').classList.contains('hidden')&&!document.body.classList.contains('srch-on')", 4, '«Люди»')
+    c.sleep(0.4); c.close_top()
+    c.wait("document.body.classList.contains('srch-on')&&document.getElementById('searchInput').value==='pitt'", 4, '«Назад» повернув пошук з тим самим запитом')
+    c.assert_(c.eval("!document.getElementById('tab-watched').classList.contains('hidden')"), 'під пошуком не та вкладка')
+    c.close_top(); c.wait("!document.body.classList.contains('srch-on')", 3, 'пошук закрився'); _sane(c, base)
+
+
+@scenario('person/back-to-stats', modes=('android',))
+def _person_stats(c):
+    c.eval("goTab('stats')"); c.sleep(0.3)
+    c.eval("_tsPerson(287,'Brad Pitt','')")
+    c.wait("!document.getElementById('tab-people').classList.contains('hidden')", 4, '«Люди»')
+    c.sleep(0.3); c.close_top()
+    c.wait("!document.getElementById('tab-stats').classList.contains('hidden')", 4, '«Назад» повернув статистику')
+    c.assert_(c.eval('_cwL.length') == 0, 'шар лишився')

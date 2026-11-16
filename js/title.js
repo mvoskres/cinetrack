@@ -248,23 +248,27 @@ function _tsMine(d){
   return bits.length?`<section class="ts-sec"><h3>Твої нотатки</h3><div class="ts-mine">${bits.join('')}</div></section>`:'';
 }
 /* a click on a person only shows the filmography; following is the "Стежити" button there */
-function _tsPerson(id,name,profile){
+function _tsPerson(id,name,profile,from){ /* from: {q} — opened from the search (it was closed with that query) */
   _personPreview=_trackedPeople.find(t=>t.id===id)?null:{id,name,profile,dept:''};
   _personLast=id;
   const detail=document.getElementById('personDetail');if(detail)detail.innerHTML=''; /* renderPeopleTab opens _personLast */
   const card=!document.getElementById('titleSheet')?.classList.contains('hidden'),ref=_tsCur?.ref||_tsStack[_tsStack.length-1];
   const tab=document.querySelector('[id^="tab-"]:not(.hidden)')?.id.slice(4)||'watched';
   closeTitle();_tsPplNav=true;goTab('people',document.getElementById('ni-people'));_tsPplNav=false;
-  if(card&&ref){const k='tsPpl'+(++_tsPplN);_tsPplStk.push({k,tab,ref});_lyOpen(k,()=>_tsPplBack(k));}
+  if((card&&ref)||from||tab!=='people'){const k='tsPpl'+(++_tsPplN);_tsPplStk.push({k,tab,ref:card?ref:null,q:from?.q});_lyOpen(k,()=>_tsPplBack(k));}
 }
-/* 1.40: a person opened from a card — Back returns to that tab and the card (it used to land on «exit the app»).
+/* 1.40: a person opened from a card (1.43: or from the search / another tab) — Back returns to that tab and the card or the search
+   (it used to land on «exit the app»).
    A stack: card → person → card → person goes back step by step. Going to another page by the menu drops it (goTab). */
 let _tsPplStk=[],_tsPplN=0,_tsPplNav=false;
 function _tsPplBack(k){
   const i=_tsPplStk.findIndex(x=>x.k===k);if(i<0)return;
   const e=_tsPplStk[i];_tsPplStk.splice(i);
   _tsPplNav=true;goTab(e.tab,document.getElementById('ni-'+e.tab));_tsPplNav=false;
-  setTimeout(()=>_tsOpen(e.ref,true),0); /* after the popstate that called us is done with its layer list */
+  setTimeout(()=>{ /* after the popstate that called us is done with its layer list */
+    if(e.ref)_tsOpen(e.ref,true);
+    else if(e.q!=null){searchOpen();if(e.q)seRun(e.q);}
+  },0);
 }
 function _tsPplDrop(){if(_tsPplNav)return;while(_tsPplStk.length)_lyDone(_tsPplStk.pop().k);}
 

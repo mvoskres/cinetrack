@@ -82,7 +82,7 @@ async function _tmdbSearch(q){
   return true;
 }
 function _sugOpen(mt,id){_seRemember();searchSuspend();openTitleTmdb(mt,id);}
-function _sugPerson(id,name,profile){_seRemember();searchClose();_tsPerson(id,name,profile);}
+function _sugPerson(id,name,profile){_seRemember();const q=document.getElementById('searchInput')?.value||'';searchClose();_tsPerson(id,name,profile,{q});}
 async function _omdbSearch(q){
   try{
     let r=_sCache[q];
@@ -464,7 +464,7 @@ function rPlanned(){
 }
 
 /* tap on your rating (or the comment line) on a card: a bottom sheet like the «Дивлюсь» one (swipe down / Back closes it)
-   with your mark and the whole comment; «Змінити» → editW */
+   with your mark and the whole comment; «Змінити» turns it into the editor */
 const _mnFocus={el:null};let _mnId=null;
 /* edit=true: the same sheet turns into the editor (stars + comment), no second window */
 function myNote(id,edit){
@@ -518,39 +518,6 @@ function mnSave(){
   saveAll();rWatched();myNote(_mnId,false);toast('Збережено','ok',1600);
 }
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('mn-on')){mnClose();e.stopImmediatePropagation();}}); /* only the sheet, not the card under it */
-
-/* ── EDIT WATCHED ── */
-function editW(id){
-  const it=watched.find(i=>i.id===id);if(!it)return;
-  modal(`
-    <img class="modal-poster" src="${imgSrc(it.poster)}" loading="lazy" data-fb alt="">
-    <h2 class="modal-title">${esc(tn(it))}</h2>
-    <div class="modal-sub" style="margin-bottom:1.1rem">${esc(it.year||'')} · ${tl(it.type)}</div>
-    <div class="form-g"><label class="form-lbl" for="eC">Категорія</label>
-      <select class="form-sel" id="eC">
-        <option value="movie"   ${(it.customCategory||it.type)==='movie'   ?'selected':''}>Фільм</option>
-        <option value="series"  ${(it.customCategory||it.type)==='series'  ?'selected':''}>Серіал</option>
-        <option value="anime"   ${(it.customCategory||it.type)==='anime'   ?'selected':''}>Аніме</option>
-        <option value="cartoon" ${(it.customCategory||it.type)==='cartoon' ?'selected':''}>Мульт</option>
-        <option value="other"   ${(it.customCategory||it.type)==='other'   ?'selected':''}>Інше</option>
-      </select></div>
-    <div class="form-g"><label class="form-lbl" id="starsLbl">Моя оцінка</label>
-      <div class="stars" id="starsBox" role="radiogroup" aria-labelledby="starsLbl">${buildStars(it.rating||0)}</div>
-      <input type="hidden" id="eR" value="${+it.rating||0}"></div>
-    <div class="form-g"><label class="form-lbl" for="eCm">Коментар</label>
-      <textarea class="form-ta" id="eCm" rows="3" placeholder="Враження…">${esc(it.comment||'')}</textarea></div>
-    <div class="modal-btns">
-      <button class="m-btn g" data-act="saveEditW" data-args="${A((id))}">Зберегти</button>
-      <button class="m-btn can" data-act="closeModal">Скасувати</button>
-    </div>`);
-}
-function saveEditW(id){
-  const it=watched.find(i=>i.id===id);if(!it)return;
-  it.customCategory=document.getElementById('eC').value;
-  it.rating=parseInt(document.getElementById('eR').value)||0;
-  it.comment=document.getElementById('eCm').value.trim();
-  saveAll();rWatched();closeModal();
-}
 
 /* ── RENDER WATCHING ── */
 function rWatching(skipLive){
