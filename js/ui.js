@@ -253,7 +253,11 @@ async function sugAddAs(mt,id,list){
   catch(e){toast('Не вдалося зв\'язатися з TMDB, спробуй ще раз','err');return;}
   if(!imdb){toast('Цього тайтлу немає на IMDb, тож додати його не вийде','err',3600);return;}
   const fn={watched:addW,watching:addWn,planned:addPl}[list];
-  try{await fn(imdb);}catch(e){toast('Не вдалося додати: немає зв\'язку з OMDb','err');return;}
+  /* 1.44.1: the data comes from TMDB, like the card's «Додати» — no OMDb key needed to add (it only tops up the IMDb rating) */
+  if(!_pendingMap[imdb]){try{_pmSet(imdb,_shapeFromTmdb(mt,await tmdbFetch(`/${mt}/${id}?language=en-US`)));}catch(e){}}
+  let ok=false;
+  try{ok=await fn(imdb);}catch(e){toast('Не вдалося додати: немає зв\'язку з OMDb','err');return;}
+  if(ok&&_pendingMap[imdb]?._fromTmdb)_topUpImdbRating(imdb);
   _ownIdx=null;const q=document.getElementById('searchInput')?.value.trim();if(q)doSearch(q);
 }
 

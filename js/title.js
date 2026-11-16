@@ -226,6 +226,7 @@ function _shapeFromTmdb(mt,en){
 }
 /* One OMDb call after the add, for the IMDb rating only; a spent quota just leaves it empty */
 async function _topUpImdbRating(imdbID){
+  if(!API)return; /* no OMDb key: the rating just stays empty */
   try{const m=await aFetch(`i=${imdbID}`);const r=m?.imdbRating&&m.imdbRating!=='N/A'?m.imdbRating:null;if(!r)return;
     [watched,watching,planned].forEach(l=>l.filter(i=>i.imdbID===imdbID&&!i.imdbRating).forEach(i=>{i.imdbRating=r;}));
     save();rWatched();rWatching();rPlanned();}catch(e){}

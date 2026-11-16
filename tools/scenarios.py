@@ -324,3 +324,14 @@ def _game_done(c):
         c.eval("closeGameModal()")
     finally:
         c.eval("GAME_MIN=20")
+
+
+@scenario('search/add-without-omdb', modes=('android',))
+def _add_no_omdb(c):
+    # без ключа OMDb «+ Додати» з пошуку бере дані з TMDB
+    c.eval("""window.__api=API;API='';window.__tf=tmdbFetch;window.tmdbFetch=async(p,...a)=>/external_ids/.test(p)?{imdb_id:'tt7770001'}:window.__tf(p,...a)""")
+    try:
+        c.eval("sugAddAs('movie',777,'planned')")
+        c.wait("planned.some(i=>i.imdbID==='tt7770001'&&i.title)", 4, 'тайтл додано без OMDb')
+    finally:
+        c.eval("API=window.__api;tmdbFetch=window.__tf;planned=planned.filter(i=>i.imdbID!=='tt7770001');save()")
