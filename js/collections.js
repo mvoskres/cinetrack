@@ -179,7 +179,7 @@ async function loadCollections(force){
   const collIds=Object.keys(groups);
   _collCtx={groups,collIds};
   if(!collIds.length){
-    g.innerHTML=`<div class="empty"><span class="empty-icon">${ic('stack')}</span><div class="empty-txt">Серед твоїх фільмів поки немає франшиз із кількох частин</div></div>`;
+    g.innerHTML=`<div class="es"><span class="empty-icon">${ic('stack')}</span><b>Франшизи зберуться самі</b><p>Коли в списках з’явиться фільм із серії — «Дюна», «Гаррі Поттер», «Людина-павук» — тут буде вся франшиза: що вже бачив, що ще ні і в якому порядку дивитись.</p></div>`;
     document.getElementById('collBar').innerHTML='';
     return;
   }

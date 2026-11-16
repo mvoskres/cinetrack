@@ -459,7 +459,8 @@ function _onboard(){
   const k=!!TMDB_KEY;
   return `<section class="ob" aria-labelledby="obH"><h3 id="obH">${k?'Залишився один крок':'Почнімо з двох кроків'}</h3>
     <p class="ob-d">Кінопис бере назви, постери й описи з TMDB — безкоштовної бази фільмів. Для цього потрібен твій особистий ключ.</p>
-    <button class="ob-bk" data-act="openIO" data-args="[&quot;gdBox&quot;]">${ic('upload')}<span><b>Вже маєш бекап?</b><small>Віднови з Google Drive або з файлу — разом зі списками повернуться й ключі</small></span><i aria-hidden="true">›</i></button>
+    <div class="ob-bk"><div class="ob-bk-h">${ic('upload')}<span><b>Вже маєш бекап?</b><small>Разом зі списками повернуться й ключі</small></span></div>
+      <div class="ob-row ob-bk-a"><button class="btn" data-act="gdSignIn">З Google Drive</button><label class="btn" for="obFile">З файлу</label><input type="file" id="obFile" accept=".json" data-change="doImport" data-args="[&quot;$ev&quot;]" hidden></div></div>
     <div class="ob-s${k?' done':''}"><span class="ob-n">${k?ic('check'):'1'}</span><b>${k?'Ключ TMDB додано':'Отримай ключ TMDB'}</b>
       ${k?'':`<small>Безкоштовно, ~2 хвилини: зареєструйся на themoviedb.org і скопіюй «API Key» у розділі API.</small>
       <div class="ob-row"><a class="btn" href="https://www.themoviedb.org/settings/api" target="_blank" rel="noopener">Відкрити themoviedb.org ↗</a></div>
@@ -467,6 +468,10 @@ function _onboard(){
       <p class="ob-msg" id="obMsg" role="status"></p>`}</div>
     <div class="ob-s${k?'':' off'}"><span class="ob-n">2</span><b>Додай перші фільми</b><small>Знайди через пошук або перенеси все переглянуте з IMDb чи Letterboxd.</small>
       <div class="ob-row"><button class="btn${k?' primary':''}" data-act="searchOpen" ${k?'':'disabled'}>${ic('search')}Пошук</button><button class="btn" data-act="openIO" data-args="[&quot;stCsv&quot;]" ${k?'':'disabled'}>${ic('upload')}Імпорт з IMDb / Letterboxd</button></div></div>
+    <div class="ob-lists"><h4>Три списки — для чого кожен</h4>
+      <div class="ob-l">${ic('check')}<b>Переглянуте</b><small>Що вже бачив. Тут ставиш оцінку й пишеш враження — з цього будуються статистика, рекомендації й ігри.</small></div>
+      <div class="ob-l">${ic('play')}<b>Дивлюсь</b><small>Серіали, які дивишся зараз: на якій ти серії, коли вийде наступна.</small></div>
+      <div class="ob-l">${ic('bookmark')}<b>Планую</b><small>Черга: що хочеш подивитись колись.</small></div></div>
   </section>`;
 }
 async function obSaveKey(){
@@ -486,7 +491,7 @@ async function obSaveKey(){
 function rPlanned(){
   const g=document.getElementById('plGrid');
   const list=applyF(planned,'planned');
-  if(!list.length){g.className='grid';g.innerHTML=planned.length?`<div class="empty"><span class="empty-icon">${ic('search')}</span><div class="empty-txt">Нічого не знайдено</div></div>`:`<div class="empty"><span class="empty-icon">${ic('bookmark')}</span><div class="empty-txt">Черга для перегляду порожня</div></div>`;return;}
+  if(!list.length){g.className='grid';g.innerHTML=planned.length?`<div class="empty"><span class="empty-icon">${ic('search')}</span><div class="empty-txt">Нічого не знайдено</div></div>`:(g.className='',`<div class="es"><span class="empty-icon">${ic('bookmark')}</span><b>Черга порожня</b><p>Бачиш цікавий фільм у пошуку, рекомендаціях чи франшизах — тисни «Запланувати», і він чекатиме тут.</p><button class="btn primary" data-act="searchOpen">${ic('search')}Знайти фільм</button></div>`);return;}
   _gridRender('planned',g,list,i=>myCard('planned',i));
 }
 

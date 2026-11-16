@@ -117,7 +117,10 @@ function renderStats(){
   _sxSig=sig;
   const nf=n=>Number(n).toLocaleString('uk-UA');
   const total=watched.length;
-  if(!total){el.innerHTML=`<p class="sx-sub">Тут з'явиться твій кінопортрет, щойно в «Переглянутому» будуть тайтли.</p>`;return;}
+  if(total<10){ /* 1.45: too few for a portrait — what it will show, and how far there is to go */
+    el.innerHTML=`<div class="es"><span class="empty-icon">${ic('film')}</span><b>Тут буде твій кінопортрет</b><p>Він складеться з «Переглянутого» — що більше тайтлів, то точніше.</p>
+      <ul><li>${ic('star')}Улюблені жанри й твої оцінки проти IMDb</li><li>${ic('chart')}Десятиліття й роки, які дивишся найчастіше</li><li>${ic('spark')}Країни, з яких твоє кіно</li><li>${ic('play')}Скільки годин уже переглянуто</li><li>${ic('person')}Актори й режисери, яких бачиш найчастіше</li></ul>
+      <div class="prog" role="progressbar" aria-valuemin="0" aria-valuemax="10" aria-valuenow="${total}"><i style="width:${total*10}%"></i></div><small>${total} з 10 тайтлів — з 10 портрет стане змістовним</small></div>`;return;}
 
   /* ── categories ── */
   const catCount={movie:0,series:0,anime:0,cartoon:0,other:0};

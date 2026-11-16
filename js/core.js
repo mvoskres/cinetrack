@@ -475,7 +475,7 @@ function save(){
   updateStats();
   return !failed;
 }
-function saveAll(){const ok=save();['watched','watching','planned'].forEach(buildBar);return ok;}
+function saveAll(){const ok=save();['watched','watching','planned'].forEach(buildBar);if(typeof _bkNudge==='function')_bkNudge();return ok;}
 function updateStats(){
   const nf=n=>n.toLocaleString('uk-UA'),cn={watched:watched.length,watching:watching.length,planned:planned.length};
   document.querySelectorAll('[data-nb]').forEach(el=>{el.textContent=nf(cn[el.dataset.nb]??0);});

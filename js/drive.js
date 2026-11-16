@@ -137,7 +137,7 @@ async function gdSignIn(){
     await _gdToken(was?'':'select_account');
     const u=await(await _gdApi('about?fields=user(emailAddress)')).json();
     _lsSet('ct_gd_on','1');_lsSet('ct_gd_email',u.user?.emailAddress||'');
-    _gdNotice(false);_gdMsgSet('Підключено','var(--jade-2)');_gdRender();
+    _gdNotice(false);_gdMsgSet('Підключено','var(--jade-2)');_gdRender();if(typeof _bkNudge==='function')_bkNudge();
     if(!was)toast('Google Drive підключено','ok');
     if(await _gdCheckRemote())return;
     await gdAuto(true);

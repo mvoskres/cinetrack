@@ -92,7 +92,7 @@ function rWatching(skipLive){
   const soon=xs.filter(x=>x.state==='wait'&&x.nd&&_wbDays(x.nd)<=14).sort((a,b)=>_wbDays(a.nd)-_wbDays(b.nd));
   const rank=x=>x.state==='wait'&&soon.includes(x)?1:_WB_ORDER[x.state];
   const ordered=[...xs].sort((a,b)=>rank(a)-rank(b)||(a.state==='new'?_wbDays(b.ls.lastAiredDate)-_wbDays(a.ls.lastAiredDate):0));
-  if(!list.length){c.innerHTML=watching.length?`<div class="empty"><span class="empty-icon">${ic('search')}</span><div class="empty-txt">Нічого не знайдено</div></div>`:`<div class="empty"><span class="empty-icon">${ic('play')}</span><div class="empty-txt">Починай щось дивитись — додай серіал через пошук</div></div>`;return;}
+  if(!list.length){c.innerHTML=watching.length?`<div class="empty"><span class="empty-icon">${ic('search')}</span><div class="empty-txt">Нічого не знайдено</div></div>`:`<div class="es"><span class="empty-icon">${ic('play')}</span><b>Що дивишся зараз?</b><p>Додай серіал — тут буде видно, на якій ти серії і коли вийде нова.</p><button class="btn primary" data-act="searchOpen">${ic('search')}Знайти серіал</button></div>`;return;}
   /* the strip on top: a selector of three groups; a group with nothing in it has no button, no groups — no strip */
   const groups=[['today','Сьогодні',fresh.filter(x=>_wbDays(x.ls.lastAiredDate)===0)],
     ['recent','Нещодавно',fresh.filter(x=>_wbDays(x.ls.lastAiredDate)<0)],
