@@ -116,11 +116,11 @@ function _gdHtml(){
   return `<h4>${ic('save')}Google Drive</h4>
     ${on?`<p class="bk-on">${ic('check')}<span>${esc(em||'…')}</span></p><p>Зберігає сам раз на 3 дні, тримає 10 останніх копій.</p>
       ${localStorage.getItem('ct_gd_warn')?`<p style="color:var(--rose)">${esc(localStorage.getItem('ct_gd_warn'))}</p><button class="btn" data-act="gdBackupForce">Все одно зберегти</button>`:''}
-      <div class="bk-b"><button class="btn primary" data-act="gdBackup">Зберегти зараз</button><button class="btn" data-act="gdRestoreList">Відновити…</button></div>
+      <div class="bk-b"><button class="btn primary" data-act="gdBackup">Зберегти</button><button class="btn" data-act="gdRestoreList">Відновити…</button></div>
       <button class="bk-out" data-act="gdSignOut">Від’єднати Google Drive</button>`
     :`<p>Копія списків у твоєму Google Drive: сама раз на 3 дні, 10 останніх.</p>
       ${location.protocol==='file:'?'<p style="color:var(--gold)">Сторінку відкрито як файл (file://): вхід працює лише на https-сайті.</p>':''}
-      <div class="bk-b"><button class="btn primary" data-act="gdSignIn">Підключити Google Drive</button></div>`}
+      <div class="bk-b"><button class="btn primary" data-act="gdSignIn">Підключити</button></div>`}
     <div id="gdMsg" class="st-msg" style="color:${_gdMsg.c||'var(--muted)'}">${esc(_gdMsg.t)}</div>
     <div id="gdList"></div>`;
 }
