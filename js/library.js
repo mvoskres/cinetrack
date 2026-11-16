@@ -102,6 +102,7 @@ function tagClose(fromHistory){
   if(!document.body.classList.contains('tg-on'))return;
   document.body.classList.remove('tg-on');_tgId=null;const L=document.getElementById('tgSheet');if(L)L.innerHTML='';
   _inertSync();_focusBack(_tgFocus);
+  if(typeof _mnTagsSync==='function')_mnTagsSync(); /* the rating sheet under it shows the new tags */
   if(_cwMode)_cwDel('tg');else if(!fromHistory&&history.state?.tgSheet)history.back();
 }
 let _tgBase=0; /* the card layer under the sheet (0 = none) */

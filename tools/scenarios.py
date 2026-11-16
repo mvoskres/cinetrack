@@ -243,3 +243,18 @@ def _pz_swipe(c):
     c.sleep(0.2)
     c.assert_(c.eval("_pz.won&&_pz.moves===1"), f'свайп не посунув клітинку: {c.eval("JSON.stringify([_pz.board,_pz.moves])")}')
     c.eval("closeGameModal()")
+
+
+@scenario('mn/tags', modes=('android', 'desktop'))
+def _mn_tags(c):
+    base = _inert_state(c)
+    c.eval("myNote(watched[0].id)")
+    c.wait("!!document.querySelector('#mnTags .mn-tadd')", 3, 'рядок тегів у шторці')
+    c.eval("document.querySelector('#mnTags .mn-tadd').click()")
+    c.wait("document.body.classList.contains('tg-on')", 3, 'шторка тегів поверх')
+    c.eval("tagNew&&0")
+    c.close_top()
+    c.wait("!document.body.classList.contains('tg-on')", 3, 'теги закрились')
+    c.sleep(0.3)
+    c.assert_(c.eval("document.body.classList.contains('mn-on')"), 'разом з тегами закрилась шторка оцінки')
+    c.close_top(); c.wait("!document.body.classList.contains('mn-on')", 3, 'шторка оцінки закрилась'); _sane(c, base)

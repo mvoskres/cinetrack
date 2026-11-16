@@ -467,12 +467,10 @@ function myNote(id,edit){
         <div class="stars" id="starsBox" role="radiogroup" aria-labelledby="starsLbl">${buildStars(it.rating||0)}</div>
         <input type="hidden" id="eR" value="${+it.rating||0}"></div>
       <div class="form-g"><label class="form-lbl" for="eCm">Коментар</label>
-        <textarea class="form-ta" id="eCm" rows="4" placeholder="Враження…">${esc(it.comment||'')}</textarea></div>
-      <div class="form-g"><label class="form-lbl" for="eC">Категорія</label>
-        <select class="form-sel" id="eC">${[['movie','Фільм'],['series','Серіал'],['anime','Аніме'],['cartoon','Мульт'],['other','Інше']].map(([v,l])=>`<option value="${v}"${(it.customCategory||it.type)===v?' selected':''}>${l}</option>`).join('')}</select></div></div>
-    <div class="wb-acts"><button class="wb-b mn-save" data-act="mnSave">${ic('check')}Зберегти</button><button class="wb-b" data-act="mnView">Скасувати</button></div>`
+        <textarea class="form-ta" id="eCm" rows="4" placeholder="Враження…">${esc(it.comment||'')}</textarea></div></div>
+    ${_mnTags(it)}<div class="wb-acts"><button class="wb-b mn-save" data-act="mnSave">${ic('check')}Зберегти</button><button class="wb-b" data-act="mnView">Скасувати</button></div>`
     :`${it.comment?`<p class="mn-c">${esc(it.comment)}</p>`:'<p class="mn-c none">Коментаря ще немає</p>'}
-    <div class="wb-acts"><button class="wb-b mn-edit" data-act="mnEdit">${ic('star')}${it.rating||it.comment?'Змінити оцінку й коментар':'Додати оцінку й коментар'}</button></div>`;
+    ${_mnTags(it)}<div class="wb-acts"><button class="wb-b mn-edit" data-act="mnEdit">${ic('star')}${it.rating||it.comment?'Змінити оцінку й коментар':'Додати оцінку й коментар'}</button></div>`;
   R.innerHTML=`<div class="wb-dim" data-act="mnClose"></div><div class="wb-pan" role="dialog" aria-modal="true" aria-label="${esc(tn(it))}: моя оцінка" tabindex="-1"><div class="wb-grab"></div>
     <button class="wb-x" data-act="mnClose" aria-label="Закрити">${ic('x')}</button>
     <div class="wb-hd mn-hd"><button class="mn-pbtn" data-act="mnCard" aria-label="Відкрити картку: ${esc(tn(it))}"><img class="mn-poster" src="${imgSrc(it.poster)}" alt="" data-fb></button><div>
@@ -485,6 +483,12 @@ function myNote(id,edit){
   if(opening){_lyOpen('mn',()=>mnClose());_focusIn(pan,_mnFocus);}
   else (edit?R.querySelector('#starsBox .star[tabindex="0"]'):R.querySelector('.mn-edit'))?.focus();
 }
+/* 1.41: tags right in the rating sheet; a tap opens the tag sheet on top, the row updates when it closes (_mnTagsSync) */
+function _mnTags(it){
+  const t=it.tags||[];
+  return `<div class="mn-tags" id="mnTags"><span class="form-lbl">Теги</span><div class="mn-tl">${t.map(x=>`<button class="tg-c" data-act="tagEdit" data-args="${A(it.id)}">#${esc(x)}</button>`).join('')}<button class="tg-c mn-tadd" data-act="tagEdit" data-args="${A(it.id)}" aria-label="${t.length?'Змінити теги':'Додати тег'}">${ic('plus')}${t.length?'':'Додати тег'}</button></div></div>`;
+}
+function _mnTagsSync(){const it=watched.find(i=>i.id===_mnId),el=document.getElementById('mnTags');if(it&&el&&document.body.classList.contains('mn-on'))el.outerHTML=_mnTags(it);}
 function mnClose(){
   if(!document.body.classList.contains('mn-on'))return;
   document.body.classList.remove('mn-on');const R=document.getElementById('mnSheet');if(R)R.innerHTML='';
@@ -498,7 +502,6 @@ function mnSave(){
   const it=watched.find(i=>i.id===_mnId);if(!it)return;
   it.rating=parseInt(document.getElementById('eR')?.value)||0;
   it.comment=(document.getElementById('eCm')?.value||'').trim();
-  const c=document.getElementById('eC')?.value;if(c)it.customCategory=c;
   saveAll();rWatched();myNote(_mnId,false);toast('Збережено','ok',1600);
 }
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('mn-on')){mnClose();e.stopImmediatePropagation();}}); /* only the sheet, not the card under it */
