@@ -1932,3 +1932,23 @@ body.mn-on .mn-sh.over{z-index:900;} /* opened from a title card (ts-bg 800) */
 .es-bgw i{display:block;aspect-ratio:2/3;border-radius:8px;overflow:hidden;background:var(--ink-3);}
 .es-bgw img{width:100%;height:100%;object-fit:cover;display:block;}
 @media(min-width:701px){.es-bgw{grid-template-columns:repeat(6,1fr);height:340px;}}
+
+/* 1.47 Settings: install on top, the «Бекап» block */
+.st-app{display:flex;align-items:center;gap:14px;padding:14px 16px;border:1px solid var(--gold-b);background:var(--gold-d);border-radius:14px;margin-bottom:12px;}
+.st-app-ic{width:40px;height:40px;border-radius:11px;background:var(--gold);color:var(--gold-ink);display:grid;place-items:center;font-weight:800;font-size:15px;flex:none;}
+.st-app>div{flex:1;min-width:0;}.st-app b{display:block;font-size:14.5px;color:var(--text);}.st-app small{display:block;font-size:12.5px;color:var(--muted);line-height:1.4;margin-top:2px;}
+.bk-st{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13.5px;color:var(--text);margin:.4rem 0 12px;}
+.bk-st svg{width:16px;height:16px;color:var(--ok,#7bc47f);flex:none;}.bk-st.none svg{color:var(--gold);}
+.bk-st small{color:var(--muted);font-size:12.5px;}
+.bk-two{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+@media(max-width:700px){.bk-two{grid-template-columns:1fr;}}
+.bk-c{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--ink-3);display:flex;flex-direction:column;gap:6px;min-width:0;}
+.bk-c h4{margin:0;font-size:14px;color:var(--text);display:flex;align-items:center;gap:8px;}
+.bk-c h4 svg{width:16px;height:16px;color:var(--gold);}
+.bk-c p{margin:0;font-size:12.5px;color:var(--muted);line-height:1.45;}
+.bk-b{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;}.bk-b label.btn{cursor:pointer;}
+.bk-on{display:flex;align-items:center;gap:6px;color:var(--ok,#7bc47f)!important;min-width:0;}.bk-on svg{width:14px;height:14px;flex:none;}.bk-on span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.bk-out{align-self:flex-start;margin-top:2px;background:none;border:0;color:var(--muted);font:inherit;font-size:12.5px;padding:4px 0;text-decoration:underline;cursor:pointer;}
+.bk-out:hover{color:var(--rose);}
+.bk-q{color:var(--text)!important;margin-top:6px!important;}.bk-n{font-size:12px!important;}.bk-x{background:transparent;border-color:transparent;color:var(--muted);}
+#stBackup .st-act{margin-top:10px;}

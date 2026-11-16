@@ -2,25 +2,19 @@
    One scrolling page, no tabs. openIO(target): optional id of an element to scroll to and flash
    (the backup pill and the empty «Переглянуте» state open it straight at their block). */
 function openIO(target){
-  const key=_stKeys(),acc=`<div class="st-row" id="gdBox">${_gdHtml()}</div>`;
+  const key=_stKeys(),acc=_stBackupHtml();
   modal(`
     <div class="st-head">
       <h2 class="modal-title">Налаштування</h2>
       <button class="st-x" data-act="closeModal" title="Закрити" aria-label="Закрити">✕</button>
     </div>
     <div class="st-body">
-      ${API&&TMDB_KEY?acc+key:key+acc}
+      ${_stAppHtml()}
+      ${TMDB_KEY?acc+key:key+acc}
       ${_stAccentHtml()}
       ${_stViewHtml()}
       <div class="st-row">
-        <div class="st-row-head"><span class="st-lbl">Файли й обслуговування</span></div>
-        <button class="st-act" data-act="doExport">${ic('save')}<span><b>Зберегти бекап у файл</b><small>JSON з усіма списками й ключами</small></span></button>
-        <label class="st-act" for="impFile">${ic('upload')}<span><b>Відновити з файлу: злити</b><small>backup.json, дані об'єднуються з наявними</small></span></label>
-        <input type="file" id="impFile" accept=".json" data-change="doImport" data-args="[&quot;$ev&quot;]" hidden>
-        <label class="st-act" for="impFileRep">${ic('upload')}<span><b>Відновити з файлу: замінити</b><small>списки стануть такими, як у файлі; перед цим зберігається знімок</small></span></label>
-        <input type="file" id="impFileRep" accept=".json" data-change="doImport" data-args="[&quot;$ev&quot;,&quot;replace&quot;]" hidden>
-        ${_snapshotRow()}
-        <div id="impMsg" class="st-msg"></div>
+        <div class="st-row-head"><span class="st-lbl">Імпорт і обслуговування</span></div>
         <label class="st-act" for="csvFile" id="stCsv">${ic('film')}<span><b>Імпорт з IMDb / Letterboxd</b><small>CSV з оцінками або watchlist</small></span></label>
         <input type="file" id="csvFile" accept=".csv,text/csv" data-change="doCsvImport" data-args="[&quot;$ev&quot;]" hidden>
         <div id="csvBox"></div>
@@ -54,9 +48,9 @@ function _stKeyRow(id,name,key,save,url,role,bad,hint){
 }
 function _stKeys(){
   return `<div class="st-row" id="stKeys"><div class="st-row-head"><span class="st-lbl">Ключі API</span></div>
-    ${_stKeyRow('tmdb','TMDB',TMDB_KEY,'saveTMDBKey','https://www.themoviedb.org/settings/api','назви, описи, пошук',_tmdbBlocked&&!!TMDB_KEY,'Головне джерело: українські назви й описи, пошук, сезони, рекомендації, франшизи, люди, статистика й гра. Без нього більшість сторінок порожні.')}
-    ${_stKeyRow('api','OMDb',API,'saveKey','https://www.omdbapi.com/apikey.aspx','рейтинг IMDb',false,'Рейтинг IMDb і дані при додаванні в список, а також запасний пошук. Без нього не додати новий тайтл.')}
-    <p class="st-hint">Обидва ключі безкоштовні й потрібні. Зберігаються лише в цьому браузері та у твоєму бекапі.</p></div>`;
+    ${_stKeyRow('tmdb','TMDB',TMDB_KEY,'saveTMDBKey','https://www.themoviedb.org/settings/api','обов’язковий',_tmdbBlocked&&!!TMDB_KEY,'Головне джерело: українські назви й описи, пошук, сезони, рекомендації, франшизи, люди, статистика й гра. Без нього більшість сторінок порожні.')}
+    ${_stKeyRow('api','OMDb',API,'saveKey','https://www.omdbapi.com/apikey.aspx','необов’язковий · рейтинг IMDb',false,'')}
+    <p class="st-hint">Ключі безкоштовні й зберігаються лише в цьому браузері та в бекапі.</p></div>`;
 }
 function stKeyEdit(id){const e=document.getElementById(id+'Ed');if(!e)return;e.style.display='flex';document.getElementById(id+'K')?.focus();}
 const STORAGE_QUOTA_CHARS=5e6; /* Chrome/Edge/Firefox: ~5M chars per origin */
@@ -468,6 +462,42 @@ function _snapshotTake(){
   return ok;
 }
 function _snapshotMeta(){return _lsJSON(SNAP_META,null);}
+/* 1.47: «Бекап» — one block: when the last one was, then Google Drive and a file side by side */
+function _stBackupHtml(){
+  const last=+localStorage.getItem('ct_last_export')||0,gd=+localStorage.getItem('ct_gd_last')||0;
+  const st=last?`${ic('check')}Останній бекап: ${esc(_gdFmt(last))} <small>· ${gd&&gd>=last-5000?'Google Drive':'файл'}</small>`:`${ic('alert')}Бекапу ще не було <small>· списки зараз лише в цьому браузері</small>`;
+  return `<div class="st-row" id="stBackup"><div class="st-row-head"><span class="st-lbl">Бекап</span></div>
+    <p class="bk-st${last?'':' none'}">${st}</p>
+    <div class="bk-two">
+      <div class="bk-c" id="gdBox">${_gdHtml()}</div>
+      <div class="bk-c"><h4>${ic('upload')}Файл</h4><p>Один JSON-файл зі списками й ключами — на цей пристрій чи куди завгодно.</p>
+        <div class="bk-b"><button class="btn" data-act="doExport">Зберегти у файл</button><label class="btn" for="impFile">Відновити з файлу…</label></div>
+        <input type="file" id="impFile" accept=".json" data-change="impPick" data-args="[&quot;$ev&quot;]" hidden>
+        <div id="impAsk"></div><div id="impMsg" class="st-msg"></div></div>
+    </div>
+    ${_snapshotRow()}</div>`;
+}
+/* a file is picked: ask here, in the card, whether to merge it or replace the lists with it */
+let _impT=null;
+function impPick(e){
+  _impT=e.target;const f=_impT.files?.[0];const el=document.getElementById('impAsk');if(!f||!el)return;
+  el.innerHTML=`<p class="bk-q">«${esc(f.name)}»: що зробити зі списками?</p><div class="bk-b"><button class="btn primary" data-act="impGo" data-args="[&quot;merge&quot;]">Злити з поточними</button><button class="btn" data-act="impGo" data-args="[&quot;replace&quot;]">Замінити поточні</button><button class="btn bk-x" data-act="impGo" data-args="[&quot;&quot;]">Скасувати</button></div>
+    <p class="bk-n">«Замінити» спершу збереже знімок теперішнього стану — його можна повернути.</p>`;
+}
+function impGo(mode){
+  const el=document.getElementById('impAsk');if(el)el.innerHTML='';
+  if(mode&&_impT)doImport({target:_impT},mode==='replace'?'replace':undefined,true);
+  if(_impT)_impT.value='';_impT=null;
+}
+/* 1.47: «Встановити Кінопис» on top of Settings while the browser offers it (Chrome / Edge; iOS has no such prompt) */
+let _instEvt=null;
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();_instEvt=e;const b=document.getElementById('stApp');if(b)b.outerHTML=_stAppHtml();});
+addEventListener('appinstalled',()=>{_instEvt=null;document.getElementById('stApp')?.remove();});
+function _stAppHtml(){
+  if(!_instEvt||_isApp())return '';
+  return `<div class="st-app" id="stApp"><span class="st-app-ic" aria-hidden="true">Кп</span><div><b>Встановити Кінопис</b><small>Як застосунок на головному екрані чи робочому столі: без адресного рядка, одним дотиком.</small></div><button class="btn primary" data-act="appInstall">Встановити</button></div>`;
+}
+async function appInstall(){const e=_instEvt;if(!e)return;_instEvt=null;try{await e.prompt();await e.userChoice;}catch(x){}document.getElementById('stApp')?.remove();}
 function _snapshotRow(){
   const m=_snapshotMeta();if(!m||!m.ts)return '';
   return `<button class="st-act" data-act="snapshotRestore">${ic('undo')}<span><b>Повернути знімок до заміни</b><small>${esc(_gdFmt(m.ts))}: ${m.w} переглянуто, ${m.wn} дивлюсь, ${m.p} заплановано</small></span></button>`;
@@ -523,9 +553,9 @@ function _backupReport(r){
   if(r.cacheDropped)L.push(`Відкинуто ${r.cacheDropped} підозрілих записів кешу, вони завантажаться заново`);
   return L;
 }
-function doImport(e,mode){
+function doImport(e,mode,asked){
   const file=e.target.files[0];if(!file)return;
-  if(mode==='replace'&&!confirm('Замінити поточні списки даними з файлу? Перед цим буде збережено знімок поточного стану, його можна повернути в Налаштуваннях.')){e.target.value='';return;}
+  if(mode==='replace'&&!asked&&!confirm('Замінити поточні списки даними з файлу? Перед цим буде збережено знімок поточного стану, його можна повернути в Налаштуваннях.')){e.target.value='';return;}
   const msg=document.getElementById('impMsg');if(msg){msg.style.color='var(--muted)';msg.textContent='Читаю файл…';}
   const rd=new FileReader();
   rd.onload=ev=>{
@@ -542,6 +572,7 @@ function doImport(e,mode){
 
 /* ── VERSION and CHANGELOG: newest first; bump APP_VERSION and add an entry with every change pushed to the site ── */
 const CHANGELOG=[
+  {v:'1.47',d:'16.11.2026',n:['Налаштування: «Бекап» тепер один блок — коли був останній, поруч Google Drive і файл; «Відновити з файлу…» питає вже після вибору: злити чи замінити','Зверху Налаштувань — «Встановити Кінопис», коли браузер це дозволяє','Біля TMDB — «обов’язковий», біля OMDb — «необов’язковий»']},
   {v:'1.46',d:'16.11.2026',n:['Постер з оцінкою: тег поруч показується компактно — значок і кількість; тап відкриває список тегів','Статистика до 10 переглянутих: за підказкою — напівпрозора стіна постерів (твоїх або популярних)']},
   {v:'1.45.1',d:'16.11.2026',n:['Тег на постері — в одному рядку з оцінкою (оцінка зліва, тег справа, однакова висота)','Кілька тегів: тап показує їх усі, і ти обираєш, за яким фільтрувати']},
   {v:'1.45',d:'16.11.2026',n:['Новачок: у картці «Почнімо» — «Вже маєш бекап?» з вибором Google Drive або файл, і пояснення трьох списків','Від 5 тайтлів без жодного бекапу — плашка «Збережи свої списки»: на Google Drive або у файл','Порожні «Дивлюсь», «Планую», «Франшизи» пояснюють, що там буде, з кнопкою пошуку; «Статистика» до 10 переглянутих показує, з чого складеться кінопортрет','Прибрано стартові підказки про ключі (OMDb тепер необов’язковий)','Тег на постері з оцінкою стоїть над нею, а не поверх']},

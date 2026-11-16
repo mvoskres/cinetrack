@@ -26,4 +26,5 @@ function _backupStateRender(){
   document.querySelectorAll('.dock .av').forEach(el=>el.classList.toggle('stale',stale));
   const me=document.getElementById('backupState');if(me)me.title='Налаштування · '+t;
   _bkNudge();
+  const bs=document.querySelector('#stBackup .bk-st');if(bs&&typeof _stBackupHtml==='function'){const t=document.createElement('div');t.innerHTML=_stBackupHtml();const n=t.querySelector('.bk-st');if(n)bs.replaceWith(n);}
 }

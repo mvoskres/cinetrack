@@ -111,20 +111,16 @@ function _gdPre(){
 }
 /* Account block of Settings. The Client ID has no field any more: GDRIVE_CLIENT_ID, or a ct_gclientid override set from the console. */
 function _gdHtml(){
-  const on=_gdOn(),last=+localStorage.getItem('ct_gd_last')||0,em=localStorage.getItem('ct_gd_email')||'';
+  const on=_gdOn(),em=localStorage.getItem('ct_gd_email')||'';
   if(_gdCid()&&location.protocol!=='file:')_gdLoadLib().catch(()=>{}); /* configured = intent: warm the library so the sign-in popup isn't blocked by the load delay */
-  return `<div class="st-row-head"><span class="st-lbl">Акаунт і бекап</span></div>
-    ${on?`<p class="st-acc">${ic('check')}<strong>${esc(em||'…')}</strong></p>
-      <p class="st-hint">${last?'Останній бекап: '+_gdFmt(last)+' <span style="color:var(--ok)">✓</span>':'Останній бекап: ще не було'}</p>
-      ${localStorage.getItem('ct_gd_warn')?`<p class="st-hint" style="color:var(--rose)">${esc(localStorage.getItem('ct_gd_warn'))}</p><button class="m-btn can" data-act="gdBackupForce">Все одно зберегти</button>`:''}
-      <div class="st-pair">
-        <button class="m-btn g" data-act="gdBackup">${ic('save')}Зробити бекап</button>
-        <button class="m-btn can" data-act="gdRestoreList">${ic('upload')}Відновити</button>
-      </div>
-      <button class="st-out" data-act="gdSignOut">Вийти</button>`
-    :`<p class="st-hint">Копія списків у твоєму Google Drive: автоматично раз на 3 дні, лишаються 10 останніх.</p>
-      ${location.protocol==='file:'?'<p class="st-hint" style="color:var(--gold)">Сторінку відкрито як файл (file://): вхід працює лише на https-сайті.</p>':''}
-      <button class="m-btn g st-big" data-act="gdSignIn">Увійти через Google</button>`}
+  return `<h4>${ic('save')}Google Drive</h4>
+    ${on?`<p class="bk-on">${ic('check')}<span>${esc(em||'…')}</span></p><p>Зберігає сам раз на 3 дні, тримає 10 останніх копій.</p>
+      ${localStorage.getItem('ct_gd_warn')?`<p style="color:var(--rose)">${esc(localStorage.getItem('ct_gd_warn'))}</p><button class="btn" data-act="gdBackupForce">Все одно зберегти</button>`:''}
+      <div class="bk-b"><button class="btn primary" data-act="gdBackup">Зберегти зараз</button><button class="btn" data-act="gdRestoreList">Відновити…</button></div>
+      <button class="bk-out" data-act="gdSignOut">Від’єднати Google Drive</button>`
+    :`<p>Копія списків у твоєму Google Drive: сама раз на 3 дні, 10 останніх.</p>
+      ${location.protocol==='file:'?'<p style="color:var(--gold)">Сторінку відкрито як файл (file://): вхід працює лише на https-сайті.</p>':''}
+      <div class="bk-b"><button class="btn primary" data-act="gdSignIn">Підключити Google Drive</button></div>`}
     <div id="gdMsg" class="st-msg" style="color:${_gdMsg.c||'var(--muted)'}">${esc(_gdMsg.t)}</div>
     <div id="gdList"></div>`;
 }
