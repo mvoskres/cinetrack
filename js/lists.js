@@ -397,12 +397,25 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.querySelec
 window.addEventListener('scroll',e=>{if(!e.target.closest?.('.ct-menu'))closeMenu();},{passive:true,capture:true});
 /* title sheet: the sticky top bar stays see-through over the hero and gets a solid background once content scrolls under it */
 window.addEventListener('scroll',e=>{const t=e.target;if(t.classList?.contains('ts'))t.classList.toggle('scrolled',t.scrollTop>8);},{passive:true,capture:true});
+/* 1.42: the category (film / series / anime / cartoon / other) — guessed from IMDb type, genre and country, so sometimes wrong.
+   Set from the ⋯ menu; applies to every copy of the title (a rewatch is in two lists). */
+function catEdit(id){
+  const it=findItem(id);if(!it)return;const cur=it.customCategory||it.type;
+  modal(`<h2 class="modal-title">Категорія</h2><div class="modal-sub">${esc(tn(it))}${it.year?' · '+esc(it.year):''}</div>
+    <div class="cat-opts" role="group" aria-label="Категорія">${Object.entries(CAT).map(([v,l])=>`<button class="btn cat-o${v===cur?' on':''}" aria-pressed="${v===cur}" data-act="catSet" data-args="${A(id,v)}">${v===cur?ic('check'):''}${l}</button>`).join('')}</div>`);
+}
+function catSet(id,v){
+  const it=findItem(id);if(!it||!Object.hasOwn(CAT,v))return;
+  [watched,watching,planned].forEach(l=>l.filter(i=>i.imdbID===it.imdbID).forEach(i=>{i.customCategory=v;}));
+  saveAll();rWatched();rWatching();rPlanned();updateStats();closeModal();toast('Категорія: '+CAT[v].toLowerCase(),'ok',1600);
+}
 function cardMenu(ev,list,id,from){
   const it=findItem(id);if(!it)return;
   const ser=it.type==='series';
   const common=[it.streamUrl&&safeUrl(it.streamUrl)&&{icon:'play',label:'Дивитись',href:it.streamUrl},
     {icon:'link',label:it.streamUrl?'Змінити посилання':'Додати посилання',fn:'editUrl',args:[id]},
-    {icon:'tag',label:(it.tags||[]).length?'Теги ('+it.tags.length+')':'Теги',fn:'tagEdit',args:[id]},'-'];
+    {icon:'tag',label:(it.tags||[]).length?'Теги ('+it.tags.length+')':'Теги',fn:'tagEdit',args:[id]},
+    {icon:'film',label:'Категорія: '+catLabel(it.customCategory||it.type).toLowerCase(),fn:'catEdit',args:[id]},'-'];
   const items={
     watched:[{icon:'star',label:'Оцінка і коментар',fn:'myNote',args:[id,true]},!watching.some(x=>x.imdbID===it.imdbID)&&{icon:'play',label:'Дивитись знову',fn:'wToWn',args:[id]},...common,{icon:'trash',label:'Видалити',fn:'_menuDel',args:['watched',id],danger:1}],
     planned:[{icon:'check',label:'Переглянуто',fn:'plToW',args:[id]},{icon:'play',label:'Почати дивитись',fn:'plToWn',args:[id]},...common,{icon:'trash',label:'Видалити',fn:'_menuDel',args:['planned',id],danger:1}],

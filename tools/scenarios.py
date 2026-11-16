@@ -258,3 +258,16 @@ def _mn_tags(c):
     c.sleep(0.3)
     c.assert_(c.eval("document.body.classList.contains('mn-on')"), 'разом з тегами закрилась шторка оцінки')
     c.close_top(); c.wait("!document.body.classList.contains('mn-on')", 3, 'шторка оцінки закрилась'); _sane(c, base)
+
+
+@scenario('menu/category', modes=('android', 'desktop'))
+def _menu_cat(c):
+    c.eval("goTab('watched')")
+    _open(c, 'menu')
+    c.assert_(c.eval("!!document.querySelector('.ct-menu [data-act=\"catEdit\"], .ct-menu button')&&[...document.querySelectorAll('.ct-menu *')].some(e=>/Категорія/.test(e.textContent))"), 'у меню ⋯ нема «Категорія»')
+    c.eval("const i=watched[0];window.__c0=i.customCategory;catEdit(i.id)")
+    c.wait("!!document.querySelector('#mbox .cat-o')", 3, 'шторка категорій')
+    c.eval("document.querySelector('#mbox .cat-o:not(.on)').click()")
+    c.wait("!document.getElementById('mbox').innerHTML.trim()", 3, 'шторка закрилась')
+    c.assert_(c.eval("watched[0].customCategory!==window.__c0"), 'категорія не змінилась')
+    c.eval("watched[0].customCategory=window.__c0;saveAll()")
