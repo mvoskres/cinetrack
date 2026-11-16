@@ -431,7 +431,14 @@ function _myMeta(i){const c=i.customCategory||i.type;return `<div class="pc-m">$
 /* tags: a quiet line of #chips (tap → show this tag in the list); edited in the tag sheet (tagEdit) */
 function _tagsHtml(i){return (i.tags||[]).length?`<div class="tg-line">${i.tags.map(t=>`<button class="tg-c" data-act="tagGo" data-args="${A('$ev',`${uriSafe(t)}`)}" title="Показати все з тегом «${esc(t)}»">#${esc(t)}</button>`).join('')}</div>`:'';}
 /* on a poster: the first tag (+N) as a small label in the corner */
-function _tagPill(i){const t=i.tags||[];return t.length?`<button class="tg-pill" data-act="tagGo" data-args="${A('$ev',`${uriSafe(t[0])}`)}" title="${esc(t.map(x=>'#'+x).join(' '))}">#${esc(t[0])}${t.length>1?` <b>+${t.length-1}</b>`:''}</button>`:'';}
+/* 1.45.1: one tag → a tap filters by it; several → a tap lists them all and you pick (it used to filter by the first, the one you could see) */
+function _tagPill(i){const t=i.tags||[];if(!t.length)return '';
+  const one=t.length===1,lbl=t.map(x=>'#'+x).join(' ');
+  return `<button class="tg-pill" ${one?`data-act="tagGo" data-args="${A('$ev',`${uriSafe(t[0])}`)}"`:`data-act="tagPick" data-args="${A('$ev',i.id)}" aria-haspopup="menu"`} title="${esc(lbl)}" aria-label="${esc(one?'Показати все з тегом '+lbl:'Теги: '+lbl)}"><span>#${esc(t[0])}</span>${one?'':`<b>+${t.length-1}</b>`}</button>`;}
+function tagPick(ev,id){
+  const it=findItem(id);if(!it||!(it.tags||[]).length)return;
+  openMenu(ev,it.tags.map(t=>({icon:'tag',label:esc(t),fn:'tagGo',args:[null,uriSafe(t)]})));
+}
 function myCard(list,i){
   return `<article class="pc">
     <div class="pc-art"><a href="${imdbHref(i)}" target="_blank" rel="noopener" tabindex="-1" data-act="_tsClick" data-args="${A('$ev',`${i.imdbID}`)}"><img src="${posterSrc(i.poster)}" data-pf="${esc(i.imdbID)}" alt="" loading="lazy"></a>

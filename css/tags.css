@@ -4,7 +4,12 @@
 .tg-c:hover{filter:brightness(1.15);}
 .tg-pill{position:absolute;right:6px;bottom:6px;z-index:2;max-width:calc(100% - 12px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:700 11.5px var(--sans);color:#f3d29c;background:rgba(15,18,22,.82);border:1px solid rgba(227,165,74,.5);border-radius:8px;padding:3px 7px;cursor:pointer;backdrop-filter:blur(2px);}
 .tg-pill b{color:var(--muted);font-weight:700;}
-.pc-art:has(.pc-my) .tg-pill{bottom:34px;} /* 1.45: with your rating in the corner the tag sits above it, never over it */
+/* 1.45.1: your rating left, the tag right — one row, the same height; the tag name shortens, «+N» always shows */
+.tg-pill{display:inline-flex;align-items:center;gap:4px;height:22px;box-sizing:border-box;}
+.tg-pill span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.tg-pill b{flex:none;}
+.pc-art .pc-my{height:22px;box-sizing:border-box;}
+.pc-art:has(.pc-my) .tg-pill{max-width:calc(100% - 64px);}
 
 .wb-tags{display:flex;align-items:center;gap:10px;margin:0 0 14px;}
 .wb-tags .tg-line{margin:0;flex:1;}
