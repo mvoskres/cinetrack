@@ -13,11 +13,7 @@ function _showCollLastRun(pending,total){
   const el=document.getElementById('collLastRun');
   if(!el)return;
   if(pending>0){el.textContent=`нових для аналізу: ${pending}/${total}`;return;}
-  const last=localStorage.getItem('ct_coll_lastrun');
-  if(!last){el.textContent='';return;}
-  const mins=Math.round((Date.now()-Number(last))/60000);
-  const when=mins<1?'щойно':mins<60?`${mins} хв тому`:mins<1440?`${Math.round(mins/60)} год тому`:`${Math.round(mins/1440)} дн тому`;
-  el.textContent=`Оновлено ${when}`;
+  el.textContent=''; /* nothing running: no «Оновлено …» line (the refresh lives in Налаштування now) */
 }
 function _markCollRun(){_lsSet('ct_coll_lastrun',String(Date.now()));}
 
@@ -34,7 +30,7 @@ async function _fetchCollection(id){
   const old={};(_collDetails[id]?.parts||[]).forEach(p=>{old[p.id]=p;});
   const ukp={};(uk?.parts||[]).forEach(p=>{ukp[p.id]=p;});
   _collDetails[id]={name:d.name,uname:uk?_ukTitle(uk.name,'',d.name):'',uk:uk?1:0,poster:d.poster_path,ts:Date.now(),
-    parts:(d.parts||[]).filter(p=>p.title).map(p=>({id:p.id,title:p.title,ut:_ukTitle(ukp[p.id]?.title,p.original_title,p.title),year:(p.release_date||'').slice(0,4),date:p.release_date||'',
+    parts:(d.parts||[]).filter(p=>p.title).map(p=>({id:p.id,title:p.title,ut:_ukTitle(ukp[p.id]?.title,p.original_title,p.title,p.original_language),year:(p.release_date||'').slice(0,4),date:p.release_date||'',
       poster:p.poster_path||null,vote:typeof p.vote_average==='number'&&p.vote_count>=20?Math.round(p.vote_average*10)/10:null,
       imdbID:old[p.id]?.imdbID,imdbRating:old[p.id]?.imdbRating}))};
 }
@@ -50,7 +46,7 @@ async function _collUkFill(){
       try{const uk=await tmdbFetch(`/collection/${id}?language=uk-UA`);const det=_collDetails[id];if(!uk||!det)return;
         const ukp={};(uk.parts||[]).forEach(p=>{ukp[p.id]=p;});
         det.uname=_ukTitle(uk.name,'',det.name);
-        (det.parts||[]).forEach(p=>{const u=ukp[p.id];if(u)p.ut=_ukTitle(u.title,u.original_title,p.title);});
+        (det.parts||[]).forEach(p=>{const u=ukp[p.id];if(u)p.ut=_ukTitle(u.title,u.original_title,p.title,u.original_language);});
         det.uk=1;any=true;fails=0;}catch(e){fails++;}
     }));
   }
@@ -103,6 +99,12 @@ async function _collBackgroundRefresh(force){
   if(!document.getElementById('tab-collections')?.classList.contains('hidden')){buildCollBar();renderCollections(true);}
 }
 /* header button: re-read every franchise and re-check old "not in a franchise" answers; nothing is wiped */
+/* Налаштування → «Оновити франшизи»: the same, started from the settings; it runs in the background */
+function collRefreshFromSettings(){
+  if(_collRefreshing){toast('Франшизи вже оновлюються','',2200);return;}
+  if(!TMDB_KEY){toast('Потрібен ключ TMDB','err',2200);return;}
+  refreshCollectionsData();toast('Оновлюю склад франшиз у фоні: кілька хвилин','ok',3000);
+}
 async function refreshCollectionsData(){
   if(_collRefreshing)return;
   const old=Date.now()-180*864e5;
@@ -146,7 +148,8 @@ const COLL_PAGE_SIZE=12;
 async function loadCollections(force){
   const g=document.getElementById('collGrid');
   if(!TMDB_KEY||_tmdbBlocked){
-    g.innerHTML=`<div class="empty"><span class="empty-icon">${ic('stack')}</span><div class="empty-txt">Потрібен TMDB API-ключ у налаштуваннях, щоб визначати франшизи</div></div>`;
+    g.innerHTML=TMDB_KEY?`<div class="es"><span class="empty-icon">${ic('stack')}</span><b>TMDB зараз не відповідає</b><p>Франшизи визначаються через TMDB. Спробуй трохи згодом.</p></div>`
+      :`<div class="es"><span class="empty-icon">${ic('stack')}</span><b>Франшизи визначає TMDB</b><p>Додай безкоштовний ключ TMDB — і тут зберуться серії фільмів із твоїх списків.</p><button class="btn primary" data-act="openIO" data-args="[&quot;stKeys&quot;]">${ic('key')}Додати ключ</button></div>`;
     document.getElementById('collBar').innerHTML='';
     return;
   }
@@ -156,7 +159,7 @@ async function loadCollections(force){
   const todo=uniq.filter(i=>!_collCache[i.imdbID]);
   _showCollLastRun(todo.length,uniq.length);
   if(todo.length){
-    g.innerHTML=`<div class="spinner" id="collProgress">Шукаю франшизи серед нових фільмів… 0/${todo.length}</div>`;
+    g.innerHTML=`<div class="spinner" role="status" id="collProgress">Шукаю франшизи серед нових фільмів… 0/${todo.length}</div>`;
     let done=0;
     for(let i=0;i<todo.length;i+=5){
       const batch=todo.slice(i,i+5);
@@ -177,7 +180,7 @@ async function loadCollections(force){
   const collIds=Object.keys(groups);
   _collCtx={groups,collIds};
   if(!collIds.length){
-    g.innerHTML=`<div class="empty"><span class="empty-icon">${ic('stack')}</span><div class="empty-txt">Серед твоїх фільмів поки немає франшиз із кількох частин</div></div>`;
+    g.innerHTML=`<div class="es"><span class="empty-icon">${ic('stack')}</span><b>Франшизи зберуться самі</b><p>Коли в списках з’явиться фільм із серії — «Дюна», «Гаррі Поттер», «Людина-павук» — тут буде вся франшиза: що вже бачив, що ще ні і в якому порядку дивитись.</p></div>`;
     document.getElementById('collBar').innerHTML='';
     return;
   }
@@ -239,14 +242,15 @@ function buildCollBar(){
       <div class="local-search-wrap"><span class="local-search-icon">${ic('search')}</span>
         <input class="local-search" type="text" placeholder="Пошук франшизи…" aria-label="Пошук франшизи" value="${esc(f.q)}" data-input="collSearch" data-args="[&quot;$value&quot;]"><button type="button" class="ls-x" data-act="lsClear" data-args="[&quot;$el&quot;]" aria-label="Очистити пошук" title="Очистити">${ic('x')}</button>
       </div>
-      <button id="collFbtn" class="flt-pill${n?' has-n':''}" data-act="toggleCollPan">${ic('filter')}Тип, жанр${n?` <span class="flt-n">${n}</span>`:''}</button>
-      <select class="sort-sel" aria-label="Сортування" data-change="collSetSort" data-args="[&quot;$value&quot;]">
+      <button id="collFbtn" class="flt-pill${n?' has-n':''}" data-act="toggleCollPan" aria-haspopup="dialog">${ic('filter')}Фільтри${n?` <span class="flt-n">${n}</span>`:''}</button>
+      ${_sortCtl(`<select class="sort-sel" aria-label="Сортування" data-change="collSetSort" data-args="[&quot;$value&quot;]">
         ${[['missing-asc','Найближчі до завершення'],['owned-desc','Найбільше переглянуто'],['next-asc','Найближча прем\'єра'],['name-asc','А→Я']]
           .map(([v,l])=>`<option value="${v}"${f.sort===v?' selected':''}>${l}</option>`).join('')}
-      </select>
+      </select>`,[['missing-asc','Найближчі до завершення'],['owned-desc','Найбільше переглянуто'],['next-asc','Найближча прем\'єра'],['name-asc','А→Я']],f.sort)}
     </div>`;
 }
 function toggleCollPan(){
+  if(matchMedia('(max-width:700px)').matches){collSheetOpen();return;} /* phone: a bottom sheet like the lists' filters */
   const p=document.getElementById('collPanel'),b=document.getElementById('collFbtn');
   if(!p)return;
   const open=p.style.display!=='none';
@@ -257,10 +261,10 @@ function buildCollPan(){
   const el=document.getElementById('collPanel');if(!el||!_collGroupsCache)return;
   const f=_collFilter;
   const types=[...new Set(_collGroupsCache.flatMap(c=>c.types))];
-  const genres=[...new Set(_collGroupsCache.flatMap(c=>c.genres))].sort();
+  const genres=[...new Set(_collGroupsCache.flatMap(c=>c.genres))].filter(g=>g!=='N/A').sort((a,b)=>_gName(a).localeCompare(_gName(b),'uk'));
   let h='';
   if(types.length>1)h+=`<div class="flt-row"><span class="flt-lbl">Тип</span><div class="flt-chips">${types.map(t=>`<button class="flt-chip${f.types.includes(t)?' on':''}" data-act="collChip" data-args="${A('types',`${t}`)}">${CAT[t]||t}</button>`).join('')}</div></div>`;
-  if(genres.length)h+=`<div class="flt-row"><span class="flt-lbl">Жанр</span><div class="flt-chips">${genres.map(g=>`<button class="flt-chip${f.genres.includes(g)?' on':''}" data-act="collChip" data-args="${A('genres',`${uriSafe(g)}`)}">${esc(g)}</button>`).join('')}</div></div>`;
+  if(genres.length)h+=`<div class="flt-row"><span class="flt-lbl">Жанр</span><div class="flt-chips">${genres.map(g=>`<button class="flt-chip${f.genres.includes(g)?' on':''}" data-act="collChip" data-args="${A('genres',`${uriSafe(g)}`)}">${esc(_gName(g))}</button>`).join('')}</div></div>`;
   h+=`<div class="flt-panel-footer"><button class="flt-reset" data-act="collClearPan">✕ Скинути тип/жанр</button></div>`;
   el.innerHTML=h;
 }
@@ -269,11 +273,50 @@ function collChip(dim,val){
   const f=_collFilter,arr=f[dim];
   const i=arr.indexOf(val);
   if(i>=0)arr.splice(i,1);else arr.push(val);
-  buildCollBar();buildCollPan();
+  buildCollBar();buildCollPan();_collSheetBody();
   document.getElementById('collFbtn')?.classList.add('active');
   renderCollections();
 }
-function collClearPan(){_collFilter.types=[];_collFilter.genres=[];buildCollBar();buildCollPan();renderCollections();}
+function collClearPan(){_collFilter.types=[];_collFilter.genres=[];buildCollBar();buildCollPan();_collSheetBody();renderCollections();}
+
+/* ── phone: type/genre filters in a bottom sheet (same look as the lists' «Фільтри»); chips apply at once ── */
+const _csFocus={el:null};
+function collSheetOpen(){
+  if(document.body.classList.contains('cs-on')||!_collGroupsCache)return;
+  _csFocus.el=document.activeElement;
+  let root=document.getElementById('csh');
+  if(!root){root=document.createElement('div');root.id='csh';root.className='fsh';document.body.appendChild(root);}
+  root.innerHTML=`<div class="fsh-bd" data-act="collSheetClose"></div><div class="fsh-card" role="dialog" aria-modal="true" aria-label="Фільтри франшиз" tabindex="-1">
+    <div class="fsh-grab"></div><div class="fsh-hd"><h2 class="fsh-t">Фільтри</h2><span id="cshReset"></span>
+    <button class="fsh-x" data-act="collSheetClose" aria-label="Закрити">${ic('x')}</button></div>
+    <div class="fsh-body" id="cshBody"></div><div class="fsh-ft"><button class="fsh-go" data-act="collSheetClose">Готово</button></div></div>`;
+  root.hidden=false;document.body.classList.add('cs-on');
+  _collSheetBody();
+  const card=root.querySelector('.fsh-card');
+  sheetSwipe(card,{close:()=>collSheetClose(),handle:'.fsh-grab,.fsh-hd',scroller:'.fsh-body'});
+  _lyOpen('csh',()=>collSheetClose());
+  document.getElementById('collFbtn')?.setAttribute('aria-expanded','true');
+  _inertSync();card.focus();
+}
+function _collSheetBody(){
+  const body=document.getElementById('cshBody');if(!body||!_collGroupsCache)return;
+  const f=_collFilter;
+  const types=[...new Set(_collGroupsCache.flatMap(c=>c.types))];
+  const genres=[...new Set(_collGroupsCache.flatMap(c=>c.genres))].filter(g=>g!=='N/A').sort((a,b)=>_gName(a).localeCompare(_gName(b),'uk'));
+  const chip=(dim,v,l)=>`<button class="fsh-chip${f[dim].includes(v)?' on':''}" aria-pressed="${f[dim].includes(v)}" data-act="collChip" data-args="${A(dim,`${dim==='genres'?uriSafe(v):v}`)}">${esc(l)}</button>`;
+  body.innerHTML=(types.length>1?`<div class="fsh-grp"><p class="fsh-lbl">Тип</p><div class="fsh-chips">${types.map(t=>chip('types',t,CAT[t]||t)).join('')}</div></div>`:'')
+    +(genres.length?`<div class="fsh-grp"><p class="fsh-lbl">Жанр</p><div class="fsh-chips">${genres.map(g=>chip('genres',g,_gName(g))).join('')}</div></div>`:'');
+  const r=document.getElementById('cshReset');if(r)r.innerHTML=f.types.length+f.genres.length?'<button class="fsh-reset" data-act="collClearPan">Скинути все</button>':'';
+}
+function collSheetClose(){
+  if(!document.body.classList.contains('cs-on'))return;
+  document.body.classList.remove('cs-on');
+  const root=document.getElementById('csh');if(root){root.hidden=true;root.innerHTML='';}
+  const b=document.getElementById('collFbtn');b?.setAttribute('aria-expanded','false');if(!_collFN())b?.classList.remove('active');
+  _inertSync();_focusBack(_csFocus,()=>document.getElementById('collFbtn'));
+  _lyDone('csh');
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('cs-on'))collSheetClose();});
 
 let _collSearchT;
 function collSearch(v){clearTimeout(_collSearchT);_collSearchT=setTimeout(()=>{_collFilter.q=v.trim();renderCollections();},220);}
@@ -282,7 +325,7 @@ function collSetStatus(s){
   if(s==='upcoming')_collFilter.sort='next-asc';else if(_collFilter.sort==='next-asc')_collFilter.sort='missing-asc';
   buildCollBar();renderCollections();
 }
-function collSetSort(v){_collFilter.sort=v;renderCollections();}
+function collSetSort(v){_collFilter.sort=v;if(typeof buildCollBar==='function')buildCollBar();renderCollections();}
 
 /* ── COLLECTIONS: fast client-side render (no network) ── */
 let _collOrderLocked=null; /* array of collection ids in the currently displayed order — frozen
@@ -305,7 +348,7 @@ function renderCollections(preserveOrder){
   }else{
     list=_collGroupsCache.map(withCounts);
     const f=_collFilter;
-    if(f.q){const q=f.q.toLowerCase();list=list.filter(c=>c.name.toLowerCase().includes(q)||(c.en||'').toLowerCase().includes(q));}
+    if(f.q){const q=f.q.toLowerCase();list=list.filter(c=>c.name.toLowerCase().includes(q)||(c.en||'').toLowerCase().includes(q)||(c.list||[]).some(p=>(p.ut||'').toLowerCase().includes(q)||(p.title||'').toLowerCase().includes(q)));} /* 1.51: also by a part's name */
     if(f.status==='incomplete')list=list.filter(c=>c.total>0&&c.owned<c.total);
     if(f.status==='complete')list=list.filter(c=>c.total>0&&c.owned>=c.total);
     if(f.status==='upcoming')list=list.filter(c=>c.upcoming>0);
@@ -335,7 +378,6 @@ function renderCollections(preserveOrder){
 }
 
 const COLL_ROWS=12; /* parts shown before «Усі частини» */
-const _COLL_ST={ok:'Переглянуто',wn:'Дивлюсь',pl:'Заплановано'};
 /* the title opens the in-app sheet; ctrl/middle click keeps the IMDb/TMDB link */
 function _collLink(p,inner,cls=''){
   const link=p.imdbID?`https://www.imdb.com/title/${p.imdbID}/`:(p.id?`https://www.themoviedb.org/movie/${p.id}`:null);
@@ -358,7 +400,7 @@ function _collCell(p,k,ownedMap,extra){
   const tag=lbl?(act?`<button class="fa-lbl ${st}" data-act="collAddMissing" data-args="${A(`${p.imdbID}`,`${_collMetaEnc(p)}`)}" aria-label="${lbl}: ${esc(tt)}. Змінити">${lbl}</button>`
     :`<span class="fa-lbl ${st}">${lbl}</span>`):'';
   const ir=owned?.item.imdbRating||p.imdbRating;
-  const meta=[p.year?esc(p.year):'',ir?`IMDb ${esc(ir)}`:p.vote?`TMDB ${esc(p.vote)}`:''].filter(Boolean).join(' · ');
+  const meta=[p.year?esc(p.year):'',ir?imdbL(ir):p.vote?`TMDB ${rNum(p.vote)}`:''].filter(Boolean).join(' · ');
   return `<div class="fa-cell ${st}${extra?' extra':''}"><div class="fa-art">${_collLink(p,art,`fa-pc ${st}`)}${st==='ok'?`<i class="fa-ok" title="Переглянуто">${ic('check')}</i>`:''}${tag}</div>
     <div class="fa-cap">${_collLink(p,esc(tt),'fa-t')}<span>${meta}</span></div></div>`;
 }
@@ -397,7 +439,7 @@ function _collMetaEnc(p){
   /* encodeURIComponent does NOT escape apostrophes — a title like "Harry
      Potter and the Philosopher's Stone" would otherwise break out of the
      single-quoted onclick attribute and silently kill the handler. */
-  return uriSafe(JSON.stringify({title:p.title,year:p.year,poster:p.poster?`https://image.tmdb.org/t/p/w342${p.poster}`:'',rating:p.imdbRating||''}));
+  return uriSafe(JSON.stringify({title:p.ut||p.title,year:p.year,poster:p.poster?`https://image.tmdb.org/t/p/w342${p.poster}`:'',rating:p.imdbRating||''}));
 }
 
 function collAddMissing(imdbID,metaEnc){
@@ -418,7 +460,7 @@ function openStatusPicker(imdbID,meta,onDone){
     planned:!!planned.find(x=>x.imdbID===imdbID)
   };
   const skipped=!!_skippedParts[imdbID];
-  const sub=[meta.year,meta.rating?`★ ${meta.rating}`:null].filter(Boolean).join(' · ');
+  const sub=[meta.year,meta.rating?imdbL(meta.rating):null].filter(Boolean).join(' · ');
   _collPickerOnDone=onDone;
   modal(`
     <img class="modal-poster" src="${imgSrc(meta.poster)}" data-fb="hide" alt="">
@@ -477,8 +519,8 @@ function _showSkipUndo(imdbID,wasSkipped){
     el.remove();
     if(_collPickerOnDone)_collPickerOnDone();
   };
-  el.append(lblEl,btn);document.body.appendChild(el);
-  const timer=setTimeout(()=>el.remove(),5000);
+  el.append(lblEl,btn);_toastMount(el);
+  const timer=_toastTimer(el,5000,()=>el.remove());
 }
 function _showAddUndo(imdbID,status,before={}){
   const lbl={watched:'Переглянуто',watching:'Дивлюсь',planned:'Заплановано'}[status];
@@ -501,7 +543,7 @@ function _showAddUndo(imdbID,status,before={}){
     el.remove();
     if(_collPickerOnDone)_collPickerOnDone();
   };
-  el.append(lblEl,btn);document.body.appendChild(el);
-  const timer=setTimeout(()=>el.remove(),5000);
+  if(status==='watched'){const a=document.createElement('span');a.className='t-acts';a.append(btn,_rateBtn(imdbID));el.append(lblEl,a);}else el.append(lblEl,btn);_toastMount(el);
+  const timer=_toastTimer(el,5000,()=>el.remove());
 }
 

@@ -16,8 +16,8 @@ const SX_GENRE={Action:'Бойовик',Adventure:'Пригоди',Animation:'А
 const SX_GENRE_PL={Action:'бойовики',Adventure:'пригоди',Animation:'анімація',Biography:'біографії',Comedy:'комедії',Crime:'кримінальне кіно',
   Documentary:'документальне кіно',Drama:'драми',Family:'сімейне кіно',Fantasy:'фентезі',History:'історичне кіно',Horror:'жахи',Music:'музичне кіно',
   Musical:'мюзикли',Mystery:'детективи',Romance:'мелодрами','Sci-Fi':'фантастика',Sport:'спортивне кіно',Thriller:'трилери',War:'воєнне кіно',Western:'вестерни'};
-const sxGenre=g=>SX_GENRE[g]||g;
-const sxGenrePl=g=>SX_GENRE_PL[g]||sxGenre(g).toLowerCase();
+const sxGenre=g=>Object.hasOwn(SX_GENRE,g)?SX_GENRE[g]:g; /* 1.49.2: own keys only — «constructor» from a file is just a word */
+const sxGenrePl=g=>Object.hasOwn(SX_GENRE_PL,g)?SX_GENRE_PL[g]:String(sxGenre(g)).toLowerCase();
 /* OMDb gives English country names: map them to ISO codes once, then let the browser name them in Ukrainian */
 const SX_COUNTRY_FIX={'Soviet Union':'Радянський Союз','West Germany':'Західна Німеччина','East Germany':'НДР','Yugoslavia':'Югославія',
   'Czechoslovakia':'Чехословаччина','Federal Republic of Yugoslavia':'Югославія','Serbia and Montenegro':'Сербія і Чорногорія','UK':'Велика Британія',
@@ -117,7 +117,11 @@ function renderStats(){
   _sxSig=sig;
   const nf=n=>Number(n).toLocaleString('uk-UA');
   const total=watched.length;
-  if(!total){el.innerHTML=`<p class="sx-sub">Тут з'явиться твій кінопортрет, щойно в «Переглянутому» будуть тайтли.</p>`;return;}
+  if(total<10){ /* 1.45: too few for a portrait — what it will show, and how far there is to go */
+    if(watched.filter(i=>ps(i.poster)).length<4)_sxWallPop(); /* 1.46: the wall behind it — your posters, or this week's popular ones */
+    el.innerHTML=`<div class="es es-wall"><div class="es-bgw" aria-hidden="true" id="sxWall">${_sxWallHtml(watched.map(i=>posterSrc(i.poster)).filter(u=>u!=='data:,'))}</div><span class="empty-icon">${ic('film')}</span><b>Тут буде твій кінопортрет</b><p>Він складеться з «Переглянутого» — що більше тайтлів, то точніше.</p>
+      <ul><li>${ic('star')}Улюблені жанри й середній IMDb</li><li>${ic('chart')}Десятиліття й роки, які дивишся найчастіше</li><li>${ic('spark')}Країни, з яких твоє кіно</li><li>${ic('play')}Скільки годин уже переглянуто</li><li>${ic('person')}Актори й режисери, яких бачиш найчастіше</li></ul>
+      <div class="prog" role="progressbar" aria-valuemin="0" aria-valuemax="10" aria-valuenow="${total}"><i style="width:${total*10}%"></i></div><small>${total} з 10 тайтлів — з 10 портрет стане змістовним</small><p style="margin:14px 0 0"><button class="btn primary" data-act="searchOpen">${ic('search')}Додати переглянуте</button></p></div>`;return;}
 
   /* ── categories ── */
   const catCount={movie:0,series:0,anime:0,cartoon:0,other:0};
@@ -125,14 +129,14 @@ function renderStats(){
   const anim=(catCount.anime||0)+(catCount.cartoon||0);
 
   /* ── genres: count and mean IMDb ── */
-  const gN={},gS={},gR={};
+  const gN=Object.create(null),gS=Object.create(null),gR=Object.create(null);
   watched.forEach(i=>{const r=parseFloat(i.imdbRating||0);(i.genre||'').split(',').forEach(g=>{g=g.trim();if(!g||g==='N/A')return;gN[g]=(gN[g]||0)+1;if(r>0){gS[g]=(gS[g]||0)+r;gR[g]=(gR[g]||0)+1;}});});
   const gAvg=g=>gR[g]?gS[g]/gR[g]:0;
   const genres=Object.entries(gN).sort((a,b)=>b[1]-a[1]);
   const bestGenre=genres.filter(([g,n])=>n>=Math.max(10,total*.03)&&g!=='Animation').sort((a,b)=>gAvg(b[0])-gAvg(a[0]))[0];
 
   /* ── countries ── */
-  const cN={};
+  const cN=Object.create(null);
   watched.forEach(i=>(i.country||'').split(',').forEach(c=>{c=c.trim();if(c&&c!=='N/A'){c=sxCountry(c);cN[c]=(cN[c]||0)+1;}}));
   const countries=Object.entries(cN).sort((a,b)=>b[1]-a[1]);
 
@@ -146,7 +150,7 @@ function renderStats(){
 
   /* ── rating distribution ── */
   const rated=watched.filter(i=>parseFloat(i.imdbRating)>0);
-  const avgRating=rated.length?(rated.reduce((s,i)=>s+parseFloat(i.imdbRating),0)/rated.length).toFixed(2):'—';
+  const avgRating=rated.length?(rated.reduce((s,i)=>s+parseFloat(i.imdbRating),0)/rated.length).toFixed(2).replace('.',','):'—';
   const rb=Array(10).fill(0);rated.forEach(i=>{const r=parseFloat(i.imdbRating);rb[Math.min(9,Math.max(0,Math.floor(r)-1))]++;});
 
   /* ── screen time: movies from runtime, series = episodes × episode length (as if watched in full) ── */
@@ -181,8 +185,8 @@ function renderStats(){
     [longS?.i,'Найдовший серіал',()=>`${nf(longS.eps)} ${sxPl(longS.eps,['серія','серії','серій'])}`],
     [by(withYear,(a,b)=>yOf(a)-yOf(b)),'Найстаріший',i=>esc(i.year)],
     [by(withYear,(a,b)=>yOf(b)-yOf(a)),'Найновіший',i=>esc(i.year)],
-    [by(rated,(a,b)=>parseFloat(b.imdbRating)-parseFloat(a.imdbRating)),'Найвищий IMDb',i=>`IMDb ${esc(i.imdbRating)}`],
-    [by(rated,(a,b)=>parseFloat(a.imdbRating)-parseFloat(b.imdbRating)),'Найнижчий IMDb',i=>`IMDb ${esc(i.imdbRating)}`],
+    [by(rated,(a,b)=>parseFloat(b.imdbRating)-parseFloat(a.imdbRating)),'Найвищий IMDb',i=>imdbL(i.imdbRating)],
+    [by(rated,(a,b)=>parseFloat(a.imdbRating)-parseFloat(b.imdbRating)),'Найнижчий IMDb',i=>imdbL(i.imdbRating)],
   ].filter(r=>r[0]);
 
   /* ── franchises (from the Франшизи tab cache, no network here) ── */
@@ -210,7 +214,8 @@ function renderStats(){
   const plannedOf=g=>planned.filter(i=>(i.genre||'').split(',').some(x=>x.trim()===g)).length;
   const next=[];
   if(bestGenre){const g=bestGenre[0],p=plannedOf(g);
-    next.push({t:`Більше ${sxGenrePl(g)}`,s:p?`Твій найвищий бал, ★ ${gAvg(g).toFixed(1)}. У «Планую» їх ${nf(p)}`:`Твій найвищий бал, ★ ${gAvg(g).toFixed(1)}, а в «Планую» жодної`,a:['goTab','recs'],b:'Рекомендації'});}
+    /* 1.51: with some in «Планую» the tap shows exactly those; with none, the new ones of that genre in «Рекомендації» */
+    next.push({t:`Більше ${sxGenrePl(g)}`,s:p?`Твій найвищий IMDb, ${rNum(gAvg(g))}. У «Планую» їх ${nf(p)}`:`Твій найвищий IMDb, ${rNum(gAvg(g))}, а в «Планую» жодної`,a:p?['sxOpen','planned','genres',g]:['sxRecs',g],b:p?'Планую':'Рекомендації'});}
   if(oneLeft.length)next.push({t:`${oneLeft.length===1?'Одна франшиза':`${nf(oneLeft.length)} ${sxPl(oneLeft.length,['франшиза','франшизи','франшиз'])}`} за крок до повної`,s:oneLeft.slice(0,4).map(f=>`${esc(f.name)} (${f.owned} з ${f.total})`).join(', '),a:['goTab','collections'],b:'Франшизи'});
   else if(!Object.keys(_collCache).length)next.push({t:'Порахувати франшизи',s:'Покажу, де лишилась одна частина',a:['goTab','collections'],b:'Франшизи'});
   if(watching.length)next.push({t:`Зараз дивишся ${nf(watching.length)} ${sxPl(watching.length,['тайтл','тайтли','тайтлів'])}`,s:watching.slice(0,3).map(i=>esc(i.title)).join(', '),a:['goTab','watching'],b:'Дивлюсь'});
@@ -228,13 +233,16 @@ function renderStats(){
   /* hero wall: the best rated posters you watched */
   const wall=rated.filter(i=>ps(i.poster)).sort((a,b)=>parseFloat(b.imdbRating)-parseFloat(a.imdbRating)).slice(0,36);
   /* credits: six facts, value + two words */
+  /* 1.51: the 5th item is the tap: [function, ...args], the same ones the lists and the people cards use */
+  const decVal=d=>d===1960?[...new Set(dec[1960].map(i=>String(Math.floor(yOf(i)/10)*10)))]:String(d); /* «до 70-х» = every decade before 1970 */
+  const TT=['тайтл','тайтли','тайтлів'];
   const credits=[
-    [nf(total),sxPl(total,['тайтл','тайтли','тайтлів']),`${nf(mv)} фільм. · ${nf(sr)} сер. · ${nf(anim)} анім.`],
-    g1&&[sxGenre(g1[0]),'жанр №1',`${nf(g1[1])} тайтлів`],
-    favDec&&[favDec===1960?'класика':`${String(favDec).slice(2)}-ті`,'твоє десятиліття',`${nf(dec[favDec].length)} тайтлів`],
-    bestGenre&&[sxGenre(bestGenre[0]),'найвищий бал',`★ ${gAvg(bestGenre[0]).toFixed(1)}`],
-    countries.length&&[nf(countries.length),sxPl(countries.length,['країна','країни','країн']),countries.slice(0,2).map(c=>esc(c[0])).join(', ')],
-    topA&&[esc(topA.name),'найчастіше на екрані',`${nf(topA.c)} тайтлів`,topA],
+    [nf(total),sxPl(total,TT),`${nf(mv)} фільм. · ${nf(sr)} сер. · ${nf(anim)} анім.`,null,['sxOpen','watched','','']],
+    g1&&[sxGenre(g1[0]),'жанр №1',`${nf(g1[1])} ${sxPl(g1[1],TT)}`,null,['sxOpen','watched','genres',g1[0]]],
+    favDec&&[favDec===1960?'класика':`${String(favDec).slice(2)}-ті`,'твоє десятиліття',`${nf(dec[favDec].length)} ${sxPl(dec[favDec].length,TT)}`,null,['sxOpen','watched','decades',decVal(favDec)]],
+    bestGenre&&[sxGenre(bestGenre[0]),'найвищий IMDb',imdbL(gAvg(bestGenre[0])),null,['sxOpen','watched','genres',bestGenre[0]]],
+    countries.length&&[nf(countries.length),sxPl(countries.length,['країна','країни','країн']),countries.slice(0,2).map(c=>esc(c[0])).join(', '),null,['sxCountries']],
+    topA&&[esc(topA.name),'найчастіше на екрані',`${nf(topA.c)} ${sxPl(topA.c,TT)}`,topA,['_tsPerson',topA.id,topA.name,topA.pic||'']],
   ].filter(Boolean);
   /* decades as columns built from posters */
   const decAsc=decKeys.slice().sort((a,b)=>a-b),decMax=Math.max(...decAsc.map(d=>dec[d].length),1);
@@ -254,7 +262,7 @@ function renderStats(){
     </div>
   </section>
 
-  <section class="sv-credits" aria-label="Коротко">${credits.map(([v,l,s,p])=>`<div class="sv-cr">
+  <section class="sv-credits" aria-label="Коротко">${credits.map(([v,l,s,p,a])=>`<div class="sv-cr${a?' sv-cr-a':''}"${a?` role="button" tabindex="0" data-act="${a[0]}" data-args="${A(...a.slice(1))}"`:''}>
     ${p?.pic?`<img class="sv-cr-ph" src="https://image.tmdb.org/t/p/w185${esc(p.pic)}" alt="">`:''}
     <div class="sv-cr-v">${v}</div><div class="sv-cr-l">${l}</div><div class="sv-cr-s">${s}</div></div>`).join('')}</section>
 
@@ -267,28 +275,28 @@ function renderStats(){
 
   <section class="sv-sec"><h3 class="sv-h">Десятиліття</h3>
     <div class="sv-decs">${decAsc.map(d=>{const top=dec[d].slice().sort((x,y)=>(parseFloat(y.imdbRating)||0)-(parseFloat(x.imdbRating)||0)).find(i=>ps(i.poster));
-      return `<div class="sv-dec" title="${decName(d)}: ${nf(dec[d].length)}"><span class="sv-dec-n num">${nf(dec[d].length)}</span>
+      return `<div class="sv-dec" role="button" tabindex="0" data-act="sxOpen" data-args="${A('watched','decades',decVal(d))}" title="${decName(d)}: ${nf(dec[d].length)}"><span class="sv-dec-n num">${nf(dec[d].length)}</span>
         ${top?`<img class="sv-dec-pc" src="${posterSrc(top.poster)}" data-pf="${esc(top.imdbID)}" alt="" loading="lazy" title="${esc(top.title)}">`:''}
         <div class="sv-dec-bar" style="--r:${Math.max(.02,dec[d].length/decMax).toFixed(3)}"></div>
         <span class="sv-dec-l">${d===1960?'&lt;70':String(d).slice(2)}</span></div>`;}).join('')}</div></section>
 
   <div class="sv-duo">
     <section class="sv-sec"><h3 class="sv-h">Жанри</h3>
-      <div class="sv-cloud">${gCloud.map(([g,n])=>{const a=gAvg(g);return `<span class="sv-w${a>mean+.15?' hi':''}" style="font-size:${(.85+1.75*Math.sqrt(n/gMax)).toFixed(2)}rem" title="${esc(sxGenre(g))}: ${nf(n)}${a?`, IMDb ${a.toFixed(1)}`:''}">${esc(sxGenre(g))}</span>`;}).join('')}</div>
-      <p class="sv-cap"><i class="hi"></i> оцінюєш вище за свій середній ${avgRating}</p></section>
-    <section class="sv-sec"><h3 class="sv-h">Країни</h3>
+      <div class="sv-cloud">${gCloud.map(([g,n])=>{const a=gAvg(g);return `<span class="sv-w${a>mean+.15?' hi':''}" role="button" tabindex="0" data-act="sxOpen" data-args="${A('watched','genres',g)}" style="font-size:${(.85+1.75*Math.sqrt(n/gMax)).toFixed(2)}rem" title="${esc(sxGenre(g))}: ${nf(n)}${a?`, ${imdbL(a)}`:''}">${esc(sxGenre(g))}</span>`;}).join('')}</div>
+      <p class="sv-cap"><i class="hi"></i> IMDb вище за середній ${avgRating}</p></section>
+    <section class="sv-sec" id="sxCountries"><h3 class="sv-h">Країни</h3>
       <ol class="sv-countries">${countries.slice(0,5).map(([c,n],k)=>`<li><span class="num">${k+1}</span><b>${esc(c)}</b><em class="num">${nf(n)}</em></li>`).join('')}</ol>
       ${countries.length>5?`<details class="sv-more"><summary>і ще ${nf(countries.length-5)}</summary><p>${countries.slice(5).map(([c,n])=>`${esc(c)} <span class="num">${n}</span>`).join(' · ')}</p></details>`:''}</section>
   </div>
 
   ${finds.length>=3?`<section class="sv-sec"><h3 class="sv-h">Твої знахідки</h3><p class="sv-cap">Високий IMDb, мало хто бачив</p>
-    <div class="sv-strip">${finds.map(i=>pc(i,'',`IMDb ${esc(i.imdbRating)}`)).join('')}</div></section>`:''}
+    <div class="sv-strip">${finds.map(i=>pc(i,'',imdbL(i.imdbRating))).join('')}</div></section>`:''}
 
   <div class="sv-duo">
     <section class="sv-sec"><h3 class="sv-h">Оцінки IMDb</h3>
-      <div class="sv-hist" role="list" aria-label="Розподіл оцінок IMDb">${rb.map((n,k)=>`<div class="sv-hb${k+1===Math.floor(mean)?' on':''}" role="listitem" title="IMDb ${k+1}: ${nf(n)}"><i style="height:${Math.max(2,Math.round(n/rMax*100))}%"></i><span>${k+1}</span></div>`).join('')}
+      <div class="sv-hist" role="list" aria-label="Розподіл оцінок IMDb">${rb.map((n,k)=>`<div class="sv-hb${k+1===Math.floor(mean)?' on':''}" role="listitem" title="IMDb ${k+1}: ${nf(n)}">${n?`<b class="sv-hb-n num" style="bottom:${Math.max(2,Math.round(n/rMax*100))}%">${nf(n)}</b>`:''}<i style="height:${Math.max(2,Math.round(n/rMax*100))}%"></i><span>${k+1}</span></div>`).join('')}
         <div class="sv-mean" style="left:${meanPct}%"><span>${avgRating}</span></div></div></section>
-    ${next.length?`<section class="sv-sec"><h3 class="sv-h">Що далі</h3><div class="sv-next">${next.map(n=>`<button class="sv-nx" data-act="${n.a[0]}" data-args="${A(n.a[1])}"><b>${n.t}</b><span>${n.s}</span></button>`).join('')}</div></section>`:''}
+    ${next.length?`<section class="sv-sec"><h3 class="sv-h">Що далі</h3><div class="sv-next">${next.map(n=>`<button class="sv-nx" data-act="${n.a[0]}" data-args="${A(...n.a.slice(1))}"><b>${n.t}</b><span>${n.s}</span></button>`).join('')}</div></section>`:''}
   </div>
 
   ${franchises.length||tracked.length?`<div class="sv-duo">
@@ -297,3 +305,25 @@ function renderStats(){
   </div>`:''}`;
   if(collecting&&!_sxRun)setTimeout(_sxFill,300);
 }
+
+/* 1.46: the tilted poster wall behind the «кінопортрет» preview */
+function _sxWallHtml(us){if(!us.length)return '';const a=[];while(a.length<12)a.push(...us);return a.slice(0,12).map(u=>`<i><img src="${u}" alt="" loading="lazy" data-fb></i>`).join('');}
+async function _sxWallPop(){
+  if(!TMDB_KEY||_tmdbBlocked)return;
+  try{const d=await tmdbFetch('/trending/movie/week?language=uk-UA');const us=(d?.results||[]).map(r=>_tsImg(r.poster_path,'w185')).filter(Boolean);
+    const el=document.getElementById('sxWall');if(el&&us.length)el.innerHTML=_sxWallHtml(us.map(esc));}catch(e){}
+}
+
+/* 1.51: the portrait is a way into the collection. Opens a list with exactly one filter: dim = genres | decades | '' (none), val = one value or a list */
+function sxOpen(list,dim,val){
+  const f=F[list];f.q='';f.cats=[];f.genres=[];f.decades=[];f.tags=[];if(f.ratings)f.ratings=[];if(f.air)f.air=[];
+  if(dim)f[dim]=[].concat(val);
+  goTab(list);buildBar(list);buildTags(list);rerender(list);
+}
+function sxCountries(){
+  const sec=document.getElementById('sxCountries');if(!sec)return;
+  const d=sec.querySelector('.sv-more');if(d)d.open=true;
+  sec.scrollIntoView({behavior:'smooth',block:'center'});
+}
+/* no titles of that genre in «Планую»: the new ones of it in «Рекомендації» */
+function sxRecs(g){goTab('recs');if(TMDB_GENRES[g]&&TMDB_KEY&&!_tmdbBlocked)recGenre(g);}

@@ -1,0 +1,97 @@
+/* four games now: the type row takes 4 columns (2×2 on a phone) */
+/* computer: five equal tiles, picture on top and the name under it (side by side the names did not fit) */
+@media(min-width:701px){
+  .gx-types{grid-template-columns:repeat(5,minmax(0,1fr));gap:.7rem;}
+  .gx-t{flex-direction:column;align-items:stretch;gap:.55rem;padding:.5rem .5rem .65rem;}
+  .gx-th{width:100%;height:76px;}
+  .gx-t-tx{padding:0 .2rem;}
+  .gx-t-tx b{font-size:clamp(.82rem,.55rem + .55vw,1rem);white-space:nowrap;}
+  .gx-t-tx span{line-height:1.3;}
+}
+/* phone: one compact row of chips (small icon + name) that scrolls sideways, instead of tiles filling the screen */
+@media(max-width:700px){
+  .gx-types{display:flex;overflow-x:auto;scrollbar-width:none;gap:.4rem;padding-bottom:.15rem;scroll-snap-type:x proximity;}
+  .gx-types::-webkit-scrollbar{display:none;}
+  .gx-t{flex:none;flex-direction:row;align-items:center;gap:.5rem;padding:.3rem .85rem .3rem .3rem;border-radius:14px;scroll-snap-align:start;}
+  .gx-th{width:36px;height:36px;border-radius:9px;}
+  .gx-th-q{font-size:1.1rem;}
+  .gx-th-ch{height:62%;gap:2px;}.gx-th-ch i{width:5px;border-radius:2px;}
+  .gx-th-pz{gap:1px;padding:2px;}
+  .gx-t-tx>span{display:none;}
+  .gx-t-tx b{white-space:nowrap;font-size:.9rem;}
+}
+/* ── П'ЯТНАШКИ (js/puzzle.js) ── */
+.gx-th-pz{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;width:100%;height:100%;padding:3px;}
+.gx-th-pz i{border-radius:3px;background:var(--gold);opacity:.75;}
+.gx-th-pz i:nth-child(2n){opacity:.45;}.gx-th-pz i:last-child{background:none;}
+.gx-puzzle{background:radial-gradient(80% 90% at 85% 30%,var(--gold-d),transparent 65%),#0d0f13;}
+.gx-puzzle .gx-in{max-width:min(560px,100%);}
+.pz-lbl{font:600 .66rem var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:.2rem 0 .5rem;}
+.pz-sizes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.45rem;margin-bottom:1rem;}
+.pz-sz{display:flex;flex-direction:column;align-items:flex-start;gap:.1rem;padding:.55rem .7rem;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:var(--text);font:inherit;cursor:pointer;text-align:left;}
+.pz-sz b{font:700 1.05rem var(--serif);}.pz-sz span{font-size:.72rem;color:var(--muted);}
+.pz-sz.on{border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold);}.pz-sz.on b{color:var(--gold);}
+.pz-src{display:flex;gap:.5rem;align-items:center;}
+.pz-rnd{flex:none;display:inline-flex;align-items:center;gap:.4rem;min-height:40px;padding:0 .9rem;border-radius:10px;background:var(--ink-3);border:1px solid var(--line);color:var(--text);font:600 .84rem var(--sans);cursor:pointer;}
+.pz-rnd .i{width:16px;height:16px;}
+.pz-q{flex:1;min-width:0;max-width:none;}
+.pz-sug{display:flex;flex-direction:column;gap:.25rem;margin:.5rem 0 0;max-height:260px;overflow-y:auto;}
+.pz-sug:empty{display:none;}
+.pz-sg{display:flex;align-items:center;gap:.65rem;padding:.35rem .5rem;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid transparent;color:var(--text);font:inherit;text-align:left;cursor:pointer;}
+.pz-sg:hover,.pz-sg:focus-visible{border-color:var(--gold-b);}
+.pz-sg img{width:30px;height:45px;border-radius:5px;object-fit:cover;flex:none;background:var(--ink-3);}
+.pz-sg b,.pz-pick b{display:block;font-weight:600;font-size:.88rem;}.pz-sg small,.pz-pick small{color:var(--muted);font-size:.74rem;}
+.pz-none{color:var(--muted);font-size:.82rem;margin:.3rem .2rem;}
+.pz-pick{display:flex;align-items:center;gap:.7rem;padding:.45rem;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);}
+.pz-pick img{width:40px;height:60px;border-radius:6px;object-fit:cover;flex:none;}
+.pz-pick span{flex:1;min-width:0;}
+.pz-chg{width:38px;height:38px;border-radius:10px;background:var(--ink-3);border:1px solid var(--line);color:var(--text-2);display:grid;place-items:center;cursor:pointer;flex:none;}
+.pz-chg .i{width:16px;height:16px;}
+.gx-puzzle .gx-modes{grid-template-columns:1fr;margin-top:1.1rem;}
+
+/* the board: a 2:3 poster; tiles sit in their cell via --c/--r and show their own piece via --x/--y */
+.game-modal.pz-on{width:min(560px,100%);}
+.pz-wrap{align-items:center;gap:.8rem;}
+.pz-board{position:relative;width:min(100%,calc((92dvh - 13rem) * 2 / 3),440px);aspect-ratio:2/3;border-radius:12px;overflow:hidden;background:#07080a;border:1px solid var(--line);touch-action:none;user-select:none;-webkit-user-select:none;}
+.pz-tile{position:absolute;left:0;top:0;width:calc(100% / var(--n));height:calc(100% / var(--n));padding:0;border:0;cursor:pointer;
+  transform:translate(calc(var(--c) * 100%),calc(var(--r) * 100%));transition:transform .12s ease-out;
+  background-image:var(--img);background-size:calc(var(--n) * 100%) calc(var(--n) * 100%);
+  background-position:calc(var(--x) * 100% / (var(--n) - 1)) calc(var(--y) * 100% / (var(--n) - 1));
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.45),inset 0 0 0 2px rgba(255,255,255,.06);}
+.pz-tile:focus-visible{outline:2px solid var(--gold);outline-offset:-2px;z-index:1;}
+.pz-tile i{display:none;position:absolute;left:4px;top:3px;font:700 .72rem var(--sans);font-style:normal;color:#fff;background:rgba(0,0,0,.6);border-radius:5px;padding:0 .3rem;}
+.pz-board.nums .pz-tile i{display:block;}
+.pz-board.nums .pz-tile.ok i{background:var(--gold);color:var(--gold-ink);}
+.pz-full{position:absolute;inset:0;background:var(--img) center/cover;opacity:0;pointer-events:none;transition:opacity .35s ease;}
+.pz-board.peek .pz-full{opacity:.92;}
+.pz-board.won .pz-full{opacity:1;transition-delay:.15s;}
+.pz-board.won .pz-tile{cursor:default;}
+.pz-bar{display:flex;align-items:center;gap:.45rem;width:min(100%,560px);flex-wrap:wrap;justify-content:center;}
+.pz-ttl{flex:1 1 100%;text-align:center;color:var(--text-2);font-size:.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pz-bar .btn.on{border-color:var(--gold-b);color:var(--gold);}
+.pz-bar .btn .i{width:15px;height:15px;}
+.pz-hud{font-size:.85rem;color:var(--text-2);}.pz-hud b{color:var(--text);}
+.pz-win:empty{display:none;}
+.pz-win{text-align:center;}
+.pz-res{margin:0 0 .6rem;color:var(--text-2);}.pz-res b{color:var(--text);font:700 1.05rem var(--serif);margin-right:.3rem;}.pz-res em{color:var(--gold);font-style:normal;font-weight:600;}
+.pz-acts{display:flex;gap:.5rem;justify-content:center;}
+@media(prefers-reduced-motion:reduce){.pz-tile,.pz-full{transition:none;}}
+@media(max-width:700px){
+  .pz-sizes{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .gx-puzzle .gx-in{padding:1.4rem 1.2rem;}
+  .pz-board{width:min(100%,calc((100dvh - 14rem) * 2 / 3));}
+}
+
+/* phone: the «Ігри» tab is a list of wide cards; a game's screen has «‹ Усі ігри» above it */
+.gx-list{display:flex;flex-direction:column;gap:.6rem;}
+.gx-card{display:flex;align-items:center;gap:.85rem;padding:.6rem .8rem .6rem .6rem;border-radius:16px;background:var(--ink-2);border:1px solid var(--line);color:var(--text);font:inherit;text-align:left;cursor:pointer;}
+.gx-card:active,.gx-card:focus-visible{border-color:var(--gold-b);}
+.gx-card .gx-th{width:72px;height:72px;border-radius:12px;flex:none;}
+.gx-card .gx-th-q{font-size:1.6rem;}
+.gx-card .gx-th-ch{height:62%;gap:3px;}.gx-card .gx-th-ch i{width:9px;}
+.gx-ct{flex:1;min-width:0;display:flex;flex-direction:column;gap:.2rem;}
+.gx-ct b{font:700 1.05rem var(--serif);}
+.gx-ct span{color:var(--text-2);font-size:.8rem;line-height:1.35;}
+.gx-chev{flex:none;color:var(--muted);font-size:1.5rem;line-height:1;}
+.gx-back{display:flex;width:fit-content;align-items:center;gap:.4rem;min-height:40px;padding:0 .9rem 0 .7rem;margin-bottom:.8rem;border-radius:10px;background:var(--ink-3);border:1px solid var(--line);color:var(--text);font:600 .88rem var(--sans);cursor:pointer;}
+.gx-back span{font-size:1.25rem;line-height:1;margin-top:-2px;}

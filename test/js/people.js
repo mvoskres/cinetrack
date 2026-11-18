@@ -31,10 +31,15 @@ function _ownedByTitleYear(){
 }
 
 function removeTrackedPerson(id){
+  const idx=_trackedPeople.findIndex(t=>t.id===id),snap=_trackedPeople[idx];
   _trackedPeople=_trackedPeople.filter(t=>t.id!==id);_peopleSave();
   const detail=document.getElementById('personDetail');
   if(detail&&detail.dataset.pid==String(id))detail.innerHTML='';
   renderPeopleTab();
+  if(snap)_toastAct(`Більше не стежиш: ${snap.name}`,'Скасувати',()=>{ /* 1.51: a mistaken tap no longer loses the person */
+    if(!_trackedPeople.some(t=>t.id===id))_trackedPeople.splice(Math.min(idx,_trackedPeople.length),0,snap);
+    _peopleSave();renderPeopleTab();openPerson(id);document.querySelectorAll('.toast').forEach(t=>t.remove());
+  });
 }
 
 let _personLast=null; /* reopen the person you looked at last */
@@ -136,7 +141,7 @@ function _personUk(uk,en){
   const out={},enT={};
   if(en)[...(en.cast||[]),...(en.crew||[])].forEach(c=>{enT[(c.media_type==='tv'?'tv':'movie')+':'+c.id]=c.title||c.name;});
   [...(uk?.cast||[]),...(uk?.crew||[])].forEach(c=>{const k=(c.media_type==='tv'?'tv':'movie')+':'+c.id;
-    const t=_ukTitle(c.title||c.name,c.original_title||c.original_name,enT[k]);if(t)out[k]=t;});
+    const t=_ukTitle(c.title||c.name,c.original_title||c.original_name,enT[k],c.original_language);if(t)out[k]=t;});
   return out;
 }
 function _personAllCredits(credits){
@@ -166,12 +171,13 @@ function _personAllCredits(credits){
   return all;
 }
 async function openPerson(id){
+  const byFace=!!window.event?.target?.closest?.('.pk-face'); /* a tap on a face (not the tab opening itself) */
   const detail=document.getElementById('personDetail');
   const tracked=_trackedPeople.find(t=>t.id===id),person=tracked||(_personPreview?.id===id?_personPreview:null);
   if(_personGroupsCache?.personId!==id){_personFilter={...PERSON_FILTER_DEFAULT};_personShown=PERSON_PAGE_SIZE;}
   _personLast=id;
   detail.dataset.pid=id;
-  detail.innerHTML=`<div class="spinner">Завантажую фільмографію…</div>`;
+  detail.innerHTML=`<div class="spinner" role="status">Завантажую фільмографію…</div>`;
   document.querySelectorAll('.person-chip').forEach(b=>b.classList.toggle('active',b.dataset.pid==String(id)));
 
   let credits=_personCache[id];
@@ -218,6 +224,11 @@ async function openPerson(id){
     <div id="personList"></div>`;
   buildPersonBar();
   renderPersonList();
+  /* 1.51 phone: the portrait takes the first screen and the tabs sat under the dock — bring «N з M» and the tabs above it */
+  if(byFace&&matchMedia('(max-width:700px)').matches){
+    const st=document.getElementById('personStats');
+    if(st)requestAnimationFrame(()=>scrollBy({top:Math.max(0,st.getBoundingClientRect().top-72),behavior:'smooth'}));
+  }
 }
 
 /* ── PEOPLE: toolbar (everything on show, no hidden panel) ── */
@@ -239,12 +250,12 @@ function buildPersonBar(){
       .map(([k,l])=>`<button class="fa-tab${f.ownership===k?' on':''}" aria-pressed="${f.ownership===k}" data-act="personSetOwnership" data-args="${A(k)}"><b class="num">${cntO[k]}</b><span>${l}</span></button>`).join('')}</div>
     <div class="fa-tools">
       <div class="local-search-wrap"><span class="local-search-icon">${ic('search')}</span>
-        <input class="local-search" type="text" placeholder="Пошук у фільмографії…" aria-label="Пошук у фільмографії" value="${esc(f.q)}" data-input="personListSearch" data-args="[&quot;$value&quot;]"><button type="button" class="ls-x" data-act="lsClear" data-args="[&quot;$el&quot;]" aria-label="Очистити пошук" title="Очистити">${ic('x')}</button>
+        <input class="local-search" type="text" placeholder="Знайти у фільмах" aria-label="Пошук у фільмографії" value="${esc(f.q)}" data-input="personListSearch" data-args="[&quot;$value&quot;]"><button type="button" class="ls-x" data-act="lsClear" data-args="[&quot;$el&quot;]" aria-label="Очистити пошук" title="Очистити">${ic('x')}</button>
       </div>
       <button class="flt-pill${nf?' has-n':''}${_personPanOpen?' active':''}" data-act="personTogglePan">${ic('filter')}Тип, роль${nf?` <span class="flt-n">${nf}</span>`:''}</button>
-      <select class="sort-sel" aria-label="Порядок у десятилітті" data-change="personSetSort" data-args="[&quot;$value&quot;]">
+      ${_sortCtl(`<select class="sort-sel" aria-label="Порядок: за роком (по десятиліттях) чи по всій фільмографії" data-change="personSetSort" data-args="[&quot;$value&quot;]">
         ${[['year-asc','За роком'],['popular','Найвідоміші'],['rating-desc','За рейтингом'],['name-asc','А→Я']].map(([v,l])=>`<option value="${v}"${f.sort===v?' selected':''}>${l}</option>`).join('')}
-      </select>
+      </select>`,[['year-asc','За роком'],['popular','Найвідоміші'],['rating-desc','За рейтингом'],['name-asc','А→Я']],f.sort)}
     </div>`;
   const chips=(arr,cur,fn)=>arr.map(([k,l,n])=>`<button class="cat-chip${cur===k?' on':''}" data-act="${fn}" data-args="${A(k)}">${l}${n!=null?`<span class="num">${n}</span>`:''}</button>`).join('');
   const pan=document.getElementById('personPanel');
@@ -256,12 +267,11 @@ function buildPersonBar(){
 function personTogglePan(){_personPanOpen=!_personPanOpen;buildPersonBar();}
 function personSetType(v){_personFilter.type=v;_personShown=PERSON_PAGE_SIZE;buildPersonBar();renderPersonList();}
 function personSetRole(v){_personFilter.role=v;_personShown=PERSON_PAGE_SIZE;buildPersonBar();renderPersonList();}
-function personMore(){_personShown+=PERSON_PAGE_SIZE;renderPersonList();}
 function personToggleMinor(){_personFilter.showMinor=!_personFilter.showMinor;if(!_personFilter.showMinor&&(_personFilter.type==='doc'||_personFilter.type==='talk'))_personFilter.type='all';buildPersonBar();renderPersonList();}
 let _personSearchT;
 function personListSearch(v){clearTimeout(_personSearchT);_personSearchT=setTimeout(()=>{_personFilter.q=v.trim();renderPersonList();},220);}
 function personSetOwnership(v){_personFilter.ownership=v;_personShown=PERSON_PAGE_SIZE;buildPersonBar();renderPersonList();}
-function personSetSort(v){_personFilter.sort=v;renderPersonList();}
+function personSetSort(v){_personFilter.sort=v;buildPersonBar();renderPersonList();}
 
 /* ── PEOPLE: ownership — by TMDB id first (exact), title+year as a fallback ── */
 function _personOwnedFns(){
@@ -311,12 +321,23 @@ function renderPersonList(){
     const y=parseInt(c.year)||0,k=y?`${Math.floor(y/10)*10}-ті`:'Анонси';
     if(!dec.has(k))dec.set(k,[]);dec.get(k).push(c);
   });
+  /* redraws (adding a title, a filter) keep every decade strip where it was scrolled to */
+  const _keepX={},_pid=String(_personGroupsCache.personId);if(listEl.dataset.kpid===_pid)listEl.querySelectorAll('.pk-dec').forEach(sec=>{const k=sec.querySelector('.pk-dh b')?.textContent,st=sec.querySelector('.pk-strip');if(k&&st)_keepX[k]=st.scrollLeft;});
+  /* 1.51: «Найвідоміші» / «За рейтингом» / «А→Я» order the whole filmography at once; only «За роком» keeps the decades */
+  if(f.sort!=='year-asc'&&f.sort!=='year-desc'){
+    const nm={popular:'Найвідоміші','rating-desc':'За рейтингом','name-asc':'За абеткою'}[f.sort]||'Усі',n=items.length;
+    listEl.innerHTML=`<section class="pk-dec pk-flat"><div class="pk-dh"><b>${nm}</b><span>${n} ${n%10===1&&n%100!==11?'тайтл':n%10>=2&&n%10<=4&&(n%100<12||n%100>14)?'тайтли':'тайтлів'}</span></div>
+      <div class="pk-strip">${items.map(c=>_personCardHtml(c)).join('')}</div></section>`;
+    listEl.dataset.kpid=_pid;return;
+  }
   listEl.innerHTML=[...dec].map(([k,l])=>{
     l.sort(sorters[f.sort]||sorters['year-asc']);
     const s=l.filter(c=>c.owned?.status==='ok').length;
     return `<section class="pk-dec"><div class="pk-dh"><b>${k}</b><span>${l.length} ${l.length%10===1&&l.length%100!==11?'тайтл':l.length%10>=2&&l.length%10<=4&&(l.length%100<12||l.length%100>14)?'тайтли':'тайтлів'}</span>${s?`<i>${s} переглянуто</i>`:''}</div>
       <div class="pk-strip">${l.map(c=>_personCardHtml(c)).join('')}</div></section>`;
   }).join('');
+  listEl.dataset.kpid=_pid;
+  listEl.querySelectorAll('.pk-dec').forEach(sec=>{const x=_keepX[sec.querySelector('.pk-dh b')?.textContent];if(x)sec.querySelector('.pk-strip').scrollLeft=x;});
 }
 
 function _personCardHtml(c){
@@ -341,7 +362,7 @@ function _personCardHtml(c){
   const open=`href="${esc(link)}" target="_blank" rel="noopener" data-act="_tsClickT" data-args="${A('$ev',`${c.mediaType}`,(c.id))}"`;
   const roleLbl=c.roles.has('directing')&&c.roles.has('acting')?'Режисер і актор':c.roles.has('directing')?'Режисер':c.lead?'Головна роль':'Роль';
   const role=roleLbl+(c.characters.length?' · '+c.characters.join(', '):'');
-  const m=[c.year?esc(c.year):'',CREDIT_TYPE_LABEL[c.type]&&c.type!=='movie'?CREDIT_TYPE_LABEL[c.type]:'',out&&c.rating&&c.voteCount>=10?`TMDB ${c.rating.toFixed(1)}`:''].filter(Boolean).join(' · ');
+  const m=[c.year?esc(c.year):'',CREDIT_TYPE_LABEL[c.type]&&c.type!=='movie'?CREDIT_TYPE_LABEL[c.type]:'',out&&c.rating&&c.voteCount>=10?`TMDB ${rNum(c.rating)}`:''].filter(Boolean).join(' · ');
   return `<div class="fa-cell pk-cell ${st}"><div class="fa-art"><a class="fa-pc ${st}" ${open} tabindex="-1">${art}</a>${tag}</div>
     <div class="fa-cap"><a class="fa-t" ${open}>${esc(tt)}</a><span>${m}</span><em title="${esc(role)}">${esc(role)}</em></div></div>`;
 }

@@ -22,14 +22,20 @@ let _modalPrev=null;
 function modal(h){
   const box=document.getElementById('mbox');
   if(!box.innerHTML.trim())_modalPrev=document.activeElement; /* a modal replacing another keeps the first return point */
-  box.innerHTML=`<div class="modal-bg" data-act="_bgClose" data-args="${A('$ev','$el','closeModal')}"><div class="modal" role="dialog" aria-modal="true" tabindex="-1">${h}</div></div>`;
+  box.innerHTML=`<div class="modal-bg" data-act="_bgClose" data-args="${A('$ev','$el','closeModal')}"><div class="modal" role="dialog" aria-modal="true" tabindex="-1"><div class="m-grab" aria-hidden="true"></div>${h}</div></div>`;
   const m=box.querySelector('.modal'),t=m.querySelector('.modal-title');
+  /* on a phone every dialog is a bottom sheet: pull it down by the grab bar (or from its top) to close */
+  document.body.classList.add('md-on');
+  if(typeof sheetSwipe==='function')sheetSwipe(m,{close:()=>closeModal(),handle:'.m-grab,.st-head',scroller:m.querySelector('.st-body')?'.st-body':null});
   if(t){t.id='modalTitle';m.setAttribute('aria-labelledby','modalTitle');}else m.setAttribute('aria-label','Вікно');
   document.removeEventListener('keydown',_modalKeys);document.addEventListener('keydown',_modalKeys);
+  _lyOpen('mbox',()=>closeModal()); /* Back / the swipe gesture closes the dialog (ui.js layers) */
+  _inertSync();
   (m.querySelector(_FOCUSABLE)||m).focus({preventScroll:true});
 }
 function closeModal(){
-  document.getElementById('mbox').innerHTML='';document.removeEventListener('keydown',_modalKeys);
+  document.getElementById('mbox').innerHTML='';document.removeEventListener('keydown',_modalKeys);document.body.classList.remove('md-on');
+  _lyDone('mbox');_inertSync();
   const p=_modalPrev;_modalPrev=null;if(p&&p.isConnected&&typeof p.focus==='function')p.focus({preventScroll:true});
   if(typeof searchResume==='function')searchResume();
 }
@@ -38,10 +44,11 @@ function closeModal(){
 /* a radio group: one tab stop (the chosen star, or the first), arrows change the grade, Home/Delete clear it */
 function buildStars(cur){
   const sel=Math.max(0,Math.min(10,Math.round(+cur)||0));
-  return Array.from({length:10},(_,i)=>`<span class="star${sel>i?' on':''}" role="radio" aria-checked="${sel===i+1}" aria-label="${i+1} з 10" tabindex="${(sel?sel===i+1:i===0)?0:-1}" data-act="pStar" data-args="${A((i+1))}" data-n="${i+1}">★</span>`).join('');
+  return Array.from({length:10},(_,i)=>`<span class="star${sel>i?' on':''}" role="radio" aria-checked="${sel===i+1}" aria-label="${i+1} з 10" tabindex="${(sel?sel===i+1:i===0)?0:-1}" data-act="pStar" data-args="${A((i+1))}" data-n="${i+1}">★</span>`).join('')+`<span class="stars-n" aria-hidden="true">${sel?sel+' з 10':''}</span>`; /* phone: «7 з 10» next to the stars */
 }
 function pStar(n){
   document.getElementById('eR').value=n;
+  const sn=document.querySelector('#starsBox .stars-n');if(sn)sn.textContent=n?n+' з 10':'';
   document.querySelectorAll('#starsBox .star').forEach((s,i)=>{s.classList.toggle('on',i<n);s.setAttribute('aria-checked',String(i+1===n));s.tabIndex=(n?i+1===n:i===0)?0:-1;});
 }
 document.addEventListener('keydown',e=>{
@@ -67,14 +74,54 @@ let _tTimer;
 /* Messages across the app were written with a leading emoji (⚠ ✓ ℹ 🔖…);
    the icon now comes from the toast type, so strip whatever leads the text. */
 const _LEAD_GLYPH=/^(?:[\p{Extended_Pictographic}\u2713\u2717\u2726\u25B6]\uFE0F?\s*)+/u;
-function toast(msg,type='',dur=3400){
+/* Toasts live in the permanent region #toasts (index.html). The text is announced by ariaNotify() (or the hidden live regions
+   #srLive / #srAlert where it is missing) — a live region created together with its text is often not read out. An error stays
+   at least 7 s; a toast waits while the pointer is on it or focus is inside it (the «Скасувати» button is reachable by Tab). */
+const _toastHost=()=>document.getElementById('toasts')||document.body;
+function _toastSay(text,urgent){
+  if(!text)return;
+  if(typeof document.ariaNotify==='function'){try{document.ariaNotify(text,{priority:urgent?'high':'normal'});return;}catch(e){}}
+  const r=document.getElementById(urgent?'srAlert':'srLive');if(!r)return;
+  r.textContent='';setTimeout(()=>{r.textContent=text;},60);
+}
+function _toastMount(el,urgent){
+  _toastHost().appendChild(el);
+  const t=(el.querySelector('span')?.textContent||el.textContent||'').trim();
+  _toastSay(el.querySelector('button')?t+'. Доступні дії':t,urgent);
+}
+function _toastTimer(el,ms,fn){
+  let hov=false;el.addEventListener('mouseenter',()=>{hov=true;});el.addEventListener('mouseleave',()=>{hov=false;});
+  return setTimeout(function chk(){
+    if(!el.isConnected)return;
+    if(hov||el.contains(document.activeElement)){setTimeout(chk,800);return;}
+    fn();
+  },ms);
+}
+function toast(msg,type='',dur=3400,rateId){
   clearTimeout(_tTimer);document.querySelectorAll('.toast').forEach(t=>t.remove());
   const el=document.createElement('div');el.className=`toast${type?' '+type:''}`;
   const txt=document.createElement('span');txt.textContent=String(msg).replace(_LEAD_GLYPH,'');
   el.innerHTML=ic(type==='ok'?'check':type==='err'?'alert':'info');el.appendChild(txt);
-  el.setAttribute('role','status');el.setAttribute('aria-live','polite');
+  if(rateId){el.appendChild(_rateBtn(rateId));dur=Math.max(dur,5000);}
   el.title='Натисни, щоб закрити';el.addEventListener('click',()=>{clearTimeout(_tTimer);el.remove();});
-  document.body.appendChild(el);_tTimer=setTimeout(()=>el.remove(),dur);
+  _toastMount(el,type==='err');_tTimer=_toastTimer(el,type==='err'?Math.max(dur,7000):dur,()=>el.remove());
+}
+
+/* 1.51: the optional «★ Оцінити» on the toast after any «Переглянуто»: opens the rating sheet, forces nothing */
+function _rateBtn(imdbID){
+  const b=document.createElement('button');b.className='t-undo t-rate';b.innerHTML=ic('star')+'Оцінити';
+  b.onclick=()=>{const w=watched.find(x=>x.imdbID===imdbID);b.closest('.toast')?.remove();if(w)myNote(w.id,true,true);};
+  return b;
+}
+
+/* a plain toast with one action button («Скасувати» and the like), 5 s */
+function _toastAct(msg,label,fn){
+  clearTimeout(_tTimer);document.querySelectorAll('.toast').forEach(t=>t.remove());
+  const el=document.createElement('div');el.className='toast undo';
+  const lbl=document.createElement('span');lbl.textContent=msg;
+  const btn=document.createElement('button');btn.className='t-undo';btn.innerHTML=ic('undo')+label;
+  btn.onclick=()=>{fn();};
+  el.append(lbl,btn);_toastMount(el);_toastTimer(el,5000,()=>el.remove());
 }
 
 /* ── DELETE + UNDO ── */
@@ -83,11 +130,10 @@ let _undo=null;
 /* Shared undo toast for move operations.
    actionLabel = what was done ("«Title» → Переглянуто")
    undoFn = function to call to reverse the move              */
-function _mvUndo(item,fromList,fromIdx,undoFn,actionLabel){
+function _mvUndo(item,fromList,fromIdx,undoFn,actionLabel,rateId){
   if(_undo){clearTimeout(_undo.timer);document.querySelectorAll('.toast').forEach(t=>t.remove());_undo=null;}
   document.querySelectorAll('.toast').forEach(t=>t.remove());
   const el=document.createElement('div');el.className='toast undo';
-  el.setAttribute('role','status');el.setAttribute('aria-live','polite');
   const lbl=document.createElement('span');lbl.textContent=actionLabel;
   const btn=document.createElement('button');btn.className='t-undo';btn.innerHTML=ic('undo')+'Скасувати';
   btn.onclick=()=>{
@@ -96,8 +142,8 @@ function _mvUndo(item,fromList,fromIdx,undoFn,actionLabel){
     el.remove();
     toast(`«${item.title}» повернено до запланованого`,'ok',2400);
   };
-  el.append(lbl,btn);document.body.appendChild(el);
-  const timer=setTimeout(()=>{el.remove();_undo=null;},5000);
+  if(rateId){const a=document.createElement('span');a.className='t-acts';a.append(btn,_rateBtn(rateId));el.append(lbl,a);}else el.append(lbl,btn);_toastMount(el);
+  const timer=_toastTimer(el,5000,()=>{el.remove();_undo=null;});
   _undo={timer};
 }
 
@@ -111,8 +157,8 @@ function del(listName,id,renderFn){
   const lbl=document.createElement('span');lbl.textContent=`«${item.title||'Запис'}» видалено`;
   const btn=document.createElement('button');btn.className='t-undo';btn.innerHTML=ic('undo')+'Відновити';
   btn.onclick=()=>{clearTimeout(_undo?.timer);_undo=null;const cur=tList(listName);cur.splice(Math.min(idx,cur.length),0,item);saveAll();renderFn();el.remove();toast(`«${item.title}» відновлено`,'ok',2400);};
-  el.append(lbl,btn);document.body.appendChild(el);
-  const timer=setTimeout(()=>{el.remove();_undo=null;},5000);_undo={timer};
+  el.append(lbl,btn);_toastMount(el);
+  const timer=_toastTimer(el,5000,()=>{el.remove();_undo=null;});_undo={timer};
 }
 
 /* ── API ── */
@@ -145,7 +191,8 @@ function aFetch(p,retries=2){
 
 /* ── HELPERS ── */
 /* poster URL from OMDb/TMDB/a file: http(s) or nothing ('N/A' and javascript: both end up as '') */
-function ps(p){return safeUrl(p);}
+const _POSTER_RE=/^https:\/\/(m\.media-amazon\.com|image\.tmdb\.org)\/[\w\-./%@,+~=]+$/;
+function ps(p){const u=safeUrl(p);return _POSTER_RE.test(u)?u:'';} /* 1.49.2: posters come only from the two hosts the CSP lets images load from */
 /* A card poster that 404s (OMDb's Amazon links rot) or was never stored ('data:,' fails on purpose):
    TMDB /find first — the title sheet already shows TMDB posters — then OMDb; the found URL is saved on
    the item so it is fixed once. Queued 3 at a time: a grid can hold dozens of broken posters */
@@ -211,7 +258,9 @@ function blank(){return"data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/200
 /* Map OMDb genre names to TMDB genre IDs for discover endpoint */
 /* a Ukrainian title is used only when TMDB really translated it: an untranslated entry repeats the original
    (Chinese, Japanese…) and then the English title reads better */
-function _ukTitle(loc,orig,en){loc=(loc||'').trim();return loc&&loc!==orig&&loc!==en?loc:'';}
+/* the Ukrainian title, if TMDB has one: a «translation» equal to the original is usually just the original repeated
+   (a Japanese film keeps its Japanese name) — unless the film itself is Ukrainian (lang 'uk'), then that IS the title (1.49.3) */
+function _ukTitle(loc,orig,en,lang){loc=(loc||'').trim();return loc&&loc!==en&&(loc!==orig||lang==='uk')?loc:'';}
 /* «Термінатор | Колекція», «Terminator Collection» → «Термінатор» */
 function _collName(det,fallback){return String(det?.uname||det?.name||fallback||'').replace(/\s*[|(]\s*Колекці[яї]\)?\s*$/i,'').replace(/ Collection$/,'');}
 let _ukListBusy=false;
@@ -226,7 +275,7 @@ async function _ukListFill(){
       try{
         const d=await tmdbFetch(`/find/${i.imdbID}?external_source=imdb_id&language=uk-UA`);
         const m=d?.movie_results?.[0],t=d?.tv_results?.[0],r=i.type==='series'?(t||m):(m||t);
-        _ukList[i.imdbID]=r?_ukTitle(r.title||r.name,r.original_title||r.original_name,i.title):'';
+        _ukList[i.imdbID]=r?_ukTitle(r.title||r.name,r.original_title||r.original_name,i.title,r.original_language):'';
         if(!_findCache[i.imdbID]&&(m||t)){_findCache[i.imdbID]={m:m?.id||0,t:t?.id||0};}
         fails=0;n++;
       }catch(e){fails++;}
@@ -302,3 +351,23 @@ async function tmdbFindIds(imdbID){
   return r;
 }
 
+
+/* one rating format everywhere: «IMDb 7,4» (decimal comma, one digit); ★ is kept for the viewer's own marks only */
+function rNum(r){const n=parseFloat(r);return n>0?n.toFixed(1).replace('.',','):'';}
+function imdbL(r){const n=rNum(r);return n?'IMDb '+n:'';}
+/* 1.48: an item's score line — IMDb, or TMDB's own score when there is no IMDb one (no OMDb key) */
+function rateL(i){return imdbL(i?.imdbRating)||(rNum(i?.tmdbRating)?'TMDB '+rNum(i.tmdbRating):'');}
+function rateV(i){return parseFloat(i?.imdbRating)||parseFloat(i?.tmdbRating)||0;}
+/* give the titles that came without an IMDb score TMDB's one (stored as tmdbRating) */
+function _setTmdbRating(imdbID,v){const n=parseFloat(v);if(!(n>0))return;[watched,watching,planned].forEach(l=>l.filter(i=>i.imdbID===imdbID&&!rNum(i.imdbRating)).forEach(i=>{i.tmdbRating=String(Math.round(n*10)/10);}));}
+let _tmdbRFill=false;
+async function _tmdbRatingFill(){
+  if(_tmdbRFill||!TMDB_KEY||_tmdbBlocked)return;_tmdbRFill=true;
+  const todo=[...new Set([...watched,...watching,...planned].filter(i=>i.imdbID&&!rNum(i.imdbRating)&&!rNum(i.tmdbRating)).map(i=>i.imdbID))].slice(0,80);
+  let n=0;
+  for(const id of todo){
+    try{const d=await tmdbFetch(`/find/${id}?external_source=imdb_id`);const r=d?.movie_results?.[0]||d?.tv_results?.[0];if(r?.vote_count>0){_setTmdbRating(id,r.vote_average);n++;}}catch(e){if(_tmdbBlocked)break;}
+    await new Promise(ok=>setTimeout(ok,250));
+  }
+  if(n){save();rWatched();rWatching();rPlanned();}
+}

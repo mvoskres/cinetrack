@@ -31,11 +31,12 @@ function _tsOwned(imdbID){
 async function _tsOpen(ref,push){
   const bg=document.getElementById('titleSheet');
   if(push){if(bg.classList.contains('hidden'))_tsStack=[];_tsStack.push(ref);}
-  if(bg.classList.contains('hidden'))_tsPrev=document.activeElement; /* closeTitle puts focus back there */
-  bg.classList.remove('hidden');document.body.classList.add('ts-on');
+  if(bg.classList.contains('hidden')){_tsPrev=document.activeElement;_lyOpen('ts',()=>closeTitle());} /* closeTitle puts focus back there; Back closes the card (ui.js layers) */
+  bg.classList.remove('hidden');document.body.classList.add('ts-on');_inertSync();
   const body=document.getElementById('tsBody');
-  body.innerHTML=`${_tsTopBar()}<div class="spinner">Завантажую деталі…</div>`;
+  body.innerHTML=`${_tsTopBar()}<div class="spinner" role="status">Завантажую деталі…</div>`;
   body.parentElement.scrollTop=0;
+  if(!bg.contains(document.activeElement))bg.querySelector('.ts')?.focus({preventScroll:true}); /* focus inside right away: while loading and if loading fails */
   let data=null;
   try{data=await _tsLoad(ref);}catch(e){}
   if(_tsStack[_tsStack.length-1]!==ref)return; /* navigated away meanwhile */
@@ -44,11 +45,13 @@ async function _tsOpen(ref,push){
   _tsRender();
   if(!bg.contains(document.activeElement))bg.querySelector('.ts')?.focus({preventScroll:true}); /* focus inside the sheet, Tab then walks its buttons */
   const w=data.mt==='tv'&&data.id&&_tsOwned(data.imdbID)?.list==='watching'?_tsOwned(data.imdbID).item:null;
-  if(w&&data.seasons.some(s=>s.n===w.season))_tsSeason(w.season);
+  const wn=w&&_tsNext(data,w); /* 1.51: open the season of your next episode (a finished season moves on to the next one) */
+  if(wn&&data.seasons.some(s=>s.n===wn.s))_tsSeason(wn.s);else if(w&&data.seasons.some(s=>s.n===w.season))_tsSeason(w.season);
 }
 let _tsPrev=null;
 function closeTitle(){
   document.getElementById('titleSheet').classList.add('hidden');document.body.classList.remove('ts-on');_tsStack=[];_tsCur=null;_refreshVisibleTab();
+  _lyDone('ts');_inertSync();
   const p=_tsPrev;_tsPrev=null;if(p&&p.isConnected&&typeof p.focus==='function')p.focus({preventScroll:true});
   searchResume(); /* opened from the search: back to the same results */
 }
@@ -161,9 +164,9 @@ function _tsActions(d){
     const it=own.item,lbl=[...{watched:['ok','check','Переглянуто'],watching:['wn','play','Дивлюсь'],planned:['pl','bookmark','Заплановано']}[own.list]];
     const extra=own.list==='watching'&&it.type==='series'?` · ${_epLabel(it)}`:own.list==='watched'&&it.rating?` · твоя оцінка ${it.rating}/10`:'';
     if(own.list==='watching'&&watched.some(x=>x.imdbID===d.imdbID))lbl[2]='Дивлюсь знову';
-    const main=own.list==='watched'?`<button class="btn" data-act="editW" data-args="${A((it.id))}">${ic('star')}Оцінка і коментар</button>`
+    const main=own.list==='watched'?`<button class="btn" data-act="myNote" data-args="${A(it.id,true)}">${ic('star')}Оцінка і коментар</button>`
       :own.list==='planned'?`<button class="btn" data-act="plToW" data-args="${A((it.id))}">${ic('check')}Переглянуто</button><button class="btn" data-act="plToWn" data-args="${A((it.id))}">${ic('play')}Почати дивитись</button>${_tsSkipBtn(d)}`
-      :`<button class="btn primary" data-act="mvToW" data-args="${A((it.id))}">${ic('check')}Переглянуто повністю</button>`;
+      :`<button class="btn" data-act="mvToW" data-args="${A((it.id))}">${ic('check')}Переглянуто повністю</button>`;
     return `<button class="chip-s st-sw ${lbl[0]}" data-act="_tsStatusMenu" data-args="${A('$ev')}" aria-haspopup="menu" title="Змінити стан">${ic(lbl[1])}${lbl[2]}${extra}<span class="st-car" aria-hidden="true">▾</span></button>${main}
       <button class="icon-btn" data-act="cardMenu" data-args="${A('$ev',`${own.list}`,(it.id))}" aria-label="Ще дії">${ic('dots')}</button>`;
   }
@@ -198,7 +201,7 @@ async function _tsAdd(list){
   if(!_pendingMap[d.imdbID]&&d.id&&d.gid){try{_pmSet(d.imdbID,await _omdbShape(d));}catch(e){}}
   let ok=false;
   try{ok=await fn(d.imdbID);}catch(e){toast('Не вдалося додати: немає зв\'язку з OMDb','err');}
-  if(ok&&_pendingMap[d.imdbID]?._fromTmdb)_topUpImdbRating(d.imdbID);
+  if(ok&&_pendingMap[d.imdbID]?._fromTmdb){_setTmdbRating(d.imdbID,_pendingMap[d.imdbID].tmdbRating);save();_topUpImdbRating(d.imdbID);}
   _tsRefreshActions();
 }
 /* TMDB genre ids -> the English names OMDb uses, so stats, filters and gc() see one vocabulary */
@@ -220,10 +223,11 @@ function _shapeFromTmdb(mt,en){
   return{_fromTmdb:true,Response:'True',Title:en.title||en.name||'',
     Year:series?`${y}–${en.status==='Ended'||en.status==='Canceled'?(en.last_air_date||'').slice(0,4):''}`:y,Type:series?'series':'movie',
     Genre:genre,Country:iso.map(_enCountry).join(', '),Poster:_tsImg(en.poster_path,'w342'),
-    Runtime:rt?`${rt} min`:'N/A',imdbRating:'N/A',totalSeasons:String(en.number_of_seasons||1)};
+    Runtime:rt?`${rt} min`:'N/A',imdbRating:'N/A',tmdbRating:en.vote_count>0?String(en.vote_average||''):'',totalSeasons:String(en.number_of_seasons||1)};
 }
 /* One OMDb call after the add, for the IMDb rating only; a spent quota just leaves it empty */
 async function _topUpImdbRating(imdbID){
+  if(!API)return; /* no OMDb key: the rating just stays empty */
   try{const m=await aFetch(`i=${imdbID}`);const r=m?.imdbRating&&m.imdbRating!=='N/A'?m.imdbRating:null;if(!r)return;
     [watched,watching,planned].forEach(l=>l.filter(i=>i.imdbID===imdbID&&!i.imdbRating).forEach(i=>{i.imdbRating=r;}));
     save();rWatched();rWatching();rPlanned();}catch(e){}
@@ -246,12 +250,29 @@ function _tsMine(d){
   return bits.length?`<section class="ts-sec"><h3>Твої нотатки</h3><div class="ts-mine">${bits.join('')}</div></section>`:'';
 }
 /* a click on a person only shows the filmography; following is the "Стежити" button there */
-function _tsPerson(id,name,profile){
+function _tsPerson(id,name,profile,from){ /* from: {q} — opened from the search (it was closed with that query) */
   _personPreview=_trackedPeople.find(t=>t.id===id)?null:{id,name,profile,dept:''};
   _personLast=id;
   const detail=document.getElementById('personDetail');if(detail)detail.innerHTML=''; /* renderPeopleTab opens _personLast */
-  closeTitle();goTab('people',document.getElementById('ni-people'));
+  const card=!document.getElementById('titleSheet')?.classList.contains('hidden'),ref=_tsCur?.ref||_tsStack[_tsStack.length-1];
+  const tab=document.querySelector('[id^="tab-"]:not(.hidden)')?.id.slice(4)||'watched';
+  closeTitle();_tsPplNav=true;goTab('people',document.getElementById('ni-people'));_tsPplNav=false;
+  if((card&&ref)||from||tab!=='people'){const k='tsPpl'+(++_tsPplN);_tsPplStk.push({k,tab,ref:card?ref:null,q:from?.q});_lyOpen(k,()=>_tsPplBack(k));}
 }
+/* 1.40: a person opened from a card (1.43: or from the search / another tab) — Back returns to that tab and the card or the search
+   (it used to land on «exit the app»).
+   A stack: card → person → card → person goes back step by step. Going to another page by the menu drops it (goTab). */
+let _tsPplStk=[],_tsPplN=0,_tsPplNav=false;
+function _tsPplBack(k){
+  const i=_tsPplStk.findIndex(x=>x.k===k);if(i<0)return;
+  const e=_tsPplStk[i];_tsPplStk.splice(i);
+  _tsPplNav=true;goTab(e.tab,document.getElementById('ni-'+e.tab));_tsPplNav=false;
+  setTimeout(()=>{ /* after the popstate that called us is done with its layer list */
+    if(e.ref)_tsOpen(e.ref,true);
+    else if(e.q!=null){searchOpen();if(e.q)seRun(e.q);}
+  },0);
+}
+function _tsPplDrop(){if(_tsPplNav)return;while(_tsPplStk.length)_lyDone(_tsPplStk.pop().k);}
 
 function _tsRender(){
   const d=_tsCur.data,own=_tsOwned(d.imdbID)?.item;
@@ -259,10 +280,11 @@ function _tsRender(){
   const omdb=d.imdbID?_apiCache['i='+d.imdbID]?.d||_apiCache['i='+d.imdbID+'&plot=short']?.d:null;
   const rt=omdb?.Ratings?.find(r=>r.Source==='Rotten Tomatoes')?.Value,mc=omdb?.Ratings?.find(r=>r.Source==='Metacritic')?.Value;
   const imdbR=own?.imdbRating||(omdb?.imdbRating&&omdb.imdbRating!=='N/A'?omdb.imdbRating:'');
-  const listTitle=own?.title||d.title;
-  const alt=[d.title!==listTitle?d.title:'',d.original&&d.original!==listTitle&&d.original!==d.title?d.original:''].filter(Boolean).join(' · ');
+  /* 1.51: your title is called as everywhere else (tn: the Ukrainian name), the English and the original one small under it */
+  const listTitle=own?(tn(own)!==own.title?tn(own):_ukTitle(d.title,d.original,own.title)||own.title):d.title;
+  const alt=[...new Set([own?.title,d.original])].filter(t=>t&&t!==listTitle).join(' · ');
   const meta=[d.year,d.runtime?`${d.runtime} хв${d.mt==='tv'?' серія':''}`:'',d.genres.slice(0,3).join(', '),d.countries.join(', ')].filter(Boolean).join(' · ');
-  const scores=[imdbR&&`<span class="ts-score"><b>IMDb</b> ${esc(imdbR)}</span>`,d.vote&&d.votes>=20&&`<span class="ts-score"><b>TMDB</b> ${d.vote.toFixed(1)} <small>${nf2(d.votes)}</small></span>`,
+  const scores=[imdbR&&`<span class="ts-score"><b>IMDb</b> ${rNum(imdbR)}</span>`,d.vote&&d.votes>=20&&`<span class="ts-score"><b>TMDB</b> ${rNum(d.vote)} <small>${nf2(d.votes)}</small></span>`,
     rt&&`<span class="ts-score"><b>Rotten Tomatoes</b> ${esc(rt)}</span>`,mc&&`<span class="ts-score"><b>Metacritic</b> ${esc(mc)}</span>`].filter(Boolean).join('');
   const poster=esc(ps(d.posterUrl)||_tsImg(d.poster,'w342')||ps(own?.poster)||BLANK);
   const links=[d.trailer&&_ytOk(d.trailer.key)&&`<a class="btn" href="https://www.youtube.com/watch?v=${esc(d.trailer.key)}" target="_blank" rel="noopener">${ic('play')}Трейлер${d.trailer.lang==='uk'?' українською':''}</a>`,
@@ -310,10 +332,17 @@ function _tsRender(){
    For a show in Дивлюсь a click on an episode puts the progress there. */
 const _tsSeasonCache={};
 function _tsWatching(){const o=_tsCur&&_tsOwned(_tsCur.data.imdbID);return o?.list==='watching'?o.item:null;}
+/* 1.51: the counter is the LAST WATCHED episode (as on the Дивлюсь wall and sheet); this is the one after it.
+   Season lengths from TVmaze, else from TMDB; a finished season moves on to the next one when TMDB lists it */
+function _tsNext(d,w){
+  const s=+w.season||1,e=+w.episode||0,len=+w.seasonEps?.[s]||+d.seasons.find(x=>x.n===s)?.eps||0;
+  return len&&e>=len&&d.seasons.some(x=>x.n===s+1)?{s:s+1,e:1}:{s,e:e+1};
+}
 function _tsSeasonChips(d){
   const w=_tsOwned(d.imdbID),it=w?.item,open=_tsCur?.data===d?_tsCur.season:0;
+  const nx=w?.list==='watching'?_tsNext(d,it):null; /* the season of your next episode is «cur», the ones before it are done */
   return d.seasons.map(s=>{
-    const st=w?.list==='watched'||w?.list==='watching'&&s.n<it.season?' done':w?.list==='watching'&&s.n===it.season?' cur':'';
+    const st=w?.list==='watched'||nx&&s.n<nx.s?' done':nx&&s.n===nx.s?' cur':'';
     return `<button class="ts-sn${st}${open===s.n?' open':''}" data-act="_tsSeason" data-args="${A(s.n)}" aria-expanded="${open===s.n}"><b>S${esc(s.n)}</b> ${esc(s.eps)} сер.${s.air?` · ${esc(s.air)}`:''}</button>`;
   }).join('');
 }
@@ -323,7 +352,7 @@ async function _tsSeason(n){
   _tsCur.season=n;_tsRefreshActions();
   const box=document.getElementById('tsEps'),k=`${d.id}:${n}`;
   if(!_tsSeasonCache[k]){
-    box.innerHTML='<div class="spinner">Завантажую серії…</div>';
+    box.innerHTML='<div class="spinner" role="status">Завантажую серії…</div>';
     try{const r=await tmdbFetch(`/tv/${d.id}/season/${n}?language=uk-UA`);
       _tsSeasonCache[k]=(r.episodes||[]).map(e=>({e:e.episode_number,name:e.name||'',date:e.air_date||'',rt:e.runtime||0,vote:e.vote_count>=5?e.vote_average:0,ov:e.overview||''}));
     }catch(err){if(_tsCur?.season===n)box.innerHTML='<p class="ts-note">Не вдалося завантажити серії</p>';return;}
@@ -332,26 +361,28 @@ async function _tsSeason(n){
 }
 function _tsEpsRender(){
   const d=_tsCur.data,n=_tsCur.season,eps=_tsSeasonCache[`${d.id}:${n}`],box=document.getElementById('tsEps');if(!eps||!box)return;
-  const w=_tsWatching(),own=_tsOwned(d.imdbID),today=_todayISO();
-  box.innerHTML=`${w?'<p class="ts-note">Натисни на серію, на якій ти зараз</p>':own?'':'<p class="ts-note">Додай серіал у «Дивлюсь», щоб відмічати серії</p>'}
+  const w=_tsWatching(),own=_tsOwned(d.imdbID),today=_todayISO(),nx=w&&_tsNext(d,w);
+  /* 1.51: ✓ on every episode up to the counter (the last watched one), «далі» on the next; a tap marks that episode as the last watched */
+  box.innerHTML=`${w?'<p class="ts-note">Натисни останню переглянуту серію</p>':own?'':'<p class="ts-note">Додай серіал у «Дивлюсь», щоб відмічати серії</p>'}
     <ol class="ts-eps">${eps.map(ep=>{
-      const st=own?.list==='watched'||w&&(n<w.season||n===w.season&&ep.e<w.episode)?'done':w&&n===w.season&&ep.e===w.episode?'cur':'';
+      const st=own?.list==='watched'||w&&(n<w.season||n===w.season&&ep.e<=w.episode)?'done':nx&&n===nx.s&&ep.e===nx.e?'cur':'';
       const soon=ep.date&&ep.date>today;
       return `<li><button class="ts-ep ${st}${soon?' soon':''}"${w&&!soon?` data-act="_tsSetEp" data-args="${A(n,ep.e)}"`:' disabled'}${ep.ov?` title="${esc(ep.ov.slice(0,300))}"`:''}>
         <span class="ts-ep-n">${String(ep.e).padStart(2,'0')}</span>
-        <span class="ts-ep-t"><b>${esc(ep.name)}</b><small>${[soon?'вийде '+_tsFd(ep.date):_tsFd(ep.date),ep.rt?ep.rt+' хв':'',ep.vote?'★ '+ep.vote.toFixed(1):''].filter(Boolean).join(' · ')}</small></span>
-        ${st==='done'?ic('check'):st==='cur'?'<span class="ts-ep-here">ти тут</span>':''}</button></li>`;}).join('')}</ol>`;
+        <span class="ts-ep-t"><b>${esc(ep.name)}</b><small>${[soon?'вийде '+_tsFd(ep.date):_tsFd(ep.date),ep.rt?ep.rt+' хв':'',ep.vote?'TMDB '+rNum(ep.vote):''].filter(Boolean).join(' · ')}</small></span>
+        ${st==='done'?ic('check'):st==='cur'?'<span class="ts-ep-here">далі</span>':''}</button></li>`;}).join('')}</ol>`;
 }
 function _tsSetEp(sn,ep){
   const it=_tsWatching();if(!it)return;
-  it.season=sn;it.episode=ep;
+  it.season=sn;it.episode=ep; /* the tapped episode = the last watched one: «+» on the wall goes on from the next */
   if(_tsCur.data.seasons.length>(it.totalSeasons||1))it.totalSeasons=_tsCur.data.seasons.length;
+  it.seenAt=Date.now(); /* 1.51: the wall puts the shows marked lately first */
   save();
   const c=document.getElementById(`wc-${it.id}`);
   if(c){c.querySelector('.ep-v').textContent=_epLabel(it);c.querySelector('.ep-of').textContent=`сезон ${it.season} з ${it.totalSeasons||1}`;
     const bar=c.querySelector('.tr-bar i');if(bar)bar.style.width=_seasonPct(it)+'%';}
   _tsRefreshActions();
-  toast(`Прогрес: ${_epLabel(it)}`,'ok',1800);
+  toast(`Остання переглянута: ${_epLabel(it)}`,'ok',1800);
 }
 /* ── SIMILAR ── each with its list status. The TMDB ids of your titles are known only for those
    already looked up somewhere, so the rest are filled in once per session and the row redrawn */
@@ -387,7 +418,7 @@ function _tsColl(d){
   const det=_collDetails[c.id];
   if(!det||_collStale(det)){
     _tsCollLoad(d);
-    if(!det)return `<section class="ts-sec" id="tsColl"><h3>Франшиза</h3><div class="spinner">Завантажую франшизу…</div></section>`;
+    if(!det)return `<section class="ts-sec" id="tsColl"><h3>Франшиза</h3><div class="spinner" role="status">Завантажую франшизу…</div></section>`;
   }
   return _tsCollHtml(d,det);
 }

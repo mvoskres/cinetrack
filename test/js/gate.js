@@ -5,6 +5,10 @@
    A browser already connected to Drive (ct_gd_on) counts as passed, so existing users are not locked out.
    NOTE: this hides the app, not the source: the repository and the js files stay public on GitHub Pages. */
 (function(){
+  /* GitHub Pages cannot send frame-ancestors (a <meta> CSP ignores it): the page refuses to live inside someone else's frame instead */
+  if(window.top!==window.self){try{window.top.location.href=window.location.href;}catch(e){}document.documentElement.innerHTML='';throw new Error('framed');}
+})();
+(function(){
   let ok=false;
   try{ok=localStorage.getItem('ct_gate')==='1'||localStorage.getItem('ct_gd_on')==='1';}catch(e){}
   if(ok)return;
@@ -24,6 +28,7 @@
         await _gdTokFetch('select_account'); /* drive.js; Google refuses emails that are not Test users */
         try{localStorage.setItem('ct_gate','1');}catch(e){}
         document.documentElement.classList.remove('locked');g.remove();
+        try{if(typeof gdAfterGate==='function')gdAfterGate();}catch(e){} /* drive.js: that sign-in already allows Drive */
       }catch(e){
         const m=e&&e.message||'';
         err.textContent=m==='net'?'Немає звʼязку з Google. Перевір інтернет і спробуй ще раз.'

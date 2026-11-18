@@ -51,7 +51,7 @@ function _lsBadRelease(){
   _lsBad.clear();
 }
 function _lsSet(k,v){
-  if(_lsBad.has(k)){try{toast('Збережене в браузері «'+k+'» пошкоджено, тому зміни не записуються, щоб не затерти його. Відновіть дані з бекапу: Налаштування','err',9000);}catch(_){}return false;}
+  if(_lsBad.has(k)){try{toast('Збережене в браузері «'+k+'» пошкоджено, тому зміни не записуються, щоб не затерти його. Віднови дані з бекапу: Налаштування','err',9000);}catch(_){}return false;}
   try{localStorage.setItem(k,v);return true;}catch(e){}
   _freeCacheSpace();
   if(k==='ct_apicache')return true; /* _freeCacheSpace just wrote the pruned cache */
@@ -98,11 +98,12 @@ function applyAccent(h){
 function accentNow(){const v=localStorage.getItem('ct_accent');return _hexRgb(v)?v.toLowerCase():ACCENTS[0][0];}
 function setAccent(h){if(!_hexRgb(h))return;_lsSet('ct_accent',h.toLowerCase());applyAccent(h);if(document.getElementById('stAccent'))document.getElementById('stAccent').outerHTML=_stAccentHtml();}
 function _stAccentHtml(){
-  const cur=accentNow(),custom=!ACCENTS.some(([h])=>h===cur);
-  return `<div class="st-row" id="stAccent"><div class="st-row-head"><span class="st-lbl">Акцентний колір</span></div>
-    <div class="acc-sw" role="group" aria-label="Акцентний колір">${ACCENTS.map(([h,n])=>`<button class="acc-b${h===cur?' on':''}" style="--c:${h}" data-act="setAccent" data-args="${A(h)}" title="${n}" aria-label="${n}" aria-pressed="${h===cur}"></button>`).join('')}
-      <label class="acc-b acc-own${custom?' on':''}" style="--c:${cur}" title="Свій колір"><input type="color" value="${cur}" data-change="setAccent" data-args="[&quot;$value&quot;]" aria-label="Свій колір"><span>${ic('plus')}</span></label></div></div>`;
+  const cur=accentNow(),own=ACCENTS.find(([h])=>h===cur),custom=!own;
+  return `<div class="stz-l" id="stAccent"><div class="stz-r stz-static">${ic('spark')}<span class="stz-t"><b>Колір акценту</b></span><span class="stz-v"><span class="stz-sw"></span>${own?own[1]:'Свій'}</span></div>
+    <div class="stz-in"><div class="acc-sw" role="group" aria-label="Колір акценту">${ACCENTS.map(([h,n])=>`<button class="acc-b${h===cur?' on':''}" style="--c:${h}" data-act="setAccent" data-args="${A(h)}" title="${n}" aria-label="${n}" aria-pressed="${h===cur}"></button>`).join('')}
+      <label class="acc-b acc-own${custom?' on':''}" style="--c:${cur}" title="Свій колір"><input type="color" value="${cur}" data-change="setAccent" data-args="[&quot;$value&quot;]" aria-label="Свій колір"><span>${ic('plus')}</span></label></div></div></div>`;
 }
+
 applyAccent(accentNow());
 
 /* Ukrainian titles for list items (imdbID -> title, '' = TMDB has no translation); the list item keeps its own
@@ -153,7 +154,6 @@ localStorage.removeItem('ct_livecache');
    first resolve. Ended-status is taken from the item's liveStatus when we track the show
    in "Дивлюсь", otherwise defaults to "series → refresh every 2 days". */
 let _resolveCache=_lsJSON('ct_resolvecache',{});
-const RESOLVE_TV_TTL=2*24*60*60*1000; /* 2 days */
 function _resolveCacheSave(){
   const ks=Object.keys(_resolveCache);
   if(ks.length>2000){ /* soft cap: drop oldest 500 entries */
@@ -161,11 +161,6 @@ function _resolveCacheSave(){
       .slice(0,500).forEach(k=>delete _resolveCache[k]);
   }
   _lsSet('ct_resolvecache',JSON.stringify(_resolveCache));
-}
-function _resolveFresh(entry){
-  if(!entry)return false;
-  if(entry.ended)return true; /* movies, or series known-ended: never expire */
-  return Date.now()-entry.ts<RESOLVE_TV_TTL;
 }
 
 /* ── FILTER STATE ── */
@@ -183,8 +178,9 @@ const S_WN =[['air','За ефіром'],...S_ALL]; /* Дивлюсь: «За е
 
 function tList(t){return t==='watched'?watched:t==='watching'?watching:planned;}
 function barId(t) {return{watched:'wBar',watching:'wnBar',planned:'plBar'}[t];}
+/* 1.49: an empty list has nothing to search or filter — the row would only be mistaken for the title search */
+function _barEmpty(t){const b=document.getElementById(barId(t));if(b)b.style.display=tList(t).length?'':'none';}
 function tagsId(t){return{watched:'wTags',watching:'wnTags',planned:'plTags'}[t];}
-function panId(t) {return{watched:'wPanel',watching:'wnPanel',planned:'plPanel'}[t];}
 function fN(t){const f=F[t];return f.cats.length+f.genres.length+f.decades.length+(f.ratings?.length||0)+(f.tags?.length||0)+(f.air?.length||0);}
 
 /* ── FILTER BAR ──
@@ -194,20 +190,23 @@ function fN(t){const f=F[t];return f.cats.length+f.genres.length+f.decades.lengt
 function buildBar(t){
   const el=document.getElementById(barId(t));if(!el)return;
   const f=F[t],n=fN(t),opts=t==='watched'?S_W:t==='watching'?S_WN:S_ALL;
-  const list=tList(t),counts={};list.forEach(i=>{const c=i.customCategory||i.type;if(c)counts[c]=(counts[c]||0)+1;});
+  const list=tList(t),counts=Object.create(null);list.forEach(i=>{const c=i.customCategory||i.type;if(c)counts[c]=(counts[c]||0)+1;});
   if(f.cats[0]&&!counts[f.cats[0]])f.cats=[]; /* its last title left the list: don't leave an invisible filter on an empty-looking list */
   const open=document.body.classList.contains('fs-on')&&_fs&&_fs.t===t;
   el.className='filter-row fbar';
   el.innerHTML=`
-    ${t==='watching'?'<div class="seg view-seg wb-tseg" id="wbTopSeg" role="tablist" aria-label="Що показати вгорі" hidden></div>':viewSeg(t)}
+    ${t==='watching'?'<div class="seg view-seg wb-tseg" id="wbTopSeg" role="group" aria-label="Що показати вгорі" hidden></div>':viewSeg(t)}
     <div class="local-search-wrap"><span class="local-search-icon">${ic('lsearch')}</span>
       <input class="local-search" type="text" placeholder="Знайти в списку" aria-label="Пошук у списку" value="${esc(f.q||'')}" data-input="lsearch" data-args="${A(`${t}`,'$value')}"><button type="button" class="ls-x" data-act="lsClear" data-args="[&quot;$el&quot;]" aria-label="Очистити пошук" title="Очистити">${ic('x')}</button>
     </div>
     <button id="fbtn-${t}" class="flt-pill fbtn${n?' has-n':''}${open?' active':''}" aria-haspopup="dialog" aria-expanded="${open}" data-act="togglePan" data-args="${A(`${t}`)}">${ic('filter')}Фільтри${n?` <span class="flt-n">${n}</span>`:''}</button>
-    <select class="sort-sel fbar-sort" aria-label="Сортування" data-change="doSort" data-args="${A(`${t}`,'$value')}">
+    ${_sortCtl(`<select class="sort-sel fbar-sort" aria-label="Сортування" data-change="doSort" data-args="${A(`${t}`,'$value')}">
       ${opts.map(([v,l])=>`<option value="${v}"${f.sort===v?' selected':''}>${l}</option>`).join('')}
-    </select>`;
+    </select>`,opts,f.sort)}`;
 }
+/* 1.51: on a phone the sort is a bare ⇅; the wrapper prints the current one under it in a word (CSS ≤700px, hidden elsewhere) */
+const _SORT_SHORT={'Оцінка ↓':'Моя ↓','За ефіром':'Ефір','Найближчі до завершення':'Ближчі','Найбільше переглянуто':'Більше','Найближча прем\'єра':'Прем\'єра','За роком':'Рік','Найвідоміші':'Топ','За рейтингом':'Рейтинг'};
+function _sortCtl(selHtml,opts,cur){const l=(opts.find(([v])=>v===cur)||opts[0])[1];return `<span class="sort-w" data-cur="${esc(_SORT_SHORT[l]||l)}">${selHtml}</span>`;}
 function setCat(t,c){F[t].cats=c?[c]:[];buildBar(t);buildTags(t);rerender(t);}
 let _lsT;
 function lsearch(t,v){F[t].q=v.trim();clearTimeout(_lsT);_lsT=setTimeout(()=>rerender(t),150);}
@@ -241,8 +240,9 @@ function fsOpen(t){
   fsRender();fsPlace();
   const b=document.getElementById(`fbtn-${t}`);b?.setAttribute('aria-expanded','true');b?.classList.add('active');
   if(typeof _ovPush==='function')_ovPush();
-  root.querySelector('.fsh-card')?.focus({preventScroll:true});
+  _inertSync();_focusIn(root.querySelector('.fsh-card'),_fsFocus);
 }
+const _fsFocus={el:null}; /* where focus was before the sheet opened */
 function fsClose(fromHistory){
   if(!document.body.classList.contains('fs-on'))return;
   const t=_fs&&_fs.t;
@@ -250,6 +250,8 @@ function fsClose(fromHistory){
   const root=document.getElementById('fsh');if(root){root.hidden=true;root.innerHTML='';}
   _fs=null;
   if(t){const b=document.getElementById(`fbtn-${t}`);b?.setAttribute('aria-expanded','false');b?.classList.remove('active');}
+  _inertSync();
+  if(fromHistory===true)_fsFocus.el=null;else _focusBack(_fsFocus,()=>t&&document.getElementById(`fbtn-${t}`));
   if(fromHistory!==true&&typeof _ovPop==='function')_ovPop();
 }
 /* a computer: the card hangs under the button; a phone: CSS pins it to the bottom */
@@ -281,11 +283,11 @@ function fsRender(){
   const {t,st}=_fs,list=tList(t);
   /* focus and scroll survive the redraw */
   const old=root.querySelector('.fsh-body'),sc=old?old.scrollTop:0,fk=document.activeElement?.getAttribute?.('data-k');
-  const cnt=arr=>{const m={};arr.forEach(k=>{if(k!=null&&k!=='')m[k]=(m[k]||0)+1;});return m;};
+  const cnt=arr=>{const m=Object.create(null);arr.forEach(k=>{if(k!=null&&k!=='')m[k]=(m[k]||0)+1;});return m;};
   const cats=cnt(list.map(i=>i.customCategory||i.type));
-  const gc={};list.forEach(i=>new Set((i.genre||'').split(',').map(g=>g.trim()).filter(Boolean)).forEach(g=>{gc[g]=(gc[g]||0)+1;}));
+  const gc=Object.create(null);list.forEach(i=>new Set((i.genre||'').split(',').map(g=>g.trim()).filter(Boolean)).forEach(g=>{gc[g]=(gc[g]||0)+1;}));
   const dc=cnt(list.map(i=>{const y=parseInt(i.year);return y?String(Math.floor(y/10)*10):null;}));
-  const tc={};list.forEach(i=>new Set(i.tags||[]).forEach(x=>{tc[x]=(tc[x]||0)+1;}));
+  const tc=Object.create(null);list.forEach(i=>new Set(i.tags||[]).forEach(x=>{tc[x]=(tc[x]||0)+1;}));
   st.tags=st.tags.filter(x=>tc[x]);
   const ch=(dim,val,label,n,extra='')=>{const on=st[dim].includes(val);return `<button type="button" class="fsh-chip${on?' on':''}${extra}" aria-pressed="${on}" data-k="${dim}:${esc(val)}" data-act="fsTog" data-args="${A(`${dim}`,`${uriSafe(val)}`)}">${esc(label)}${n!=null?`<span class="num">${n}</span>`:''}</button>`;};
   const grp=(title,body)=>`<section class="fsh-grp"><h3 class="fsh-lbl">${title}</h3><div class="fsh-chips">${body}</div></section>`;
@@ -334,7 +336,6 @@ function fsTog(dim,val){
   if(i>=0)a.splice(i,1);else{if(dim==='ratings'||dim==='cats')a.length=0;a.push(val);}
   fsRender();
 }
-function fsSort(v){if(!_fs)return;_fs.st.sort=v;fsRender();}
 function fsMore(){if(!_fs)return;_fs.more=true;fsRender();}
 function fsView(v){if(!_fs)return;setView(_fs.t,v);fsRender();} /* the view is not a filter: it applies at once */
 function fsReset(){if(!_fs)return;const s=_fs.st;s.air=[];s.cats=[];s.genres=[];s.decades=[];s.ratings=[];s.tags=[];fsRender();}
@@ -358,7 +359,6 @@ function chip(t,dim,val){
   buildBar(t);buildTags(t);rerender(t);
 }
 function doSort(t,v){F[t].sort=v;buildBar(t);rerender(t);}
-function clearF(t){F[t].q='';clearChips(t);}
 function clearChips(t){const f=F[t];f.air=[];f.cats=[];f.genres=[];f.decades=[];f.ratings=[];f.tags=[];buildBar(t);buildTags(t);rerender(t);}
 function removeChip(t,dim,val){val=decodeURIComponent(val);const f=F[t];if(f[dim])f[dim]=f[dim].filter(v=>v!==val);buildTags(t);buildBar(t);rerender(t);}
 /* applied filters as gold chips under the toolbar */
@@ -388,13 +388,14 @@ function sort(l,s){
     case 'title-asc':       return a.sort((x,y)=>tn(x).localeCompare(tn(y),'uk'));
     case 'genre-asc':       return a.sort((x,y)=>fg(x).localeCompare(fg(y),'uk'));
     case 'rating-desc':     return a.sort((x,y)=>(y.rating||0)-(x.rating||0));
-    case 'imdb-rating-desc':return a.sort((x,y)=>parseFloat(y.imdbRating||0)-parseFloat(x.imdbRating||0));
-    case 'imdb-rating-asc': return a.sort((x,y)=>parseFloat(x.imdbRating||0)-parseFloat(y.imdbRating||0));
+    case 'imdb-rating-desc':return a.sort((x,y)=>rateV(y)-rateV(x));
+    case 'imdb-rating-asc': return a.sort((x,y)=>rateV(x)-rateV(y));
     default:                return a.sort((x,y)=>(y.addedAt||0)-(x.addedAt||0));
   }
 }
 function fg(i){return(i.genre||'').split(',')[0].trim()||'Я';}
-function rerender(t){if(t in _gridShown)_gridShown[t]=GRID_PAGE;if(t==='watched')rWatched();if(t==='watching')rWatching();if(t==='planned')rPlanned();}
+function rerender(t){if(typeof _shelfBack!=='undefined'&&_shelfBack?.t===t&&!F[t].cats.length){_shelfBack=null;_lyDone('shelf');} /* the category chip was removed: that is the way back */
+  if(t in _gridShown)_gridShown[t]=GRID_PAGE;if(t==='watched')rWatched();if(t==='watching')rWatching();if(t==='planned')rPlanned();}
 
 /* ── TWO TABS, ONE STORE ──
    save() writes whole lists, so a tab that had been open for a while used to overwrite what another tab
@@ -481,14 +482,11 @@ function save(){
   updateStats();
   return !failed;
 }
-function saveAll(){const ok=save();['watched','watching','planned'].forEach(buildBar);return ok;}
+function saveAll(){const ok=save();['watched','watching','planned'].forEach(buildBar);['watched','watching','planned'].forEach(_barEmpty);if(typeof _bkNudge==='function')_bkNudge();if(typeof _hlRender==='function')_hlRender();return ok;}
 function updateStats(){
   const nf=n=>n.toLocaleString('uk-UA'),cn={watched:watched.length,watching:watching.length,planned:planned.length};
   document.querySelectorAll('[data-nb]').forEach(el=>{el.textContent=nf(cn[el.dataset.nb]??0);});
-  const wh=document.getElementById('wHead'),wnH=document.getElementById('wnHead'),plH=document.getElementById('plHead');
-  if(wh) wh.textContent='· '+watched.length;
-  if(wnH)wnH.textContent='· '+watching.length;
-  if(plH)plH.textContent='· '+planned.length;
+  /* no count next to the page title: the dock / top menu already shows it */
 }
 
 /* ── STATS: one-time runtime backfill (old items never stored Runtime) ──
@@ -511,7 +509,7 @@ async function ensureWatchedRuntimes(){
   if(dirty)save();
   if(stillUnknown.length&&API){
     const el=document.getElementById('statsContent');
-    if(el)el.innerHTML=`<div class="spinner" id="statsRtProgress">Рахую тривалість переглянутого… 0/${stillUnknown.length}</div>`;
+    if(el)el.innerHTML=`<div class="spinner" role="status" id="statsRtProgress">Рахую тривалість переглянутого… 0/${stillUnknown.length}</div>`;
     let done=0,stop=false;
     for(let k=0;k<stillUnknown.length&&!stop;k+=5){
       const batch=stillUnknown.slice(k,k+5);
@@ -534,7 +532,7 @@ async function ensureWatchedRuntimes(){
 }
 async function loadStats(){
   const el=document.getElementById('statsContent');
-  if(el&&!el.innerHTML)el.innerHTML=`<div class="spinner">Завантажую статистику…</div>`;
+  if(el&&!el.innerHTML)el.innerHTML=`<div class="spinner" role="status">Завантажую статистику…</div>`;
   await ensureWatchedRuntimes();
   renderStats();
 }

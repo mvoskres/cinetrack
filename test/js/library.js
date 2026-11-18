@@ -78,32 +78,37 @@ function cleanApply(){
     save();rWatched();rWatching();rPlanned();updateStats();runCleanScan();
     el.remove();toast('Дані повернуто як було','ok',2400);
   };
-  el.append(lbl,btn);document.body.appendChild(el);
-  const timer=setTimeout(()=>{el.remove();_undo=null;},8000);_undo={timer};
+  el.append(lbl,btn);_toastMount(el);
+  const timer=_toastTimer(el,8000,()=>{el.remove();_undo=null;});_undo={timer};
 }
 
 
 /* ── TAG SHEET: every tag you already use as a toggle + a field for a new one; changes save at once ── */
 let _tgId=null;
-function _tgAll(){const c={};[...watched,...watching,...planned].forEach(i=>(i.tags||[]).forEach(t=>c[t]=(c[t]||0)+1));return Object.keys(c).sort((a,b)=>c[b]-c[a]||a.localeCompare(b,'uk')).map(t=>[t,c[t]]);}
+function _tgAll(){const c=Object.create(null);[...watched,...watching,...planned].forEach(i=>(i.tags||[]).forEach(t=>c[t]=(c[t]||0)+1));return Object.keys(c).sort((a,b)=>c[b]-c[a]||a.localeCompare(b,'uk')).map(t=>[t,c[t]]);}
 function tagEdit(id){
   if(!findItem(id))return;_tgId=id;closeMenu?.();
   let L=document.getElementById('tgSheet');
   if(!L){L=document.createElement('div');L.id='tgSheet';L.className='tg-sh';document.body.appendChild(L);}
-  L.innerHTML=`<div class="tg-dim" data-act="tagClose"></div><div class="tg-pan" role="dialog" aria-label="Теги"><div class="tg-grab"></div><div class="tg-in"></div></div>`;
-  _tgDraw();document.body.classList.add('tg-on');
+  L.innerHTML=`<div class="tg-dim" data-act="tagClose"></div><div class="tg-pan" role="dialog" aria-modal="true" aria-label="Теги" tabindex="-1"><div class="tg-grab"></div><div class="tg-in"></div></div>`;
+  if(!document.body.classList.contains('tg-on'))_tgFocus.el=null;
+  _tgDraw();document.body.classList.add('tg-on');_inertSync();_focusIn(L.querySelector('.tg-pan'),_tgFocus);
   sheetSwipe(L.querySelector('.tg-pan'),{close:()=>tagClose(),handle:'.tg-grab,.tg-hd'});
-  try{history.pushState({tgSheet:1},'');}catch(e){}
+  if(_cwMode)_cwAdd('tg',()=>tagClose(true));else try{_tgBase=history.state?.ctLy||0;history.pushState({tgSheet:1},'');}catch(e){} /* Back closes the sheet (ui.js BACK) */
 }
-function addTag(id){tagEdit(id);} /* old name, still used by the title card */
+const _tgFocus={el:null}; /* what had focus when the sheet opened */
 function tagClose(fromHistory){
   if(!document.body.classList.contains('tg-on'))return;
   document.body.classList.remove('tg-on');_tgId=null;const L=document.getElementById('tgSheet');if(L)L.innerHTML='';
-  if(!fromHistory&&history.state?.tgSheet)history.back();
+  _inertSync();_focusBack(_tgFocus);
+  if(typeof _mnTagsSync==='function')_mnTagsSync(); /* the rating sheet under it shows the new tags */
+  if(_cwMode)_cwDel('tg');else if(!fromHistory&&history.state?.tgSheet)history.back();
 }
-window.addEventListener('popstate',()=>{if(!history.state?.tgSheet)tagClose(true);});
+let _tgBase=0; /* the card layer under the sheet (0 = none) */
+window.addEventListener('popstate',()=>{const st=history.state;if(!_cwMode&&!st?.tgSheet&&!((st?.ctLy||0)>_tgBase))tagClose(true);}); /* keep it only on its own entry or under a newer card */
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('tg-on')){e.stopPropagation();tagClose();}},true);
-function _tgDraw(){
+function _tgDraw(){const L=document.getElementById('tgSheet');if(L)_keepFocus(L,_tgDraw0);} /* tapping a tag redraws the chips: focus stays on it */
+function _tgDraw0(){
   const L=document.getElementById('tgSheet'),it=findItem(_tgId);if(!L||!it){tagClose();return;}
   const mine=it.tags||[],all=_tgAll();
   L.querySelector('.tg-in').innerHTML=`<div class="tg-hd"><div><b>Теги</b><span>${esc(tn(it))}</span></div><button class="tg-ok" data-act="tagClose">Готово</button></div>
@@ -118,7 +123,6 @@ function tagNew(){
   it.tags=it.tags||[];if(!it.tags.includes(t))it.tags.push(t);_tgSaved();
   const ni=document.getElementById('tgInp');if(ni){ni.value='';ni.focus();}
 }
-function saveTag(id){tagNew();}
 /* a tag on a card/poster: show the list filtered by it (the tab that is open) */
 function tagGo(ev,t){
   ev?.stopPropagation?.();ev?.preventDefault?.();t=decodeURIComponent(t);
@@ -126,7 +130,6 @@ function tagGo(ev,t){
   if(document.body.classList.contains('wb-on'))wbClose?.();
   F[tab].tags=[t];buildBar(tab);buildTags(tab);rerender(tab);window.scrollTo({top:0,behavior:'smooth'});
 }
-function rmTag(id,tag){tag=decodeURIComponent(tag);const it=findItem(id);if(!it||!it.tags)return;it.tags=it.tags.filter(t=>t!==tag);save();rWatched();rWatching();rPlanned();}
 function delGlobalTag(tag){
   tag=decodeURIComponent(tag);
   const snap=[...watched,...watching,...planned].map(i=>({id:i.id,tags:i.tags?[...i.tags]:[]}));
@@ -145,8 +148,8 @@ function delGlobalTag(tag){
   el.innerHTML=`<span>Тег «${esc(tag)}» видалено</span>`;
   const btn=document.createElement('button');btn.className='t-undo';btn.innerHTML=ic('undo')+'Відновити';
   btn.onclick=()=>{el.remove();clearTimeout(_tagUndoTimer);_doUndo();};
-  el.appendChild(btn);document.body.appendChild(el);
-  let _tagUndoTimer=setTimeout(()=>el.remove(),5000);
+  el.appendChild(btn);_toastMount(el);
+  let _tagUndoTimer=_toastTimer(el,5000,()=>el.remove());
 }
 function editUrl(id){
   const it=findItem(id);if(!it)return;

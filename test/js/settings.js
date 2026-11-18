@@ -2,42 +2,53 @@
    One scrolling page, no tabs. openIO(target): optional id of an element to scroll to and flash
    (the backup pill and the empty «Переглянуте» state open it straight at their block). */
 function openIO(target){
-  const key=_stKeys(),acc=`<div class="st-row" id="gdBox">${_gdHtml()}</div>`;
+  const S=_stSections(),pc=_stPC();
+  if(target&&_ST_TGT[target])_stSec=_ST_TGT[target];
+  else if(!_stSec||!S.some(x=>x.id===_stSec)||!TMDB_KEY)_stSec=S[0].id;
+  const body=pc
+    ?`<div class="stz-pc"><nav class="stz-nav" aria-label="Розділи налаштувань">${S.map(x=>`<button class="${x.id===_stSec?'on':''}" data-act="stGo" data-args="${A(x.id)}"${x.id===_stSec?' aria-current="true"':''}>${ic(x.ic)}<span>${x.t}</span>${x.dot?'<em class="stz-dot" aria-label="потрібна дія"></em>':''}</button>`).join('')}</nav>
+       <div class="stz-pane" id="stPane">${_stPane(S.find(x=>x.id===_stSec))}</div></div>`
+    :S.map(x=>`<section class="stz-g" id="sec-${x.id}"><h3>${x.t}</h3>${x.h()}</section>`).join('')+'<p class="stz-foot">Ключі й списки зберігаються лише в цьому браузері та в бекапі.</p>';
   modal(`
     <div class="st-head">
       <h2 class="modal-title">Налаштування</h2>
       <button class="st-x" data-act="closeModal" title="Закрити" aria-label="Закрити">✕</button>
     </div>
-    <div class="st-body">
-      ${API&&TMDB_KEY?acc+key:key+acc}
-      ${_stAccentHtml()}
-      ${_stViewHtml()}
-      <div class="st-row">
-        <div class="st-row-head"><span class="st-lbl">Файли й обслуговування</span></div>
-        <button class="st-act" data-act="doExport">${ic('save')}<span><b>Зберегти бекап у файл</b><small>JSON з усіма списками й ключами</small></span></button>
-        <label class="st-act" for="impFile">${ic('upload')}<span><b>Відновити з файлу: злити</b><small>backup.json, дані об'єднуються з наявними</small></span></label>
-        <input type="file" id="impFile" accept=".json" data-change="doImport" data-args="[&quot;$ev&quot;]" hidden>
-        <label class="st-act" for="impFileRep">${ic('upload')}<span><b>Відновити з файлу: замінити</b><small>списки стануть такими, як у файлі; перед цим зберігається знімок</small></span></label>
-        <input type="file" id="impFileRep" accept=".json" data-change="doImport" data-args="[&quot;$ev&quot;,&quot;replace&quot;]" hidden>
-        ${_snapshotRow()}
-        <div id="impMsg" class="st-msg"></div>
-        <label class="st-act" for="csvFile" id="stCsv">${ic('film')}<span><b>Імпорт з IMDb / Letterboxd</b><small>CSV з оцінками або watchlist</small></span></label>
-        <input type="file" id="csvFile" accept=".csv,text/csv" data-change="doCsvImport" data-args="[&quot;$ev&quot;]" hidden>
-        <div id="csvBox"></div>
-        <button class="st-act" data-act="runCleanScan">${ic('check')}<span><b>Перевірка даних</b><small>Дублі й сумнівні категорії</small></span></button>
-        <div id="cleanMsg" class="cl-msg"></div>
-        <div id="cleanList"></div>
-        ${_storageChars()/STORAGE_QUOTA_CHARS>=.7?`<div class="st-sto"><span class="st-lbl">Сховище браузера</span>
-          <p class="st-hint" id="stoInfo">${_storageInfo()}</p>
-          <button class="w-btn" data-act="clearCaches">Очистити кеші</button>
-          <div id="stoMsg" class="st-msg"></div></div>`:''}
-      </div>
-      <div class="st-row" id="stVer"><button class="st-act" data-act="openChangelog">${ic('film')}<span><b>Версія ${APP_VERSION}</b><small>від ${CHANGELOG[0].d} · історія змін</small></span></button></div>
-    </div>`);
-  document.querySelector('.modal-bg')?.classList.add('st-bg');document.querySelector('.modal')?.classList.add('st-modal');
+    <div class="st-body">${_stAppHtml()}${body}</div>`);
+  document.querySelector('.modal-bg')?.classList.add('st-bg');const md=document.querySelector('.modal');md?.classList.add('st-modal');md?.classList.toggle('st-wide',pc);
   const el=target&&document.getElementById(target);
   if(el){el.scrollIntoView({block:'center'});el.classList.add('st-flash');setTimeout(()=>el.classList.remove('st-flash'),1800);}
 }
+/* 1.48: Settings by sections. Without a TMDB key nothing works, so «Ключі API» comes first (and opens first on a computer) */
+let _stSec=null;
+const _stPC=()=>matchMedia('(min-width:701px)').matches;
+const _ST_TGT={stKeys:'keys',stCsv:'data',gdBox:'backup',stBackup:'backup',stAccent:'look',stView:'look',stVer:'about'};
+function _stSections(){
+  const S=[{id:'backup',ic:'save',t:'Бекап',h:_stBackupHtml},{id:'look',ic:'spark',t:'Вигляд',h:()=>_stAccentHtml()+_stViewHtml()},
+    {id:'data',ic:'upload',t:'Дані',h:_stDataHtml},{id:'keys',ic:'key',t:'Ключі API',h:_stKeys,dot:!TMDB_KEY},{id:'about',ic:'info',t:'Про застосунок',h:_stAboutHtml}];
+  if(!TMDB_KEY)S.unshift(S.splice(3,1)[0]);
+  return S;
+}
+function _stPane(x){return `<h2 class="stz-h">${x.t}</h2>${x.h()}`;}
+function stGo(id){
+  const x=_stSections().find(s=>s.id===id),p=document.getElementById('stPane');if(!x||!p)return;
+  _stSec=id;p.innerHTML=_stPane(x);p.scrollTop=0;
+  document.querySelectorAll('.stz-nav button').forEach(b=>{let on=false;try{on=JSON.parse(b.dataset.args)[0]===id;}catch(e){}b.classList.toggle('on',on);if(on)b.setAttribute('aria-current','true');else b.removeAttribute('aria-current');});
+}
+const _stRow=(icon,title,sub,val,attrs)=>`<${attrs?.tag||'button'} class="stz-r" ${attrs?.a||''}>${ic(icon)}<span class="stz-t"><b>${title}</b>${sub?`<small>${sub}</small>`:''}</span><span class="stz-v">${val||''}<i aria-hidden="true">›</i></span></${attrs?.tag||'button'}>`;
+function _stDataHtml(){
+  const n=_storageChars(),pct=Math.round(n/STORAGE_QUOTA_CHARS*100);
+  return `<div class="stz-l">
+    ${_stRow('upload','Імпорт з IMDb / Letterboxd','IMDb: Your Ratings або Watchlist → ⋯ → Export (CSV). Letterboxd: Settings → Data → Export, розпакуй ZIP і вибери ratings.csv чи watched.csv','',{tag:'label',a:'for="csvFile" id="stCsv"'})}
+    <input type="file" id="csvFile" accept=".csv,text/csv" data-change="doCsvImport" data-args="[&quot;$ev&quot;]" hidden><div id="csvBox" class="stz-in"></div>
+    ${_stRow('refresh','Оновити франшизи','Нові частини, дати й постери. Само — раз на 2 тижні','',{a:'data-act="collRefreshFromSettings"'})}
+    ${_stRow('check','Перевірка даних','Дублі й сумнівні категорії','',{a:'data-act="runCleanScan"'})}
+    <div id="cleanMsg" class="cl-msg stz-in"></div><div id="cleanList" class="stz-in"></div>
+    <div class="stz-r stz-sto">${ic('save')}<span class="stz-t"><b>Місце в браузері</b><small id="stoInfo">${pct}% зайнято · кеші можна очистити, списки не зачепить</small></span><span class="stz-v"><button class="btn" data-act="clearCaches">Очистити кеші</button></span></div>
+    <div id="stoMsg" class="st-msg stz-in"></div>
+  </div>`;
+}
+function _stAboutHtml(){return `<div class="stz-l" id="stVer">${_stRow('info','Що нового',`Кінопис ${APP_VERSION} · від ${CHANGELOG[0].d}`,'',{a:`data-act="openChangelog" data-args="${A('st')}"`})}</div>`;}
 /* a key row is one compact line while the key exists; the input only shows after «Змінити» or when there is none */
 function _stKeyRow(id,name,key,save,url,role,bad,hint){
   const has=!!key;
@@ -47,16 +58,18 @@ function _stKeyRow(id,name,key,save,url,role,bad,hint){
       ${has?'':`<a href="${url}" target="_blank" rel="noopener" class="st-link">отримати ключ →</a>`}</div>
     ${bad?'<p class="st-hint" style="color:var(--rose)">TMDB недоступний з цієї мережі, спробуй VPN</p>':!has&&hint?`<p class="st-hint">${hint}</p>`:''}
     <div class="st-ed" id="${id}Ed"${has?' style="display:none"':''}>
-      <input class="api-inp" id="${id}K" type="text" placeholder="Вставте ключ…" aria-label="Ключ ${name}" data-enter="${save}">
+      <input class="api-inp" id="${id}K" type="text" placeholder="Встав ключ…" aria-label="Ключ ${name}" data-enter="${save}">
       <button class="st-save-btn" data-act="${save}">Зберегти</button>${has?`<a href="${url}" target="_blank" rel="noopener" class="st-link">отримати новий ключ →</a>`:''}</div>
     <div id="${id}Msg" class="st-msg"></div></div>`;
 }
 function _stKeys(){
-  return `<div class="st-row" id="stKeys"><div class="st-row-head"><span class="st-lbl">Ключі API</span></div>
-    ${_stKeyRow('tmdb','TMDB',TMDB_KEY,'saveTMDBKey','https://www.themoviedb.org/settings/api','назви, описи, пошук',_tmdbBlocked&&!!TMDB_KEY,'Головне джерело: українські назви й описи, пошук, сезони, рекомендації, франшизи, люди, статистика й гра. Без нього більшість сторінок порожні.')}
-    ${_stKeyRow('api','OMDb',API,'saveKey','https://www.omdbapi.com/apikey.aspx','рейтинг IMDb',false,'Рейтинг IMDb і дані при додаванні в список, а також запасний пошук. Без нього не додати новий тайтл.')}
-    <p class="st-hint">Обидва ключі безкоштовні й потрібні. Зберігаються лише в цьому браузері та у твоєму бекапі.</p></div>`;
+  return `<div id="stKeys">${TMDB_KEY?'':`<div class="stz-warn">${ic('alert')}<div><b>Без ключа TMDB застосунок не працює</b><small>Пошук, постери, назви українською й рекомендації беруться з TMDB. Ключ безкоштовний, ~2 хвилини.</small></div></div>`}
+    <div class="stz-l stz-keys">
+    ${_stKeyRow('tmdb','TMDB',TMDB_KEY,'saveTMDBKey','https://www.themoviedb.org/settings/api','обов’язковий',_tmdbBlocked&&!!TMDB_KEY,'')}
+    ${_stKeyRow('api','OMDb',API,'saveKey','https://www.omdbapi.com/apikey.aspx','необов’язковий · рейтинг IMDb',false,'Без нього під фільмами — рейтинг TMDB.')}
+    </div></div>`;
 }
+
 function stKeyEdit(id){const e=document.getElementById(id+'Ed');if(!e)return;e.style.display='flex';document.getElementById(id+'K')?.focus();}
 const STORAGE_QUOTA_CHARS=5e6; /* Chrome/Edge/Firefox: ~5M chars per origin */
 function _storageInfo(){
@@ -79,8 +92,15 @@ function clearCaches(){
   const info=document.getElementById('stoInfo');if(info)info.innerHTML=_storageInfo();
   const m=document.getElementById('stoMsg');if(m){m.style.color='var(--jade-2)';m.textContent=`Звільнено ${(freed/1e6).toFixed(2)} млн символів`;}
 }
-function saveKey(){const v=(document.getElementById('apiK').value||'').trim(),m=document.getElementById('apiMsg');if(!v){m.style.color='var(--rose)';m.textContent='Введіть ключ';return;}API=v;_lsSet('ct_apikey',v);m.style.color='var(--jade-2)';m.textContent='Ключ збережено';openIO('stKeys');/* redraw: the row turns compact and OMDb leaves the top */}
-function saveTMDBKey(){const v=(document.getElementById('tmdbK').value||'').trim(),m=document.getElementById('tmdbMsg');if(!v){m.style.color='var(--rose)';m.textContent='Введіть ключ';return;}TMDB_KEY=v;_tmdbBlocked=false;_tmdbNetFails=0;_lsSet('ct_tmdbkey',v);/* Clear TMDB cache so next fetch uses the new key */Object.keys(_tmdbCache).forEach(k=>delete _tmdbCache[k]);document.getElementById('tmdbK').value='';openIO('stKeys');setTimeout(()=>{const n=document.getElementById('tmdbMsg');if(n){n.style.color='var(--jade-2)';n.textContent='Ключ збережено';}},0);refreshRecs();}
+function saveKey(){const v=(document.getElementById('apiK').value||'').trim(),m=document.getElementById('apiMsg');if(!v){m.style.color='var(--rose)';m.textContent='Встав ключ';return;}API=v;_lsSet('ct_apikey',v);m.style.color='var(--jade-2)';m.textContent='Ключ збережено';openIO('stKeys');/* redraw: the row turns compact and OMDb leaves the top */}
+async function saveTMDBKey(){
+  const inp=document.getElementById('tmdbK'),m=document.getElementById('tmdbMsg'),v=(inp?.value||'').trim();
+  if(!v){m.style.color='var(--rose)';m.textContent='Встав ключ';return;}
+  m.style.color='var(--muted)';m.textContent='Перевіряю ключ…';
+  const r=await _tmdbKeyTry(v);
+  if(r!=='ok'){const n=document.getElementById('tmdbMsg');if(n){n.style.color='var(--rose)';n.textContent=_TMDB_KEY_MSG[r];}inp?.focus();return;}
+  openIO('stKeys');setTimeout(()=>{const n=document.getElementById('tmdbMsg');if(n){n.style.color='var(--jade-2)';n.textContent='Ключ збережено';}},0);
+}
 /* Quiet maintenance: both fixers touch no DOM and return how many titles they changed.
    They run by themselves (after an import, and weekly), see runMaintenance. */
 async function fixAnime(){
@@ -175,7 +195,7 @@ async function doExport(){
   if(btn)btn.textContent='Готую…';
   const data=_buildBackup(true); /* keys always in: a restored file then works at once */
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-  const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`cinetrack-backup-${new Date().toISOString().slice(0,10)}.json`;a.click();URL.revokeObjectURL(url);
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`cinetrack-backup-${_todayISO()}.json`;a.click();URL.revokeObjectURL(url);
   _lsSet('ct_last_export',String(Date.now()));
   _backupStateRender();
   /* the file is already saved: the slow OMDb top-up (300 ms per title, may fail) must never delay or block a backup;
@@ -250,7 +270,7 @@ async function _csvResolve(e){
       let mt=null,id=0;
       if(imdb){const f=await tmdbFindIds(imdb);mt=e.series?(f.t?'tv':f.m?'movie':null):(f.m?'movie':f.t?'tv':null);id=mt==='tv'?f.t:f.m;}
       else{const q=`/search/movie?query=${encodeURIComponent(e.title)}&language=en-US`;
-        let r=await tmdbFetch(q+(e.year?`&year=${e.year}`:''));
+        let r=await tmdbFetch(q+(/^\d{4}$/.test(e.year||'')?`&year=${e.year}`:''));
         if(!r?.results?.length&&e.year)r=await tmdbFetch(q); /* Letterboxd and TMDB disagree on the year now and then */
         const hit=r?.results?.[0];if(hit){mt='movie';id=hit.id;}}
       if(id){const en=await tmdbFetch(`/${mt}/${id}?language=en-US&append_to_response=external_ids`);
@@ -284,8 +304,10 @@ async function runCsvImport(){
       imdbUrl:`https://www.imdb.com/title/${r.imdb}/`,imdbRating:(m.imdbRating&&m.imdbRating!=='N/A')?m.imdbRating:null,runtime:parseRuntime(m.Runtime),
       customCategory:gc(m),addedAt:id0-k};
     if(list==='watched')Object.assign(it,{rating:withRatings?todo[k].rating||0:0,comment:''});
-    if(list==='watching')Object.assign(it,{season:1,episode:1,totalSeasons:parseInt(m.totalSeasons)||1});
-    added.push(it);
+    if(list==='watching')Object.assign(it,{season:1,episode:0,totalSeasons:parseInt(m.totalSeasons)||1}); /* 1.51: S1·E0 = not started */
+    if(m.tmdbRating)it.tmdbRating=m.tmdbRating;
+    const nr=_normItem(it,list);if(nr.bad)return; /* 1.49.2: the same limits as a restored backup */
+    added.push(nr.item);
   });
   target.unshift(...added);
   saveAll();rWatched();rWatching();rPlanned();updateStats();
@@ -326,6 +348,7 @@ function _normItem(src,list){
     year:_s(src.year,12),type:['movie','series','episode','game'].includes(src.type)?src.type:'movie',
     genre:_s(src.genre,200),country:_s(src.country,200),imdbUrl:`https://www.imdb.com/title/${imdbID}/`};
   const r=_s(src.imdbRating,5);o.imdbRating=/^(10(\.0)?|\d(\.\d)?)$/.test(r)?r:null;
+  {const t=parseFloat(src.tmdbRating);if(t>0&&t<=10)o.tmdbRating=String(Math.round(t*10)/10);}
   if(typeof src.customCategory==='string'&&Object.hasOwn(CAT,src.customCategory))o.customCategory=src.customCategory;
   const at=_n(src.addedAt,0,9e15);if(at!==null)o.addedAt=at;
   const rt=_i(src.rating,0,10);if(rt!==null)o.rating=rt;else if(list==='watched')o.rating=0;
@@ -334,8 +357,10 @@ function _normItem(src,list){
   const su=safeUrl(_s(src.streamUrl,2000));if(su)o.streamUrl=su;
   if(src.runtime===null)o.runtime=null;else{const m=_i(src.runtime,0,2000);if(m!==null)o.runtime=m;}
   const rc=_n(src._ratingCheckedAt,0,9e15);if(rc!==null)o._ratingCheckedAt=rc;
-  const sn=_i(src.season,1,500),ep=_i(src.episode,1,100000),ts=_i(src.totalSeasons,1,500);
-  if(list==='watching'){o.season=sn||1;o.episode=ep||1;o.totalSeasons=ts||Math.max(1,o.season);if(src.rewatch===true)o.rewatch=true;}
+  const sn=_i(src.season,1,500),ep=_i(src.episode,0,100000),ts=_i(src.totalSeasons,1,500);
+  /* 1.51: episode = the last watched one; S1·E0 = not started (only the first season has an E0) */
+  if(list==='watching'){o.season=sn||1;o.episode=ep===null||(ep===0&&o.season!==1)?1:ep;o.totalSeasons=ts||Math.max(1,o.season);if(src.rewatch===true)o.rewatch=true;
+    const sa=_n(src.seenAt,0,9e15);if(sa!==null)o.seenAt=sa;}
   else{if(sn)o.season=sn;if(ep)o.episode=ep;if(ts)o.totalSeasons=ts;}
   if(src.prevEp&&typeof src.prevEp==='object'){const s=_i(src.prevEp.s,1,500),e=_i(src.prevEp.e,1,100000);if(s&&e)o.prevEp={s,e};}
   if(src.seasonEps&&typeof src.seasonEps==='object'&&!Array.isArray(src.seasonEps)){
@@ -467,6 +492,44 @@ function _snapshotTake(){
   return ok;
 }
 function _snapshotMeta(){return _lsJSON(SNAP_META,null);}
+/* 1.47: «Бекап» — one block: when the last one was, then Google Drive and a file side by side */
+function _stBackupHtml(){
+  const last=+localStorage.getItem('ct_last_export')||0,gd=+localStorage.getItem('ct_gd_last')||0;
+  const st=last?`${ic('check')}Останній бекап: ${esc(_gdFmt(last))} <small>· ${gd&&gd>=last-5000?'Google Drive':'файл'}</small>`:`${ic('alert')}Бекапу ще не було <small>· списки зараз лише в цьому браузері</small>`;
+  return `<div id="stBackup">
+    <p class="bk-st${last?'':' none'}">${st}</p>
+    <div class="bk-two">
+      <div class="bk-c" id="gdBox">${_gdHtml()}</div>
+      <div class="bk-c"><h4>${ic('upload')}Файл</h4><p>Один JSON-файл зі списками й ключами — на цей пристрій чи куди завгодно.</p>
+        <div class="bk-b"><button class="btn primary" data-act="doExport">Зберегти</button><label class="btn" for="impFile">Відновити…</label></div>
+        <input type="file" id="impFile" accept=".json" data-change="impPick" data-args="[&quot;$ev&quot;]" hidden>
+        <div id="impAsk"></div><div id="impMsg" class="st-msg"></div></div>
+    </div>
+    ${_snapshotRow()}</div>`;
+}
+/* a file is picked: ask here, in the card, whether to merge it or replace the lists with it */
+let _impT=null;
+function impPick(e){
+  _impT=e.target;const f=_impT.files?.[0];const el=document.getElementById('impAsk');if(!f||!el)return;
+  el.innerHTML=`<p class="bk-q">«${esc(f.name)}»: що зробити зі списками?</p><div class="bk-b"><button class="btn primary" data-act="impGo" data-args="[&quot;merge&quot;]">Злити з поточними</button><button class="btn" data-act="impGo" data-args="[&quot;replace&quot;]">Замінити поточні</button><button class="btn bk-x" data-act="impGo" data-args="[&quot;&quot;]">Скасувати</button></div>
+    <p class="bk-n">«Замінити» спершу збереже знімок теперішнього стану — його можна повернути.</p>`;
+}
+function impGo(mode){
+  const el=document.getElementById('impAsk');if(el)el.innerHTML='';
+  if(mode&&_impT)doImport({target:_impT},mode==='replace'?'replace':undefined,true);
+  if(_impT)_impT.value='';_impT=null;
+}
+/* 1.47: «Встановити Кінопис» on top of Settings while the browser offers it (Chrome / Edge; iOS has no such prompt) */
+let _instEvt=null;
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();_instEvt=e;const b=document.getElementById('stApp');if(b)b.outerHTML=_stAppHtml();});
+addEventListener('appinstalled',()=>{_instEvt=null;document.getElementById('stApp')?.remove();});
+function _stAppHtml(){
+  let hid=false;try{hid=sessionStorage.getItem('ct_app_hide')==='1';}catch(e){}
+  if(!_instEvt||_isApp()||hid||!TMDB_KEY)return '';
+  return `<div class="st-app" id="stApp"><span class="st-app-ic" aria-hidden="true">Кп</span><div><b>Встановити Кінопис</b><small>Як застосунок на головному екрані чи робочому столі: без адресного рядка, одним дотиком.</small></div><button class="btn primary" data-act="appInstall">Встановити</button><button class="st-app-x" data-act="appHide" aria-label="Сховати до наступного відкриття">✕</button></div>`;
+}
+function appHide(){try{sessionStorage.setItem('ct_app_hide','1');}catch(e){}document.getElementById('stApp')?.remove();}
+async function appInstall(){const e=_instEvt;if(!e)return;_instEvt=null;try{await e.prompt();await e.userChoice;}catch(x){}document.getElementById('stApp')?.remove();}
 function _snapshotRow(){
   const m=_snapshotMeta();if(!m||!m.ts)return '';
   return `<button class="st-act" data-act="snapshotRestore">${ic('undo')}<span><b>Повернути знімок до заміни</b><small>${esc(_gdFmt(m.ts))}: ${m.w} переглянуто, ${m.wn} дивлюсь, ${m.p} заплановано</small></span></button>`;
@@ -504,7 +567,7 @@ function _snapshotToast(){
   const btn=document.createElement('button');btn.className='t-undo';btn.innerHTML=ic('undo')+'Повернути';
   btn.onclick=()=>{el.remove();snapshotRestore();};
   lbl.addEventListener('click',()=>el.remove());lbl.style.cursor='pointer';lbl.title='Натисни, щоб закрити';
-  el.append(lbl,btn);document.body.appendChild(el);setTimeout(()=>el.remove(),8000);
+  el.append(lbl,btn);_toastMount(el);_toastTimer(el,8000,()=>el.remove());
 }
 /* one honest sentence block for the import report (file import and Drive both use it) */
 function _backupReport(r){
@@ -522,9 +585,9 @@ function _backupReport(r){
   if(r.cacheDropped)L.push(`Відкинуто ${r.cacheDropped} підозрілих записів кешу, вони завантажаться заново`);
   return L;
 }
-function doImport(e,mode){
+function doImport(e,mode,asked){
   const file=e.target.files[0];if(!file)return;
-  if(mode==='replace'&&!confirm('Замінити поточні списки даними з файлу? Перед цим буде збережено знімок поточного стану, його можна повернути в Налаштуваннях.')){e.target.value='';return;}
+  if(mode==='replace'&&!asked&&!confirm('Замінити поточні списки даними з файлу? Перед цим буде збережено знімок поточного стану, його можна повернути в Налаштуваннях.')){e.target.value='';return;}
   const msg=document.getElementById('impMsg');if(msg){msg.style.color='var(--muted)';msg.textContent='Читаю файл…';}
   const rd=new FileReader();
   rd.onload=ev=>{
@@ -541,6 +604,63 @@ function doImport(e,mode){
 
 /* ── VERSION and CHANGELOG: newest first; bump APP_VERSION and add an entry with every change pushed to the site ── */
 const CHANGELOG=[
+  {v:'1.50',d:'16.11.2026',n:['Картка «Почнімо»: покрокова інструкція, як отримати ключ TMDB, і який із двох ключів потрібен','Крок 2: головна кнопка «Обрати з популярного» — одразу до популярного й найкращого','Від 1-го до 19-го переглянутого — рядок над списком: оціни переглянуте, скільки до Статистики (10) й Ігор (20); ✕ ховає назавжди']},
+  {v:'1.49.3',d:'16.11.2026',n:['Українські фільми знову з українськими назвами: раніше назву відкидало, бо вона збігається з оригінальною. Уже додані перевіряться самі за кілька секунд після відкриття']},
+  {v:'1.49.2',d:'16.11.2026',n:['Безпека імпорту й бекапу: жанр чи тег на кшталт «constructor» більше не ламає фільтри й статистику; постери — лише з TMDB і IMDb; рядки з CSV проходять ту саму перевірку, що й бекап (оцінка 0–10, тривалість, довжина); рік Letterboxd перевіряється']},
+  {v:'1.49.1',d:'16.11.2026',n:['Після входу через Google Drive підключається одразу: якщо там є бекап — Кінопис пропонує його підтягнути, без другого вікна Google']},
+  {v:'1.49',d:'16.11.2026',n:['Пошук більше не мовчить: без ключа пояснює й веде додати ключ, а коли нічого не знайдено — так і каже','Ключ TMDB у Налаштуваннях перевіряється так само, як у картці «Почнімо» (і розпізнає довгий «Read Access Token»); після збереження все одразу оновлюється','Порожній список — без рядка «Знайти в списку / Фільтри»','Без ключа: Рекомендації, Франшизи й Ігри пояснюють, навіщо ключ, і мають кнопку «Додати ключ»','Імпорт підказує, де взяти CSV в IMDb і Letterboxd','Дрібниці: «Не цікаво» в рекомендаціях — ✕; на комп’ютері до 20 переглянутих Ігри відкриваються на П’ятнашках; «Встановити» — лише коли є ключ; звертання скрізь на «ти»; у порожній Статистиці — кнопка «Додати переглянуте»']},
+  {v:'1.48.3',d:'16.11.2026',n:['Прибрано стилі, що лишились від старих Налаштувань і старої заглушки статистики']},
+  {v:'1.48.2',d:'16.11.2026',n:['Вигляд: пояснення, що вибране в Налаштуваннях зберігається й переходить із бекапом, а перемикач над списком — лише до наступного відкриття']},
+  {v:'1.48.1',d:'16.11.2026',n:['Бекап: в обох картках однакові кнопки — «Зберегти» (головна) і «Відновити…», без повторів назви картки','Телефон: у картці «Встановити Кінопис» кнопка під текстом']},
+  {v:'1.48',d:'16.11.2026',n:['Нові Налаштування: на телефоні — групи рядків (Бекап, Вигляд, Дані, Ключі API, Про застосунок), на комп’ютері — розділи зліва, вміст справа','Поки немає ключа TMDB, «Ключі API» стоять першими з поясненням','«Встановити Кінопис» можна сховати ✕ — до наступного відкриття','Без ключа OMDb під фільмами — рейтинг TMDB (сірим, з підписом TMDB); сортування за рейтингом теж його враховує']},
+  {v:'1.47',d:'16.11.2026',n:['Налаштування: «Бекап» тепер один блок — коли був останній, поруч Google Drive і файл; «Відновити з файлу…» питає вже після вибору: злити чи замінити','Зверху Налаштувань — «Встановити Кінопис», коли браузер це дозволяє','Біля TMDB — «обов’язковий», біля OMDb — «необов’язковий»']},
+  {v:'1.46',d:'16.11.2026',n:['Постер з оцінкою: тег поруч показується компактно — значок і кількість; тап відкриває список тегів','Статистика до 10 переглянутих: за підказкою — напівпрозора стіна постерів (твоїх або популярних)']},
+  {v:'1.45.1',d:'16.11.2026',n:['Тег на постері — в одному рядку з оцінкою (оцінка зліва, тег справа, однакова висота)','Кілька тегів: тап показує їх усі, і ти обираєш, за яким фільтрувати']},
+  {v:'1.45',d:'16.11.2026',n:['Новачок: у картці «Почнімо» — «Вже маєш бекап?» з вибором Google Drive або файл, і пояснення трьох списків','Від 5 тайтлів без жодного бекапу — плашка «Збережи свої списки»: на Google Drive або у файл','Порожні «Дивлюсь», «Планую», «Франшизи» пояснюють, що там буде, з кнопкою пошуку; «Статистика» до 10 переглянутих показує, з чого складеться кінопортрет','Прибрано стартові підказки про ключі (OMDb тепер необов’язковий)','Тег на постері з оцінкою стоїть над нею, а не поверх']},
+  {v:'1.44.1',d:'16.11.2026',n:['«+ Додати» у пошуку працює й без ключа OMDb: дані беруться з TMDB (OMDb лише доповнює рейтинг IMDb)']},
+  {v:'1.44',d:'16.11.2026',n:['Перший вхід: на порожньому «Переглянутому» — «Почнімо з двох кроків»: ключ TMDB вставляється й перевіряється прямо там, потім пошук або імпорт','Там же — «Вже маєш бекап?»: одразу до відновлення з Drive чи файлу','Ігри (крім П’ятнашок) відкриваються з 20 переглянутих','У грі кожен тайтл трапляється раз; коли всі пройдено — підсумок «Ти вгадав усі N!» замість повторів']},
+  {v:'1.43',d:'16.11.2026',n:['Новачок без фільмів: у меню телефона — стіна популярних постерів тижня','Рекомендації для порожніх списків: «Популярне цього тижня» і «Найкраще за всі часи» з підказкою, як зробити підбірку своєю','П’ятнашки працюють і без фільмів у списках — випадковий постер береться з популярного']},
+  {v:'1.42.2',d:'16.11.2026',n:['iPhone та інші браузери: людина з пошуку більше не закривається одразу після відкриття','Прибрано залишки старого коду й стилів (≈280 рядків) — на вигляд нічого не змінилось']},
+  {v:'1.42.1',d:'16.11.2026',n:['Телефон: людину відкрито з пошуку чи статистики — «Назад» повертає туди (з тим самим запитом у пошуку), а не пропонує вийти','Прибрано старе вікно редагування оцінки, яке вже ніде не відкривалось']},
+  {v:'1.42',d:'16.11.2026',n:['Меню ⋯ → «Категорія»: можна виправити фільм / серіал / аніме / мульт / інше, якщо застосунок визначив хибно']},
+  {v:'1.41',d:'16.11.2026',n:['Шторка оцінки: замість категорії — теги; торкнись тегу або «+», щоб додати чи прибрати']},
+  {v:'1.40.1',d:'16.11.2026',n:['Меню ⋯ → «Оцінка і коментар» теж відкриває шторку оцінки; у ній можна змінити й категорію']},
+  {v:'1.40',d:'16.11.2026',n:['П’ятнашки: клітинки можна не лише торкатися, а й проводити пальцем у бік порожнього місця','Картка фільму: «Оцінка і коментар» відкриває ту саму шторку оцінки, що й з постера (поверх картки)','Телефон: з картки перейшов на актора — «Назад» повертає до картки, а не пропонує вийти з застосунку']},
+  {v:'1.39.2',d:'15.11.2026',n:['Шторка оцінки: торкнись постера — відкриється картка фільму']},
+  {v:'1.39.1',d:'15.11.2026',n:['Шторка оцінки: «Зберегти» — кольорова кнопка, як у інших вікнах']},
+  {v:'1.39',d:'15.11.2026',n:['Телефон: усі вікна (редагування, налаштування, історія змін, посилання, перенесення тощо) — шторки знизу, як у «Дивлюсь»: смужка зверху, закриваються свайпом униз або «Назад»','Оцінку й коментар змінюєш прямо в тій самій шторці — зірки й поле коментаря з’являються на місці, без другого вікна','Постер у вікнах більше не обрізається']},
+  {v:'1.38.4',d:'15.11.2026',n:['Рядок коментаря під постером знову без сірого фону']},
+  {v:'1.38.3',d:'15.11.2026',n:['Шторка оцінки: «Змінити оцінку й коментар» тепер відкриває редагування']},
+  {v:'1.38.2',d:'15.11.2026',n:['Вікно оцінки й коментаря тепер шторка знизу, як у «Дивлюсь»: закривається свайпом униз або «Назад»']},
+  {v:'1.38.1',d:'15.11.2026',n:['Вікно оцінки: постер цілий, без обрізання; без зайвої крапки біля оцінки на постері']},
+  {v:'1.38',d:'15.11.2026',n:['Переглянуте: торкнись своєї оцінки на постері (або рядка коментаря) — відкриється вікно з оцінкою й повним коментарем і кнопкою «Змінити».']},
+  {v:'1.37.3',d:'15.11.2026',n:['Вигляд «Полиці»: кількість лише біля назви полиці, кнопка праворуч — просто «Усі ›»']},
+  {v:'1.37.2',d:'15.11.2026',n:['Телефон: «Назад» зі сторінки гри повертає до списку ігор']},
+  {v:'1.37.1',d:'15.11.2026',n:['«‹ Усі ігри» — компактна кнопка, а не смуга на всю ширину']},
+  {v:'1.37',d:'15.11.2026',n:['Телефон: «Ігри» відкриваються списком широких карток з описом; торкнувся — сторінка гри з налаштуваннями й кнопкою «‹ Усі ігри»']},
+  {v:'1.36.2',d:'15.11.2026',n:['Розділ тепер називається «Ігри»','Телефон: вибір гри — один компактний рядок, що гортається вбік, замість великих плиток на пів екрана','Хронологія: «Середньо» більше не переноситься по літері','Комп’ютер: плитки ігор — картинка зверху, назва під нею, усе вміщається']},
+  {v:'1.36.1',d:'15.11.2026',n:['Хронологія: на телефоні назви складності вміщаються в кнопки, заголовок вікна коротший']},
+  {v:'1.36',d:'15.11.2026',n:['Нова гра «Хронологія»: постери з переглянутого треба розставити від найстарішого до найновішого. 4, 5 або 7 постерів; складність — наскільки близькі роки; серія до першої помилки й рекорд. Перетягуй постер або торкнись двох, щоб поміняти місцями']},
+  {v:'1.35.1',d:'15.11.2026',n:['П’ятнашки: коротша підказка в пошуку постера, щоб не обрізалась на телефоні']},
+  {v:'1.35',d:'15.11.2026',n:['Нова гра «П’ятнашки»: постер, розрізаний на клітинки. Складність 3×3, 4×4, 5×5 або 6×6; клітинки щоразу мішаються навмання; постер — випадковий або за назвою фільму, серіалу чи франшизи. Лічильник ходів і час, рекорд для кожного розміру, «Підглянути» і номери на клітинках']},
+  {v:'1.34',d:'15.11.2026',n:['Франшизи на телефоні: пошук, «Фільтри» і ⇅ в один рядок; тип і жанр відкриваються шторкою знизу, як у списках','Кнопка «Оновити дані» переїхала в Налаштування → «Оновити франшизи» (і так оновлюються самі раз на 2 тижні)']},
+  {v:'1.33.3',d:'15.11.2026',n:['Картка серіалу: «Переглянуто повністю» — звичайна кнопка, а не залита кольором, тож не виглядає вже вибраною']},
+  {v:'1.33.2',d:'15.11.2026',n:['Телефон: сортування в списках і в «Людях» — кнопка ⇅, тож пошук більше не обрізається («Знайти в списку», «Знайти у фільмах»)']},
+  {v:'1.33.1',d:'15.11.2026',n:['Вигляд «Список»: рік тим самим шрифтом, що й решта рядка']},
+  {v:'1.33',d:'15.11.2026',n:['Оцінки всюди в одному вигляді «IMDb 7,4» (картки, «Дивлюсь», статистика, франшизи, рекомендації, гра); зірочка ★ лишилась лише для твоєї власної оцінки','Підписи під постерами — основним шрифтом і крупніше на телефоні','Без числа біля заголовків «Переглянуте», «Дивлюсь», «Планую» — воно вже є в меню; «Хочу подивитись» тепер просто «Планую»','Жанри українською й у вигляді «Список», і у фільтрі франшиз','«Люди»: після додавання фільму стрічка десятиліття лишається там, де ти її прокрутив']},
+  {v:'1.32.11',d:'15.11.2026',n:['Рекомендації: кожна кнопка жанру має власний кадр — той самий фільм більше не стоїть на двох кнопках (старі повтори перерахуються самі)']},
+  {v:'1.32.10',d:'15.11.2026',n:['«Дивлюсь»: кнопки в шторці серіалу в тому ж стилі, що й у картці тайтлу (заливка, рамка, кути, наведення; «+ серія» — основна кнопка)']},
+  {v:'1.32.9',d:'15.11.2026',n:['«Дивлюсь»: постери реагують на наведення, як в інших розділах — бурштинова рамка і легке збільшення']},
+  {v:'1.32.8',d:'15.11.2026',n:['«Дивлюсь»: на постері більше немає мітки «ще N» — кількість серій і так написана під ним']},
+  {v:'1.32.7',d:'15.11.2026',n:['«Дивлюсь»: у розділі «Дата невідома» на постерах просто «Триває», без повтору «дата невідома»']},
+  {v:'1.32.6',d:'15.11.2026',n:['«Дивлюсь»: у серіалу з одним сезоном лишається один рядок прогресу, без дубля «Весь серіал»']},
+  {v:'1.32.5',d:'15.11.2026',n:['«Дивлюсь»: під помаранчевими сегментами знову видно, скільки серій усього серіалу переглянуто з тих, що вийшли']},
+  {v:'1.32.4',d:'15.11.2026',n:['«Дивлюсь»: зелена смужка в шторці серіалу тепер показує лише поточний сезон і з кожним новим сезоном починається з нуля; весь серіал — помаранчеві сегменти під нею']},
+  {v:'1.32.3',d:'13.11.2026',n:['Картка тайтлу одразу бере фокус — і поки завантажується, і коли деталі не вдалося завантажити (клавіатура й скрінрідер одразу всередині картки)']},
+  {v:'1.32.2',d:'13.11.2026',n:['Телефон: «Назад» закриває і меню ⋯, навіть коли більше нічого не відкрито','Шторка тегів над карткою закривається «Назад» і в інших браузерах та кнопкою «назад» миші на ПК']},
+  {v:'1.32.1',d:'13.11.2026',n:['Телефон: «Назад» (жест чи кнопка) просто закриває картку, шторку, меню, пошук, вікно чи гру — без руху всієї сторінки, схожого на перезавантаження (раніше Chrome показував анімацію кроку назад в історії). Відкрите меню ⋯ закривається першим','Встановлений застосунок: перший «Назад» так само показує підказку «Ще раз „Назад“ — щоб вийти», другий упродовж 2 секунд закриває застосунок — тепер без мигання екрана']},
+  {v:'1.32',d:'13.11.2026',n:['У встановленому застосунку вихід — лише двома «Назад» поспіль: перший показує підказку «Ще раз „Назад“ — щоб вийти», другий упродовж 2 секунд закриває застосунок. У вкладці браузера «Назад» працює як звичайно.']},
+  {v:'1.31',d:'13.11.2026',n:['Кінопис можна встановити як застосунок: в Chrome на телефоні — меню ⋮ → «Установити застосунок» (або «Додати на головний екран»), на компʼютері — значок установки в адресному рядку; відкривається в окремому вікні, без адресного рядка','Кнопка «Назад» (жест) тепер закриває картку тайтлу, вікна з питаннями й гру, а не виходить із сайту; картка, відкрита з пошуку, закривається першою, пошук лишається','Клавіатура й екранні читці: плитки в «Дивлюсь» відкриваються Enter/Space, меню «⋯» керується стрілками, Home/End, Esc і повертає фокус на кнопку; шторки та вікна переносять фокус у себе й повертають назад, усе позаду недоступне Tab; є посилання «До вмісту» та головна область сторінки','Повідомлення озвучуються екранними читцями; помилки лишаються довше, а повідомлення зі «Скасувати» не зникає, поки на ньому курсор або фокус','На компʼютері горизонтальні стрічки без смуги прокручуються колесом миші','Шрифти тепер зберігаються разом із сайтом (без запитів до Google Fonts); адресний рядок і тло в темному кольорі застосунку; зображення дозволені лише з m.media-amazon.com та image.tmdb.org','Файл бекапу тепер називається за місцевою датою (раніше між 00:00 і 03:00 мав учорашню)']},
   {v:'1.30',d:'11.11.2026',n:['Пошук: поки нічого не введено, видно «Ти шукав» (останні запити), «Нещодавно додане» й людей, за якими стежиш','Пошук: під кожним знайденим тайтлом, якого ще немає у списках, кнопка «+ Додати» з вибором списку']},
   {v:'1.29.6',d:'11.11.2026',n:['Рекомендації: після «−» (Не цікаво) з\'являється «Скасувати» на 6 секунд — тайтл повертається на своє місце']},
   {v:'1.29.5',d:'11.11.2026',n:['Телефон: меню (☰) знову відкривається на весь екран і тоді, коли адресний рядок схований; під ним темне тло — сторінка не просвічує зверху й знизу']},
@@ -605,10 +725,12 @@ const CHANGELOG=[
   {v:'1.0',d:'27.10.2026',n:['Бекап на Google Drive','Мобільні картки «Дивлюсь»: більший постер, кнопки на всю ширину','Виправлено відсутні постери через TMDB','Налаштування на одній сторінці, автоматичне обслуговування','Помаранчеві акценти']},
 ];
 const APP_VERSION=CHANGELOG[0].v;
-function openChangelog(){
+/* from «Налаштування → Про застосунок» (from='st') the head has «‹ Налаштування» that goes back to that row */
+function openChangelog(from){
   const groups=[];CHANGELOG.forEach(e=>{const k=e.v.split('.').slice(0,2).join('.'),g=groups[groups.length-1];if(g&&g.k===k)g.items.push(e);else groups.push({k,items:[e]});});
   const ver=e=>`${e.items.length>1?`<div class="cl-sub">${e.v}${e.v===APP_VERSION?' · поточна':''}<span>${e.d}</span></div>`:''}<ul>${e.n.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`;
-  modal(`<div class="st-head"><h2 class="modal-title">Історія змін</h2><button class="st-x" data-act="closeModal" title="Закрити" aria-label="Закрити">✕</button></div>
+  const back=from==='st'?`<button class="st-back" data-act="openIO" data-args="${A('stVer')}"><span aria-hidden="true">‹</span>Налаштування</button>`:'';
+  modal(`<div class="st-head">${back}<h2 class="modal-title">Історія змін</h2><button class="st-x" data-act="closeModal" title="Закрити" aria-label="Закрити">✕</button></div>
     <div class="st-body">${groups.map((g,i)=>{const top=g.items[0],fx=g.items.length-1,cur=g.items.some(e=>e.v===APP_VERSION);
       return `<details class="st-row cl-ver"${i===0?' open':''}><summary class="st-row-head"><span class="st-lbl">Версія ${g.k}${fx?`<small> + ${fx} ${fx%10>=1&&fx%10<=4&&(fx%100<11||fx%100>14)?'виправлення':'виправлень'}</small>`:''}${cur?' · поточна':''}</span><span class="st-hint">${top.d}</span></summary>${g.items.map(e=>ver({...e,items:g.items})).join('')}</details>`;}).join('')}</div>`);
   document.querySelector('.modal')?.classList.add('st-modal');
@@ -619,5 +741,14 @@ function _versionNotice(){
   const seen=localStorage.getItem('ct_seen_ver');
   if(seen===APP_VERSION)return;
   _lsSet('ct_seen_ver',APP_VERSION);
-  if(seen||localStorage.getItem('ct_watched'))setTimeout(()=>{toast(`Оновлено до версії ${APP_VERSION}. Що нового — Налаштування → Версія`,'',7000);},1500);
+  if(seen||localStorage.getItem('ct_watched'))setTimeout(()=>{
+    /* 1.51: the toast carries its own «Що нового» (it used to point at a «Налаштування → Версія» that does not exist) */
+    document.querySelectorAll('.toast').forEach(t=>t.remove());
+    const el=document.createElement('div');el.className='toast undo';
+    const lbl=document.createElement('span');lbl.textContent=`Оновлено до версії ${APP_VERSION}`;
+    const btn=document.createElement('button');btn.className='t-undo';btn.innerHTML=ic('info')+'Що нового';
+    const tm=_toastTimer(el,8000,()=>el.remove());
+    btn.onclick=()=>{clearTimeout(tm);el.remove();openChangelog();};
+    el.append(lbl,btn);_toastMount(el);
+  },1500);
 }

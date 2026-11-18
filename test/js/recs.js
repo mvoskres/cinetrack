@@ -64,7 +64,7 @@ function _recOk(it,minVotes,minRating){return it.poster&&it.title&&it.date&&it.d
 
 function _genreNameById(id){for(const n in TMDB_GENRES)if(TMDB_GENRES[n]===id)return n;return '';}
 function _topGenreIds(n){
-  const f={};watched.forEach(i=>(i.genre||'').split(',').map(s=>s.trim()).filter(Boolean).forEach(g=>{const id=TMDB_GENRES[g];if(id&&id!==16)f[id]=(f[id]||0)+1;}));
+  const f={};watched.forEach(i=>(i.genre||'').split(',').map(s=>s.trim()).filter(Boolean).forEach(g=>{const id=Object.hasOwn(TMDB_GENRES,g)?TMDB_GENRES[g]:0;if(id&&id!==16)f[id]=(f[id]||0)+1;}));
   return Object.entries(f).sort((a,b)=>b[1]-a[1]).slice(0,n).map(e=>+e[0]);
 }
 function _recCat(i){const c=i.customCategory||i.type;return c==='cartoon'||c==='anime'||c==='series'?c:'movie';}
@@ -125,7 +125,7 @@ function _recSeedsPick(rot,n){
   for(let k=0;out.length<n;k++){let any=false;ord.forEach(c=>{const i=picked[c][k];if(i&&out.length<n){out.push(i);any=true;}});if(!any)break;}
   return out;
 }
-function _seedWhy(s){return s.rating>=8?`Бо ти оцінив його на ${s.rating}/10`:`Бо він є в твоєму «Переглянутому» (IMDb ${s.imdbRating})`;}
+function _seedWhy(s){return s.rating>=8?`Бо ти оцінив його на ${s.rating}/10`:`Бо він є в твоєму «Переглянутому» (${imdbL(s.imdbRating)})`;}
 
 /* ── shelves that need no network ── */
 function _shelfFranchises(known){
@@ -201,7 +201,7 @@ async function _seedRecs(seed){
   return {seed,items};
 }
 function _shelfSeed(r,known){
-  return {id:'seed-'+r.seed.imdbID,title:`Схоже на «${r.seed.title}»`,why:_seedWhy(r.seed),items:r.items.filter(it=>!known.has(it)).slice(0,18)};
+  return {id:'seed-'+r.seed.imdbID,title:`Схоже на «${tn(r.seed)}»`,why:_seedWhy(r.seed),items:r.items.filter(it=>!known.has(it)).slice(0,18)};
 }
 function _recLike(names){
   const q=t=>`«${t}»`;
@@ -243,7 +243,7 @@ async function _shelfDiscover(id,title,why,queries,known,minVotes,minRating,sort
 async function buildRecs(manual){
   if(_recBusy)return;_recBusy=true;
   const g=document.getElementById('recsGrid');
-  if(!_recs&&g)g.innerHTML='<div class="spinner">Підбираю рекомендації…</div>';
+  if(!_recs&&g)g.innerHTML='<div class="spinner" role="status">Підбираю рекомендації…</div>';
   document.getElementById('recsRefresh')?.classList.add('busy');
   try{
     let net=!!TMDB_KEY&&!_tmdbBlocked;
@@ -264,9 +264,10 @@ async function buildRecs(manual){
       const top=_topGenreIds(3),tvTop=_tvGenres(top),seeds=_recSeedsPick(rot,13);
       /* rot turns the pages of the broad shelves too, so "Оновити" changes them, not only the seed shelves */
       const fp=1+rot%3,ap=1+(rot*2)%10,sp=1+(rot*2)%6;
-      const [sr,fresh,anim,anime,animTv,trend]=await Promise.all([
+      const fresh0=watched.length<5; /* 1.43: (almost) nothing watched yet — nothing to build «because of X» from */
+      const [sr,fresh,anim,anime,animTv,trend,best]=await Promise.all([
         Promise.all(seeds.map(s=>soft(_seedRecs(s)))),
-        top.length?soft(_shelfDiscover('fresh','Свіжі релізи у твоїх жанрах',`За останні півтора року · ${top.map(_genreNameById).join(', ')}`,
+        top.length?soft(_shelfDiscover('fresh','Свіжі релізи у твоїх жанрах',`За останні півтора року · ${top.map(id=>_recGenreUa(_genreNameById(id))).join(', ')}`,
           [['movie',`with_genres=${top.join('|')}&primary_release_date.gte=${since}&vote_count.gte=150&sort_by=popularity.desc&page=${fp}`],
            ...(tvTop.length?[['tv',`with_genres=${tvTop.join('|')}&first_air_date.gte=${since}&vote_count.gte=60&sort_by=popularity.desc&page=${fp}`]]:[])],
           known,60,6.5,(a,b)=>b.votes-a.votes)):null,
@@ -280,12 +281,15 @@ async function buildRecs(manual){
           [sp,sp+1,sp+2].map(p=>['tv',`with_genres=16&vote_average.gte=7.5&vote_count.gte=150&sort_by=vote_count.desc&page=${p}`]),known,150,7.5,(a,b)=>b.rating-a.rating,it=>it.lang!=='ja')):null,
         soft(tmdbFetch('/trending/all/week?language=uk-UA').then(d=>({id:'trend',title:'Популярне цього тижня',why:'Тренди TMDB без того, що вже є у твоїх списках',
           items:(d?.results||[]).filter(r=>r.media_type==='movie'||r.media_type==='tv').map(r=>_recItem(r)).filter(it=>it.poster&&it.votes>=50&&!known.has(it)).slice(0,18)}))),
+        fresh0?soft(_shelfDiscover('best','Найкраще за всі часи','Поки списки майже порожні — класика з найвищими оцінками. Додай кілька переглянутих, і підбірка стане твоєю',
+          [['movie','vote_count.gte=5000&sort_by=vote_average.desc'],['tv','vote_count.gte=2000&sort_by=vote_average.desc']],known,2000,8,(a,b)=>b.rating-a.rating)):null,
       ]);
       _recSrcSave();
       /* the first three seeds that brought something get a shelf each; the others are merged into «Для тебе» */
       const ok=sr.filter(r=>r&&r.items.length),mine=ok.slice(0,3).map(r=>_shelfSeed(r,known));
       /* interleave so the page alternates "because of X" with broader shelves */
-      ordered=[ok.length>=5?_shelfForYou(ok.slice(3),known):null,franchise,mine[0],fresh,mine[1],anim,mine[2],_shelfPeople(known),anime,animTv,trend];
+      ordered=fresh0?[trend,best,mine[0],franchise,_shelfPeople(known)]
+        :[ok.length>=5?_shelfForYou(ok.slice(3),known):null,franchise,mine[0],fresh,mine[1],anim,mine[2],_shelfPeople(known),anime,animTv,trend];
     }else ordered=[franchise,_shelfPeople(known)];
     /* a title shows up only in the first shelf that has it */
     const seen=new Set();
@@ -333,8 +337,9 @@ function _recDrop(k){
   _recsSave();renderRecs();
 }
 function recMenu(ev,k){
-  openMenu(ev,[{icon:'check',label:'Переглянуто',fn:'recAct',args:[k,'watched']},{icon:'play',label:'Дивлюсь',fn:'recAct',args:[k,'watching']},
-    {icon:'bookmark',label:'Запланувати',fn:'recAct',args:[k,'planned']},'-',{icon:'eye-off',label:'Не цікаво, сховати',fn:'recAct',args:[k,'hide']}]);
+  /* 1.51: the main action first — most of what the shelves show is for later, not already seen */
+  openMenu(ev,[{icon:'bookmark',label:'Запланувати',fn:'recAct',args:[k,'planned']},{icon:'play',label:'Дивлюсь',fn:'recAct',args:[k,'watching']},
+    {icon:'check',label:'Переглянуто',fn:'recAct',args:[k,'watched']},'-',{icon:'eye-off',label:'Не цікаво, сховати',fn:'recAct',args:[k,'hide']}]);
 }
 /* IMDb id is resolved only here, when a title is actually added */
 async function recAct(k,action){
@@ -345,16 +350,16 @@ async function recAct(k,action){
     save();_recDrop(k);
     /* a mis-tap on «−» is easy on a phone: the toast offers «Скасувати» for 6 s, which puts the title back in its place */
     document.querySelectorAll('.toast').forEach(t=>t.remove());
-    const el=document.createElement('div');el.className='toast undo';el.setAttribute('role','status');el.setAttribute('aria-live','polite');
+    const el=document.createElement('div');el.className='toast undo';
     const lbl=document.createElement('span');lbl.textContent=`«${it.title}» більше не пропонуватиметься`;
     const btn=document.createElement('button');btn.className='t-undo';btn.innerHTML=ic('undo')+'Скасувати';
-    const tm=setTimeout(()=>el.remove(),6000);
+    const tm=_toastTimer(el,6000,()=>el.remove());
     btn.onclick=()=>{clearTimeout(tm);el.remove();
       const i=hidden.indexOf(hEntry);if(i>-1){hidden.splice(i,1);save();}
       if(snap.sh&&_recs)_recs.shelves=JSON.parse(snap.sh);
       if(snap.gs&&_recGenreState)_recGenreState.items=JSON.parse(snap.gs);
       _recsSave();renderRecs();};
-    el.append(lbl,btn);document.body.appendChild(el);return;
+    el.append(lbl,btn);_toastMount(el);return;
   }
   let imdb=it.imdbID||_resolveCache[k]?.imdbID;
   if(!imdb){
@@ -365,7 +370,10 @@ async function recAct(k,action){
   if(!imdb){toast('Цього тайтлу немає на IMDb, тож додати його не вийде','err',3600);return;}
   it.imdbID=imdb;
   const fn={watched:addW,watching:addWn,planned:addPl}[action];
+  /* 1.51: the data comes from TMDB, like in the search and on the card: no OMDb key needed to add (it only tops up the IMDb rating) */
+  if(!_pendingMap[imdb]){try{_pmSet(imdb,_shapeFromTmdb(it.mt,await tmdbFetch(`/${it.mt}/${it.id}?language=en-US`)));}catch(e){}}
   let ok=false;try{ok=await fn(imdb);}catch(e){toast('Не вдалося додати: немає зв\'язку з OMDb','err');}
+  if(ok&&_pendingMap[imdb]?._fromTmdb){_setTmdbRating(imdb,_pendingMap[imdb].tmdbRating);save();_topUpImdbRating(imdb);}
   if(ok)_recDrop(k);
 }
 
@@ -376,11 +384,12 @@ async function recGenre(name){
   _recView='genre';_recGenreState={name,items:[]};renderRecs();
   const known=_recKnown();
   const tv=_TV_GENRE[gid]; /* no series genre for Thriller, Horror, Romance…: films only */
-  const s=await _shelfDiscover('genre','','',[1,2].flatMap(p=>[['movie',`with_genres=${gid}&vote_count.gte=500&sort_by=popularity.desc&page=${p}`],...(tv?[['tv',`with_genres=${tv}&vote_count.gte=200&sort_by=popularity.desc&page=${p}`]]:[])]),known,200,6.5).catch(()=>({items:[]}));
+  const s=await _shelfDiscover('genre','','',[1,2].flatMap(p=>[['movie',`with_genres=${gid}&vote_count.gte=500&sort_by=popularity.desc&page=${p}`],...(tv?[['tv',`with_genres=${tv}&vote_count.gte=200&sort_by=popularity.desc&page=${p}`]]:[])]),known,200,6.5).catch(()=>null);
   if(_recGenreState?.name!==name)return; /* switched again meanwhile */
-  _recGenreState.items=s.items.concat([]).slice(0,48);_recGenreState.loaded=true;renderRecs();
+  /* 1.51: no answer from TMDB is not «everything is already yours» */
+  _recGenreState.failed=!s;_recGenreState.items=s?s.items.concat([]).slice(0,48):[];_recGenreState.loaded=true;renderRecs();
 }
-function recView(v){_recView=v;if(v!=='genre'){const gp=document.getElementById('genrePick');if(gp)gp.value='';}renderRecs();}
+function recView(v){if(v==='hidden'&&_recView==='hidden')v='picks';_recView=v;if(v!=='genre'){const gp=document.getElementById('genrePick');if(gp)gp.value='';}renderRecs();}
 function recType(t){_recType=t;renderRecs();}
 function recShelfMore(id){_recOpen.has(id)?_recOpen.delete(id):_recOpen.add(id);renderRecs();}
 
@@ -388,14 +397,23 @@ function recShelfMore(id){_recOpen.has(id)?_recOpen.delete(id):_recOpen.add(id);
 const _recTypeOk=it=>_recType==='all'||(_recType==='anim'?it.anim:(!it.anim&&it.mt===_recType));
 
 /* ── hidden titles ── */
+let _hiddenQ='';
+function recHiddenQ(v){_hiddenQ=String(v||'');_gridShown.hidden=GRID_PAGE;showHidden();}
 function showHidden(){
   const g=document.getElementById('recsGrid');
   if(!hidden.length){g.innerHTML=`<div class="empty"><span class="empty-icon">${ic('eye-off')}</span><div class="empty-txt">Нічого не приховано</div></div>`;return;}
   const _hl=id=>{for(const l of[watched,watching,planned]){const f=l.find(i=>i.imdbID===id);if(f)return f;}return null;};
-  const list=hidden.map((h,idx)=>({h,idx})).reverse(); /* newest first */
-  g.innerHTML='<div class="grid" id="hiddenGrid"></div>';
+  /* 1.51: with 900+ hidden titles a search box: the grid below is rebuilt, the input stays (and keeps focus) */
+  if(!document.getElementById('hiddenGrid')){
+    g.innerHTML=`<div class="local-search-wrap rv-hs"><span class="local-search-icon">${ic('lsearch')}</span><input class="local-search" id="hiddenQ" type="text" placeholder="Знайти серед прихованих" aria-label="Пошук серед прихованих" value="${esc(_hiddenQ)}" data-input="recHiddenQ" data-args="${A('$value')}"><button type="button" class="ls-x" data-act="lsClear" data-args="[&quot;$el&quot;]" aria-label="Очистити пошук" title="Очистити">${ic('x')}</button></div><div class="grid" id="hiddenGrid"></div>`;
+  }
+  const q=_hiddenQ.trim().toLowerCase();
+  const list=hidden.map((h,idx)=>({h,idx})).reverse().filter(({h})=>!q||String(h.title||'').toLowerCase().includes(q)||String(h.year||'')===q); /* newest first */
+  const grid=document.getElementById('hiddenGrid');
+  if(!list.length){grid.className='';grid.innerHTML=`<div class="empty"><span class="empty-icon">${ic('search')}</span><div class="empty-txt">Серед прихованих такого немає</div></div>`;return;}
+  grid.className='grid';
   _gridShown.hidden=_gridShown.hidden||GRID_PAGE;
-  _gridRender('hidden',document.getElementById('hiddenGrid'),list,({h,idx})=>{
+  _gridRender('hidden',grid,list,({h,idx})=>{
     const found=h.imdbID?_hl(h.imdbID):null;
     const poster=found?.poster||h.poster||'';
     const href=esc(/^tt\d+$/.test(h.imdbID||'')?`https://www.imdb.com/title/${h.imdbID}/`:/^(movie|tv):\d+$/.test(h.tmdb||'')?`https://www.themoviedb.org/${h.tmdb.replace(':','/')}`:'#');

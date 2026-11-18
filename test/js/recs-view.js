@@ -14,15 +14,22 @@ let _recTiles=_lsJSON('ct_rec_gtiles',{});
 let _recTilesBusy=false;
 async function _recTilesFill(){
   if(_recTilesBusy||!TMDB_KEY||_tmdbBlocked)return;
-  if(_recTiles.ts&&Date.now()-_recTiles.ts<7*864e5&&_recGenresOk().every(([k])=>_recTiles[k]!==undefined))return;
+  /* a backdrop already shown on an earlier tile counts as missing: every tile gets its own picture */
+  const dup=k=>{const v=_recTiles[k];return !!v&&_recGenresOk().some(([j])=>j!==k&&_recTiles[j]===v&&_recGenresOk().findIndex(([x])=>x===j)<_recGenresOk().findIndex(([x])=>x===k));};
+  const stale=!_recTiles.ts||Date.now()-_recTiles.ts>=7*864e5;
+  const todo=_recGenresOk().filter(([k])=>stale||_recTiles[k]===undefined||dup(k));
+  if(!todo.length)return;
   _recTilesBusy=true;
-  const todo=_recGenresOk().filter(([k])=>_recTiles[k]===undefined||!_recTiles.ts||Date.now()-_recTiles.ts>=7*864e5);
+  const cand={};
   for(let i=0;i<todo.length;i+=4){
     await Promise.all(todo.slice(i,i+4).map(async([k])=>{
       try{const d=await tmdbFetch(`/discover/movie?with_genres=${TMDB_GENRES[k]}&vote_count.gte=3000&sort_by=popularity.desc`);
-        _recTiles[k]=(d?.results||[]).find(r=>r.backdrop_path)?.backdrop_path||'';}catch(e){}
+        cand[k]=(d?.results||[]).map(r=>r.backdrop_path).filter(Boolean);}catch(e){}
     }));
   }
+  /* hand the pictures out in tile order, skipping ones another tile already shows (one film is often in several genres) */
+  const todoK=new Set(todo.map(([k])=>k)),used=new Set(_recGenresOk().filter(([k])=>!todoK.has(k)&&_recTiles[k]).map(([k])=>_recTiles[k]));
+  for(const [k] of todo){if(!cand[k])continue;const bd=cand[k].find(b=>!used.has(b))||'';_recTiles[k]=bd;if(bd)used.add(bd);}
   _recTiles.ts=Date.now();_lsSet('ct_rec_gtiles',JSON.stringify(_recTiles));_recTilesBusy=false;
   _recTilesRender();
 }
@@ -36,19 +43,28 @@ function _recTilesRender(){
       ${bd?`<img src="${esc(_tsImg(bd,'w500'))}" alt="" loading="lazy">`:''}<b>${ua}</b></button>`;}).join('');
   if(!_recTilesBusy)_recTilesFill();
 }
-const _recGenreUa=k=>(REC_GENRES.find(([e])=>e===k)||[k,k])[1];
+const _recGenreUa=k=>(REC_GENRES.find(([e])=>e===k)||[k,typeof sxGenre==='function'?sxGenre(k):k])[1];
+/* 1.51: shelves are cached for a day with the names they were built with: the Ukrainian name of a seed and the genre words are put in at show time */
+let _recUk=null;
+function _recUkMap(){const m=new Map();watched.forEach(i=>{const u=tn(i);if(u&&u!==i.title)m.set(i.title,u);});return m;}
+const _recUkNote=n=>_recUk?String(n).replace(/«([^»]+)»/g,(x,t)=>`«${_recUk.get(t)||t}»`):n;
+function _recShelfTitle(s){
+  if(String(s.id).startsWith('seed-')){const m=/^Схоже на «(.+)»$/.exec(s.title);if(m)return `Схоже на «${_recUk?.get(m[1])||m[1]}»`;}
+  return s.title;
+}
+const _recShelfWhy=s=>s.id==='fresh'?String(s.why||'').replace(/(·\s*)(.+)$/,(x,a,b)=>a+b.split(', ').map(_recGenreUa).join(', ')):(s.why||'');
 
 function _recCard(it){
   const href=esc(/^tt\d+$/.test(it.imdbID||'')?`https://www.imdb.com/title/${it.imdbID}/`:`https://www.themoviedb.org/${it.mt==='tv'?'tv':'movie'}/${+it.id||0}`);
   const poster=esc(String(it.poster||'').startsWith('http')?ps(it.poster)||BLANK:_tsImg(it.poster,'w342')||BLANK);
-  const score=it.imdbRating?`IMDb ${esc(it.imdbRating)}`:it.rating?`TMDB ${it.rating.toFixed(1)}`:'';
+  const score=rNum(it.imdbRating)?imdbL(it.imdbRating):it.rating?`TMDB ${rNum(it.rating)}`:'';
   const meta=[it.year?esc(it.year):'',_recTypeLabel(it),score].filter(Boolean).join(' · ');
   const open=`href="${href}" target="_blank" rel="noopener" data-act="_tsClickT" data-args="${A('$ev',`${it.mt}`,(it.id))}"`;
   return `<article class="rv-c" id="rc-${esc(String(it.k).replace(':','-'))}">
     <div class="rv-art"><a ${open} tabindex="-1"><img src="${poster}" alt="" loading="lazy" data-fb></a>
-      <button class="rv-x" data-act="recAct" data-args="${A(`${it.k}`,'hide')}" title="Не цікаво" aria-label="Не цікаво: ${esc(it.title)}">${ic('minus')}</button>
+      <button class="rv-x" data-act="recAct" data-args="${A(`${it.k}`,'hide')}" title="Не цікаво" aria-label="Не цікаво: ${esc(it.title)}">${ic('x')}</button>
       <button class="fa-lbl miss rv-add" data-act="recMenu" data-args="${A('$ev',`${it.k}`)}" aria-label="Додати: ${esc(it.title)}">${ic('plus')}Додати</button></div>
-    <div class="fa-cap"><a class="fa-t" ${open}>${esc(it.title)}</a><span>${meta}</span>${it.note?`<em title="${esc(it.note)}">${esc(it.note)}</em>`:''}</div>
+    <div class="fa-cap"><a class="fa-t" ${open}>${esc(it.title)}</a><span>${meta}</span>${it.note?`<em title="${esc(_recUkNote(it.note))}">${esc(_recUkNote(it.note))}</em>`:''}</div>
   </article>`;
 }
 
@@ -57,8 +73,8 @@ function renderRecs(){
   document.getElementById('rv-hidden')?.classList.toggle('on',_recView==='hidden');
   const hn=document.getElementById('rvHiddenN');if(hn)hn.textContent=hidden.length||'';
   const sub=document.getElementById('recsSub'),bar=document.getElementById('recsBar');
-  _recTilesRender();
-  if(_recView==='hidden'){if(sub)sub.textContent='Тайтли, які ти сховав. Вони не з\'являтимуться в підбірках';if(bar)bar.innerHTML='';showHidden();return;}
+  _recTilesRender();_recUk=_recUkMap();
+  if(_recView==='hidden'){if(sub)sub.textContent='Тайтли, які ти сховав. Вони не з\'являтимуться в підбірках';if(bar)bar.innerHTML=`<button class="link-btn" data-act="recView" data-args="[&quot;picks&quot;]">‹ Рекомендації</button>`;showHidden();return;}
   /* shelves are cached for 24h: whatever was added/hidden since must not show up again */
   const known=_recKnown(),fresh=it=>!known.has(it);
   const pool=(_recView==='genre'?(_recGenreState?.items||[]):(_recs?.shelves||[]).flatMap(s=>s.items)).filter(fresh);
@@ -68,8 +84,9 @@ function renderRecs(){
     const st=_recGenreState;
     if(sub)sub.textContent='';
     if(bar)bar.innerHTML=`<div class="rg-head"><h2>${esc(_recGenreUa(st?.name||''))}</h2><span>популярне, чого немає у твоїх списках</span></div>${chips}`;
-    if(!st?.loaded){g.innerHTML='<div class="spinner">Шукаю популярне в жанрі…</div>';return;}
+    if(!st?.loaded){g.innerHTML='<div class="spinner" role="status">Шукаю популярне в жанрі…</div>';return;}
     const items=st.items.filter(fresh).filter(_recTypeOk);
+    if(st.failed){g.innerHTML=`<div class="empty"><span class="empty-icon">${ic('refresh')}</span><div class="empty-txt">TMDB зараз не відповідає, тож жанр не завантажився</div><p style="margin:14px 0 0"><button class="btn" data-act="recGenre" data-args="${A(st.name)}">${ic('refresh')}Спробувати ще</button></p></div>`;return;}
     g.innerHTML=items.length?`<div class="rv-grid">${items.map(_recCard).join('')}</div>`:`<div class="empty"><span class="empty-icon">${ic('search')}</span><div class="empty-txt">Усе популярне в цьому жанрі вже є у твоїх списках</div></div>`;
     return;
   }
@@ -80,13 +97,15 @@ function renderRecs(){
   }
   if(!_recs){if(!_recBusy)g.innerHTML='';return;}
   const shelves=_recs.shelves.map(s=>({...s,items:s.items.filter(fresh).filter(_recTypeOk)})).filter(s=>s.items.length);
-  const noKey=!TMDB_KEY?`<div class="recs-note">${ic('info')}<span>Більшість підбірок будує TMDB. Додай безкоштовний ключ у Налаштуваннях, щоб їх побачити.</span></div>`:'';
+  ['recsGenres','rv-hidden','recsRefresh'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.display=TMDB_KEY?'':'none';}); /* without a key they do nothing */
+  if(!TMDB_KEY){if(sub)sub.textContent='';g.innerHTML=`<div class="es"><span class="empty-icon">${ic('spark')}</span><b>Рекомендації будує TMDB</b><p>Додай безкоштовний ключ TMDB — і тут з’являться підбірки під твої смаки та популярне зараз.</p><button class="btn primary" data-act="openIO" data-args="[&quot;stKeys&quot;]">${ic('key')}Додати ключ</button></div>`;return;}
+  const noKey='';
   if(!shelves.length){g.innerHTML=noKey+`<div class="empty"><span class="empty-icon">${ic('spark')}</span><div class="empty-txt">Поки нічого не підібралось. Спробуй «Оновити» або інший тип</div></div>`;return;}
   /* each shelf is a horizontal strip; «Усі N» unfolds it into a grid */
   g.innerHTML=noKey+shelves.map(s=>{
     const open=_recOpen.has(s.id);
     return `<section class="rv-shelf" aria-labelledby="sh-${s.id}">
-      <div class="rv-head"><div><h2 id="sh-${s.id}">${esc(s.title)}</h2><p>${esc(s.why||'')}</p></div>
+      <div class="rv-head"><div><h2 id="sh-${s.id}">${esc(_recShelfTitle(s))}</h2><p>${esc(_recShelfWhy(s))}</p></div>
         ${s.items.length>5?`<button class="link-btn" data-act="recShelfMore" data-args="${A(`${s.id}`)}">${open?'Згорнути':`Усі ${s.items.length} →`}</button>`:''}</div>
       <div class="${open?'rv-grid':'rv-strip'}">${s.items.map(_recCard).join('')}</div>
     </section>`;}).join('');

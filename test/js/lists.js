@@ -1,26 +1,31 @@
 /* ── TABS ── */
-const TITLES={watched:'Переглянуте',watching:'Дивлюсь',planned:'Планую',stats:'Статистика',recs:'Рекомендації',collections:'Франшизи',people:'Актори й режисери',game:'Впізнай кадр'};
 function goTab(id,btn){
-  if(document.body.classList.contains('nav-on')&&matchMedia('(max-width:700px)').matches){
-    document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('on',b.dataset.tab===id));
-    navClose();setTimeout(()=>goTab(id,btn),300);return;
-  }
-  document.getElementById('gameModalBg')?.classList.add('hidden');
+  /* 1.51: from the open phone menu the page switches at once (it used to wait 300 ms for the menu to close); the close animation is CSS and runs on its own */
+  const viaMenu=document.body.classList.contains('nav-on')&&matchMedia('(max-width:700px)').matches;
+  document.getElementById('gameModalBg')?.classList.add('hidden');_lyDone('game');
   const tabEl=document.getElementById('tab-'+id);
   const fresh=!!tabEl&&tabEl.classList.contains('hidden'); /* a new tab starts at its top, not at the old tab's scroll depth */
   document.querySelectorAll('[id^="tab-"]').forEach(t=>t.classList.add('hidden'));
   document.getElementById('tab-'+id).classList.remove('hidden');
   document.querySelectorAll('[data-tab]').forEach(b=>{const o=b.dataset.tab===id;b.classList.toggle('on',o);if(o)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
+  /* ≤1100 the five pages fold into «Ще»: when one of them is open the button names it */
+  const more=document.querySelector('.dk-more'),cur=document.querySelector(`.dk-drop [data-tab="${id}"]`);
+  if(more){more.textContent=cur?cur.textContent+' ▾':'Ще';more.classList.toggle('on',!!cur);}
   if(id==='stats')loadStats();
   if(id==='recs')openRecs();
   if(id==='watching')rWatching(); /* rWatching already starts the live fetches */
   if(id==='planned')rPlanned();
   if(id==='collections')loadCollections();
   if(id==='people')renderPeopleTab();
-  if(id==='game')loadGameTab();
+  if(typeof _tsPplDrop==='function')_tsPplDrop(); /* left «Люди» by the menu: no way back to the card */
+  if(typeof _gxLayerDone==='function')_gxLayerDone(); /* leaving (or reopening) the tab drops the phone's «game screen» Back entry */
+  if(id==='game'){if(typeof _gxList!=='undefined')_gxList=true;loadGameTab();}
   const ds=document.getElementById('dashSection');if(ds)ds.hidden=id!=='watching'; /* air strip belongs to Дивлюсь */
   closeMenu();navClose();searchClose();
-  if(fresh){window.scrollTo(0,0);requestAnimationFrame(()=>window.scrollTo(0,0));} /* after the menu closed: its history step must not bring the old position back */
+  if(fresh){window.scrollTo(0,0);requestAnimationFrame(()=>window.scrollTo(0,0));}
+  else if(tabEl&&window.event?.target?.closest?.('[data-tab],.dk-home')&&scrollY>40&&!document.body.classList.contains('srch-on')) /* 1.51: a second tap on the open page's dock item goes to its top */
+    scrollTo({top:0,behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'});
+  if(fresh&&viaMenu)setTimeout(()=>window.scrollTo(0,0),200); /* the menu's history step lands after the switch and may bring the old position back */
 }
 
 /* ── SEARCH ── */
@@ -29,9 +34,20 @@ function handleSearch(){const q=document.getElementById('searchInput').value.tri
 const _sCache={};
 /* TMDB answers in Ukrainian and does not spend the 1000/day OMDb quota */
 async function doSearch(q){
+  if(!TMDB_KEY&&!API){_sugMsg(`Пошук працює з ключем TMDB — без нього шукати ніде.<br><button class="btn primary" data-act="srchKey">${ic('key')}Додати ключ</button>`);return;}
   if(TMDB_KEY&&!_tmdbBlocked){try{if(await _tmdbSearch(q))return;}catch(e){console.warn('TMDB search:',e);}}
+  if(!API){if(document.getElementById('searchInput').value.trim()===q)_sugNone(q);return;}
   return _omdbSearch(q);
 }
+/* 1.49: the search always answers — a reason or «nothing found» instead of a silent empty box */
+function _sugMsg(html){
+  const box=document.getElementById('suggestions');if(!box)return;
+  box.classList.remove('hidden');box.innerHTML=`<div class="sug-msg">${html}</div>`;
+  document.querySelector('#srch .search-wrap')?.classList.remove('loading');_sugSync('searchInput','suggestions');
+}
+function _sugNone(q){_sugMsg(`За «${esc(q)}» нічого не знайшлось. Спробуй оригінальну назву або додай рік.`);}
+/* no key: close the search and go where the key goes in */
+function srchKey(){searchClose();if(!watched.length){goTab('watched');setTimeout(()=>document.getElementById('obKey')?.focus(),350);}else openIO('stKeys');}
 let _ownIdx=null;
 /* "movie:603" -> imdbID, from the two TMDB id caches; rebuilt per search, both only grow */
 function _tmdbOwnedId(mt,id){
@@ -66,21 +82,23 @@ async function _tmdbSearch(q){
   const titles=res.filter(r=>r.media_type!=='person').sort((a,b)=>rank(a)-rank(b)||(b.popularity||0)-(a.popularity||0)).slice(0,20),people=res.filter(r=>r.media_type==='person').slice(0,4);
   const box=document.getElementById('suggestions');box.classList.remove('hidden');
   document.querySelector('#srch .search-wrap').classList.remove('loading');
-  box.innerHTML=titles.map(r=>{
+  const _sh=t=>`<div class="sug-sec" role="presentation">${t}</div>`; /* 1.51: titles and people under their own headings */
+  box.innerHTML=(people.length?_sh('Люди')+people.map(p=>`<div class="sug-item" data-act="_sugPerson" data-args="${A(p.id,p.name,p.profile_path||'')}">
+      <div class="sug-p round"><img class="sug-img" src="${_tsImg(p.profile_path,'w185')}" alt="" loading="lazy" data-fb></div>
+      <div class="sug-title">${esc(p.name)}</div><div class="sug-meta">${p.known_for_department==='Directing'?'режисер':'актор'} · фільмографія</div></div>`).join(''):'')
+  +(titles.length&&people.length?_sh('Фільми й серіали'):'')+titles.map(r=>{
     const t=r.title||r.name||'',o=r.original_title||r.original_name||'',y=(r.release_date||r.first_air_date||'').slice(0,4);
     const own=_ownBadge(_tmdbOwnedId(r.media_type,r.id));
     return `<div class="sug-item" data-act="_sugOpen" data-args="${A(r.media_type,r.id)}">
       <div class="sug-p"><img class="sug-img" src="${_tsImg(r.poster_path,'w185')||blank()}" alt="" loading="lazy" data-fb>${own}</div>
       <div class="sug-title">${esc(t)}</div><div class="sug-meta">${y?`${esc(y)} · `:''}${(r.media_type==='tv'?CAT.series:CAT.movie).toLowerCase()}</div>${o&&o!==t?`<div class="sug-orig">${esc(o)}</div>`:''}
       ${own?'':`<button class="sug-add" data-act="sugAdd" data-args="${A('$ev',r.media_type,r.id)}">${ic('plus')}Додати</button>`}</div>`;
-  }).join('')+people.map(p=>`<div class="sug-item" data-act="_sugPerson" data-args="${A(p.id,p.name,p.profile_path||'')}">
-      <div class="sug-p round"><img class="sug-img" src="${_tsImg(p.profile_path,'w185')}" alt="" loading="lazy" data-fb></div>
-      <div class="sug-title">${esc(p.name)}</div><div class="sug-meta">${p.known_for_department==='Directing'?'режисер':'актор'} · фільмографія</div></div>`).join('');
+  }).join('');
   _sugSync('searchInput','suggestions');
   return true;
 }
 function _sugOpen(mt,id){_seRemember();searchSuspend();openTitleTmdb(mt,id);}
-function _sugPerson(id,name,profile){_seRemember();searchClose();_tsPerson(id,name,profile);}
+function _sugPerson(id,name,profile){_seRemember();_srchToPerson(id,name,profile);}
 async function _omdbSearch(q){
   try{
     let r=_sCache[q];
@@ -95,8 +113,8 @@ async function _omdbSearch(q){
       if(r&&r.Search)_sCache[q]=r;
     }
     if(document.getElementById('searchInput').value.trim()!==q)return; /* typed on meanwhile (as in the TMDB path) */
-    if(!r||!r.Search){hideSug();return;}
-    const res=r.Search.filter(m=>m.Type!=='episode');if(!res.length){hideSug();return;}
+    if(!r||!r.Search){_sugNone(q);return;}
+    const res=r.Search.filter(m=>m.Type!=='episode');if(!res.length){_sugNone(q);return;}
     const box=document.getElementById('suggestions');box.classList.remove('hidden');
     document.querySelector('#srch .search-wrap').classList.remove('loading');
     box.innerHTML=res.slice(0,10).map(m=>{
@@ -159,7 +177,7 @@ async function pickMovie(imdbID){
   modal(`
     <img class="modal-poster" src="${imgSrc(m.Poster)}" data-fb="hide" alt="">
     <h2 class="modal-title">${esc(m.Title)}</h2>
-    <div class="modal-sub">${esc(m.Year)} · ${tl(m.Type)} · ${m.imdbRating&&m.imdbRating!=='N/A'?'IMDb '+esc(m.imdbRating):'без рейтингу'} · ${esc((m.Genre||'').split(',')[0])}</div>
+    <div class="modal-sub">${esc(m.Year)} · ${tl(m.Type)} · ${imdbL(m.imdbRating)||'без рейтингу'} · ${esc((m.Genre||'').split(',')[0])}</div>
     ${m.Plot&&m.Plot!=='N/A'?`<div class="modal-plot">${esc(m.Plot)}</div>`:''}
     <div class="modal-btns">
       ${inW ?`<div class="modal-already ok">${ic('check')}Вже у переглянутому</div>`:`<button class="m-btn j" data-act="_pickDo" data-args="${A('w',imdbID)}">${ic('check')}Переглянуто</button>`}
@@ -194,7 +212,7 @@ async function addW(id){
   watching=watching.filter(x=>x.imdbID!==id);
   planned =planned.filter(x=>x.imdbID!==id);
   watched.unshift({id:Date.now(),imdbID:id,title:m.Title,poster:ps(m.Poster),year:m.Year,type:m.Type,genre:m.Genre||'',country:m.Country||'',imdbUrl:`https://www.imdb.com/title/${id}/`,imdbRating:(m.imdbRating&&m.imdbRating!=='N/A')?m.imdbRating:null,...mv,customCategory:gc(m),rating:0,comment:'',addedAt:Date.now()});
-  saveAll();rWatched();rWatching();rPlanned();rDash();toast(`«${m.Title}» додано до переглянутих`,'ok');
+  saveAll();rWatched();rWatching();rPlanned();rDash();toast(`«${m.Title}» додано до переглянутих`,'ok',3400,id);
   return true;
 }
 /* Дивлюсь item that is a second viewing of something in Переглянуте: flagged by «Дивитись знову», or (older data)
@@ -212,7 +230,7 @@ async function addWn(id){
   /* watched stays: rewatch is supported (a title may sit in watched + watching); only planned is "consumed" */
   const mv=_mvFields(id,m,[planned,watched]);
   planned =planned.filter(x=>x.imdbID!==id);
-  watching.unshift({id:Date.now(),imdbID:id,title:m.Title,poster:ps(m.Poster),year:m.Year,type:m.Type,genre:m.Genre||'',country:m.Country||'',imdbUrl:`https://www.imdb.com/title/${id}/`,imdbRating:(m.imdbRating&&m.imdbRating!=='N/A')?m.imdbRating:null,...mv,customCategory:gc(m),season:1,episode:1,totalSeasons:parseInt(m.totalSeasons)||1,addedAt:Date.now()});
+  watching.unshift({id:Date.now(),imdbID:id,title:m.Title,poster:ps(m.Poster),year:m.Year,type:m.Type,genre:m.Genre||'',country:m.Country||'',imdbUrl:`https://www.imdb.com/title/${id}/`,imdbRating:(m.imdbRating&&m.imdbRating!=='N/A')?m.imdbRating:null,...mv,customCategory:gc(m),season:1,episode:0,totalSeasons:parseInt(m.totalSeasons)||1,addedAt:Date.now()}); /* 1.51: episode = the last watched one, 0 = not started */
   saveAll();rWatched();rWatching();rPlanned();rDash();toast(`«${m.Title}» додано до "Дивлюсь"`,'ok');
   return true;
 }
@@ -226,6 +244,13 @@ async function addPl(id){
   saveAll();rPlanned();rDash();toast(`«${m.Title}» заплановано`,'ok');
   return true;
 }
+
+/* 1.51: a list search with no hit: not a dead end, the next step is to look for the title in the base and record it */
+function _lsEmpty(t){
+  const q=F[t].q;
+  return `<div class="empty"><span class="empty-icon">${ic('search')}</span><div class="empty-txt">${q?`У списку немає «${esc(q)}»`:'Нічого не знайдено за фільтром'}</div>${q?`<button class="w-btn gold empty-act" data-act="lsToBase" data-args="${A(q)}">${ic('search')}Шукати «${esc(q)}» у базі</button>`:''}</div>`;
+}
+function lsToBase(q){searchOpen();seRun(q);}
 
 /* ── PROGRESSIVE GRID ──
    826 watched cards rendered at once meant ~17k DOM nodes on every re-render
@@ -261,9 +286,10 @@ function viewOf(t){return _okView(_views[t])?_views[t]:viewDefOf(t);}
 function setView(t,v){_views[t]=v;buildBar(t);rerender(t);}
 function setViewDef(t,v){_viewDef[t]=v;_lsSet('ct_views_def',JSON.stringify(_viewDef));delete _views[t];buildBar(t);rerender(t);const el=document.getElementById('stView');if(el)el.outerHTML=_stViewHtml();} /* redraw only this block: reopening the whole settings modal made it flicker and jump */
 function _stViewHtml(){
-  const row=(t,n)=>`<div class="st-key-line"><span class="st-key-n">${n}</span><div class="seg" role="group" aria-label="${n}: вигляд за замовчуванням">${VIEWS.map(([k,l])=>`<button class="seg-b${viewDefOf(t)===k?' on':''}" aria-pressed="${viewDefOf(t)===k}" data-act="setViewDef" data-args="${A(`${t}`,`${k}`)}">${l}</button>`).join('')}</div></div>`;
-  return `<div class="st-row" id="stView"><div class="st-row-head"><span class="st-lbl">Вигляд за замовчуванням</span></div>${row('watched','Переглянуте')}${row('planned','Планую')}<p class="st-hint">Перемикач над списком змінює вигляд лише до наступного відкриття сайту</p></div>`;
+  const row=(t,n,icn)=>`<div class="stz-r stz-static">${ic(icn)}<span class="stz-t"><b>${n}</b><small>відкривається як</small></span><span class="stz-v"><span class="seg" role="group" aria-label="${n}: вигляд за замовчуванням">${VIEWS.map(([k,l])=>`<button class="seg-b${viewDefOf(t)===k?' on':''}" aria-pressed="${viewDefOf(t)===k}" data-act="setViewDef" data-args="${A(`${t}`,`${k}`)}">${l}</button>`).join('')}</span></span></div>`;
+  return `<div class="stz-l" id="stView">${row('watched','Переглянуте','film')}${row('planned','Планую','bookmark')}<p class="stz-note">Вибране тут зберігається й переходить разом із бекапом. Перемикач над самим списком змінює вигляд лише до наступного відкриття сайту.</p></div>`;
 }
+
 function viewSeg(t){
   if(!(t in VIEW_LISTS))return '';
   const cur=viewOf(t);
@@ -276,12 +302,12 @@ function myRow(list,i){
   return `<div class="lrow">
     <a class="lrow-art" href="${imdbHref(i)}" target="_blank" rel="noopener" tabindex="-1" data-act="_tsClick" data-args="${A('$ev',`${i.imdbID}`)}"><img src="${posterSrc(i.poster)}" data-pf="${esc(i.imdbID)}" alt="" loading="lazy"></a>
     <div class="lrow-t"><a href="${imdbHref(i)}" target="_blank" rel="noopener" data-act="_tsClick" data-args="${A('$ev',`${i.imdbID}`)}">${esc(tn(i))}</a>
-      ${i.comment?`<div class="pc-note" title="${esc(i.comment)}">${esc(i.comment)}</div>`:''}${_tagsHtml(i)}</div>
+      ${i.comment?`<button class="pc-note" data-act="myNote" data-args="${A(i.id)}" title="${esc(i.comment)}">${esc(i.comment)}</button>`:''}${_tagsHtml(i)}</div>
     <span class="lrow-y num">${esc(i.year||'')}</span>
     <span class="lrow-c">${catLabel(c)}</span>
-    <span class="lrow-g">${esc((i.genre||'').split(',').slice(0,2).map(s=>s.trim()).join(', '))}</span>
-    <span class="lrow-i num">${i.imdbRating?esc(i.imdbRating):'—'}</span>
-    <span class="lrow-my num">${i.rating?`${ic('star')}${esc(i.rating)}`:''}</span>
+    <span class="lrow-g">${esc((i.genre||'').split(',').slice(0,2).map(s=>s.trim()).filter(g=>g&&g!=='N/A').map(_gName).join(', '))}</span>
+    <span class="lrow-i">${rNum(i.imdbRating)||'—'}</span>
+    <span class="lrow-my num">${i.rating?`<button class="lrow-myb" data-act="myNote" data-args="${A(i.id)}" aria-label="Моя оцінка ${esc(i.rating)} з 10">${ic('star')}${esc(i.rating)}</button>`:''}</span>
     <button class="lrow-more" data-act="cardMenu" data-args="${A('$ev',`${list}`,(i.id))}" aria-label="Дії: ${esc(tn(i))}">${ic('dots')}</button>
   </div>`;
 }
@@ -290,19 +316,31 @@ const VSHELF_N=20;
 const VSHELF_L={movie:'Фільми',series:'Серіали',anime:'Аніме',cartoon:'Мульти',other:'Інше'};
 function _shelvesHtml(t,list,cardFn){
   if(F[t].cats.length){ /* one category chosen: its shelves are the genres (a title sits on every shelf of its genres) */
-    const by={};list.forEach(i=>(i.genre||'').split(',').map(g=>g.trim()).filter(g=>g&&g!=='N/A').forEach(g=>(by[g]??=[]).push(i)));
-    const uk=g=>(typeof SX_GENRE!=='undefined'&&SX_GENRE[g])||g;
+    const by=Object.create(null);list.forEach(i=>(i.genre||'').split(',').map(g=>g.trim()).filter(g=>g&&g!=='N/A').forEach(g=>(by[g]??=[]).push(i)));
+    const uk=g=>typeof sxGenre==='function'?sxGenre(g):g;
     const gs=Object.keys(by).sort((a,b)=>by[b].length-by[a].length);
     if(gs.length>1)return gs.map(g=>`<section class="shelf">
     <div class="shelf-h"><h2>${esc(uk(g))}</h2><span class="num">${by[g].length}</span>
-      ${by[g].length>VSHELF_N?`<button class="shelf-all" data-act="chip" data-args="${A(`${t}`,'genres',`${uriSafe(g)}`)}">Усі ${by[g].length}</button>`:''}</div>
+      ${by[g].length>VSHELF_N?`<button class="shelf-all" data-act="chip" data-args="${A(`${t}`,'genres',`${uriSafe(g)}`)}" aria-label="Усі ${by[g].length}">Усі <span aria-hidden="true">›</span></button>`:''}</div>
     <div class="shelf-row">${by[g].slice(0,VSHELF_N).map(cardFn).join('')}</div></section>`).join('');
   }
   const by={};list.forEach(i=>{const c=Object.hasOwn(VSHELF_L,i.customCategory||i.type)?(i.customCategory||i.type):'other';(by[c]??=[]).push(i);});
   return Object.keys(VSHELF_L).filter(c=>by[c]).map(c=>`<section class="shelf">
     <div class="shelf-h"><h2>${VSHELF_L[c]}</h2><span class="num">${by[c].length}</span>
-      ${by[c].length>VSHELF_N?`<button class="shelf-all" data-act="setCat" data-args="${A(`${t}`,`${c}`)}">Усі ${by[c].length}</button>`:''}</div>
+      ${by[c].length>VSHELF_N?`<button class="shelf-all" data-act="shelfAll" data-args="${A(`${t}`,`${c}`)}" aria-label="Усі ${by[c].length}">Усі <span aria-hidden="true">›</span></button>`:''}</div>
     <div class="shelf-row">${by[c].slice(0,VSHELF_N).map(cardFn).join('')}</div></section>`).join('');
+}
+/* 1.51: «Усі ›» on a shelf = the whole category as a grid for this visit; Back (or the chip's ✕) returns to the shelves */
+function shelfAll(t,c){
+  const view=_views[t];
+  _views[t]='grid';setCat(t,c);
+  _shelfBack={t,view};_lyOpen('shelf',()=>_shelfRestore(t));
+}
+let _shelfBack=null;
+function _shelfRestore(t){
+  const b=_shelfBack;_shelfBack=null;if(!b||b.t!==t)return;
+  if(b.view===undefined)delete _views[t];else _views[t]=b.view;
+  F[t].cats=[];buildBar(t);buildTags(t);rerender(t);
 }
 function _gridSentinel(t,n){
   const st=_gridState[t];if(n>=st.list.length)return;
@@ -322,21 +360,37 @@ function ic(n){return `<svg class="i" aria-hidden="true"><use href="#i-${n}"/></
 function openMenu(ev,items){
   ev.preventDefault();ev.stopPropagation();
   closeMenu();
-  const btn=ev.currentTarget;
+  const btn=ev.currentTarget;_menuBtn=btn;btn.setAttribute('aria-haspopup','menu');btn.setAttribute('aria-expanded','true');
   const m=document.createElement('div');m.className='ct-menu';m.setAttribute('role','menu');
   /* item = {icon,label,fn,args} (fn is a global function name, args go through data-args) or {icon,label,href} */
   m.innerHTML=items.filter(Boolean).map(x=>x==='-'?'<hr>':x.href
     ?`<a role="menuitem" href="${esc(safeUrl(x.href)||'#')}" target="_blank" rel="noopener" data-act="closeMenu">${ic(x.icon)}${x.label}</a>`
     :`<button role="menuitem" class="${x.danger?'danger':''}" data-act="_menuRun" data-args="${A(x.fn,...(x.args||[]))}">${ic(x.icon)}${x.label}</button>`).join('');
   document.body.appendChild(m);
+  if(_cwMode)_cwSync(); /* Android: system Back closes the menu (ui.js _cwBack) */
   const r=btn.getBoundingClientRect();
   const below=r.bottom+6+m.offsetHeight<=innerHeight-8;
   m.style.top=Math.max(8,below?r.bottom+6:r.top-m.offsetHeight-6)+'px';
   m.style.left=Math.max(8,Math.min(innerWidth-m.offsetWidth-8,r.right-m.offsetWidth))+'px';
   m.querySelector('button,a')?.focus({preventScroll:true});
 }
-function closeMenu(){document.querySelector('.ct-menu')?.remove();}
-function _menuRun(fn,...args){closeMenu();if(typeof window[fn]==='function')window[fn](...args);}
+let _menuBtn=null; /* the button that opened the menu: aria-expanded lives on it, focus returns to it (restore=true: Esc, a chosen item) */
+function closeMenu(restore){
+  document.querySelector('.ct-menu')?.remove();
+  const b=_menuBtn;_menuBtn=null;
+  if(_cwMode)_cwSync();
+  if(b){b.setAttribute('aria-expanded','false');if(restore===true&&b.isConnected)b.focus({preventScroll:true});}
+}
+/* the menu role comes with the keyboard model: ↑ ↓ Home End move between items, Esc closes, Tab leaves (and closes) */
+document.addEventListener('keydown',e=>{
+  const m=e.target.closest?.('.ct-menu');if(!m)return;
+  const items=[...m.querySelectorAll('[role=menuitem]')],i=items.indexOf(document.activeElement);
+  const to=k=>{e.preventDefault();items[(k+items.length)%items.length]?.focus({preventScroll:true});};
+  if(e.key==='ArrowDown')to(i+1);else if(e.key==='ArrowUp')to(i<0?items.length-1:i-1);
+  else if(e.key==='Home')to(0);else if(e.key==='End')to(items.length-1);
+  else if(e.key==='Tab')closeMenu(true);
+});
+function _menuRun(fn,...args){closeMenu(true);if(typeof window[fn]==='function')window[fn](...args);}
 function _menuDel(list,id){del(list,id,{watched:rWatched,watching:rWatching,planned:rPlanned}[list]);}
 document.addEventListener('click',e=>{if(!e.target.closest('.ct-menu'))closeMenu();});
 /* ── DELEGATED HANDLERS ──
@@ -345,7 +399,7 @@ document.addEventListener('click',e=>{if(!e.target.closest('.ct-menu'))closeMenu
    same attribute run too, like inline handlers bubbling, until one stops propagation. */
 function A(...a){return esc(JSON.stringify(a));}
 /* Enter in a field marked data-enter="fnName" (+ data-args) */
-document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.closest?.('[data-enter]'))_dispatch(e,'data-enter');});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing&&e.target.closest?.('[data-enter]'))_dispatch(e,'data-enter');}); /* not while an IME composition is being confirmed */
 function _dispatch(ev,attr){
   let el=ev.target.closest?.('['+attr+']');
   while(el){
@@ -375,18 +429,31 @@ function _omdbErr(e){
   if(e&&/^HTTP|Failed to fetch|NetworkError/i.test(e.message||''))return 'Немає зв\'язку з OMDb';
   return 'OMDb: '+((e&&e.message)||'помилка');
 }
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMenu();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.querySelector('.ct-menu')){e.stopImmediatePropagation();closeMenu(true);}}); /* only the menu closes: a card under it stays */
 window.addEventListener('scroll',e=>{if(!e.target.closest?.('.ct-menu'))closeMenu();},{passive:true,capture:true});
 /* title sheet: the sticky top bar stays see-through over the hero and gets a solid background once content scrolls under it */
 window.addEventListener('scroll',e=>{const t=e.target;if(t.classList?.contains('ts'))t.classList.toggle('scrolled',t.scrollTop>8);},{passive:true,capture:true});
+/* 1.42: the category (film / series / anime / cartoon / other) — guessed from IMDb type, genre and country, so sometimes wrong.
+   Set from the ⋯ menu; applies to every copy of the title (a rewatch is in two lists). */
+function catEdit(id){
+  const it=findItem(id);if(!it)return;const cur=it.customCategory||it.type;
+  modal(`<h2 class="modal-title">Категорія</h2><div class="modal-sub">${esc(tn(it))}${it.year?' · '+esc(it.year):''}</div>
+    <div class="cat-opts" role="group" aria-label="Категорія">${Object.entries(CAT).map(([v,l])=>`<button class="btn cat-o${v===cur?' on':''}" aria-pressed="${v===cur}" data-act="catSet" data-args="${A(id,v)}">${v===cur?ic('check'):''}${l}</button>`).join('')}</div>`);
+}
+function catSet(id,v){
+  const it=findItem(id);if(!it||!Object.hasOwn(CAT,v))return;
+  [watched,watching,planned].forEach(l=>l.filter(i=>i.imdbID===it.imdbID).forEach(i=>{i.customCategory=v;}));
+  saveAll();rWatched();rWatching();rPlanned();updateStats();closeModal();toast('Категорія: '+CAT[v].toLowerCase(),'ok',1600);
+}
 function cardMenu(ev,list,id,from){
   const it=findItem(id);if(!it)return;
   const ser=it.type==='series';
   const common=[it.streamUrl&&safeUrl(it.streamUrl)&&{icon:'play',label:'Дивитись',href:it.streamUrl},
     {icon:'link',label:it.streamUrl?'Змінити посилання':'Додати посилання',fn:'editUrl',args:[id]},
-    {icon:'tag',label:(it.tags||[]).length?'Теги ('+it.tags.length+')':'Теги',fn:'tagEdit',args:[id]},'-'];
+    {icon:'tag',label:(it.tags||[]).length?'Теги ('+it.tags.length+')':'Теги',fn:'tagEdit',args:[id]},
+    {icon:'film',label:'Категорія: '+catLabel(it.customCategory||it.type).toLowerCase(),fn:'catEdit',args:[id]},'-'];
   const items={
-    watched:[{icon:'star',label:'Оцінка і коментар',fn:'editW',args:[id]},!watching.some(x=>x.imdbID===it.imdbID)&&{icon:'play',label:'Дивитись знову',fn:'wToWn',args:[id]},...common,{icon:'trash',label:'Видалити',fn:'_menuDel',args:['watched',id],danger:1}],
+    watched:[{icon:'star',label:'Оцінка і коментар',fn:'myNote',args:[id,true]},!watching.some(x=>x.imdbID===it.imdbID)&&{icon:'play',label:'Дивитись знову',fn:'wToWn',args:[id]},...common,{icon:'trash',label:'Видалити',fn:'_menuDel',args:['watched',id],danger:1}],
     planned:[{icon:'check',label:'Переглянуто',fn:'plToW',args:[id]},{icon:'play',label:'Почати дивитись',fn:'plToWn',args:[id]},...common,{icon:'trash',label:'Видалити',fn:'_menuDel',args:['planned',id],danger:1}],
     watching:[ser&&{icon:'refresh',label:'Оновити дані ефіру',fn:'relive',args:[it.imdbID]},ser&&it.season<(it.totalSeasons||1)&&{icon:'plus',label:'Наступний сезон',fn:'adj',args:[id,'s',1]},ser&&it.season>1&&{icon:'minus',label:'Попередній сезон',fn:'adj',args:[id,'s',-1]},
       {icon:'check',label:'Переглянуто повністю',fn:'mvToW',args:[id]},...common,{icon:'trash',label:'Видалити',fn:'_menuDel',args:['watching',id],danger:1}],
@@ -397,20 +464,29 @@ function cardMenu(ev,list,id,from){
 }
 
 /* ── POSTER CARD — the one card for watched, planned, recs, people ── */
-function _myMeta(i){const c=i.customCategory||i.type;return `<div class="pc-m">${i.year?`<span class="num">${esc(i.year)}</span>`:''}<span>${catLabel(c)}</span>${i.imdbRating?`<span class="imdb">IMDb <span class="num">${esc(i.imdbRating)}</span></span>`:''}</div>`;}
+function _myMeta(i){const c=i.customCategory||i.type;return `<div class="pc-m">${i.year?`<span class="num">${esc(i.year)}</span>`:''}<span>${catLabel(c)}</span>${rateL(i)?`<span class="imdb${rNum(i.imdbRating)?'':' tm'}">${rateL(i)}</span>`:''}</div>`;}
 /* tags: a quiet line of #chips (tap → show this tag in the list); edited in the tag sheet (tagEdit) */
 function _tagsHtml(i){return (i.tags||[]).length?`<div class="tg-line">${i.tags.map(t=>`<button class="tg-c" data-act="tagGo" data-args="${A('$ev',`${uriSafe(t)}`)}" title="Показати все з тегом «${esc(t)}»">#${esc(t)}</button>`).join('')}</div>`:'';}
 /* on a poster: the first tag (+N) as a small label in the corner */
-function _tagPill(i){const t=i.tags||[];return t.length?`<button class="tg-pill" data-act="tagGo" data-args="${A('$ev',`${uriSafe(t[0])}`)}" title="${esc(t.map(x=>'#'+x).join(' '))}">#${esc(t[0])}${t.length>1?` <b>+${t.length-1}</b>`:''}</button>`:'';}
+/* 1.45.1: one tag → a tap filters by it; several → a tap lists them all and you pick (it used to filter by the first, the one you could see) */
+function _tagPill(i,compact){const t=i.tags||[];if(!t.length)return '';
+  const one=t.length===1,lbl=t.map(x=>'#'+x).join(' ');
+  /* 1.46: next to your rating there is room only for a tag icon and the count; the tap then lists the tags */
+  if(compact)return `<button class="tg-pill tg-cmp" data-act="tagPick" data-args="${A('$ev',i.id)}" aria-haspopup="menu" title="${esc(lbl)}" aria-label="${esc('Теги: '+lbl)}">${ic('tag')}${one?'':`<b>${t.length}</b>`}</button>`;
+  return `<button class="tg-pill" ${one?`data-act="tagGo" data-args="${A('$ev',`${uriSafe(t[0])}`)}"`:`data-act="tagPick" data-args="${A('$ev',i.id)}" aria-haspopup="menu"`} title="${esc(lbl)}" aria-label="${esc(one?'Показати все з тегом '+lbl:'Теги: '+lbl)}"><span>#${esc(t[0])}</span>${one?'':`<b>+${t.length-1}</b>`}</button>`;}
+function tagPick(ev,id){
+  const it=findItem(id);if(!it||!(it.tags||[]).length)return;
+  openMenu(ev,it.tags.map(t=>({icon:'tag',label:esc(t),fn:'tagGo',args:[null,uriSafe(t)]})));
+}
 function myCard(list,i){
   return `<article class="pc">
     <div class="pc-art"><a href="${imdbHref(i)}" target="_blank" rel="noopener" tabindex="-1" data-act="_tsClick" data-args="${A('$ev',`${i.imdbID}`)}"><img src="${posterSrc(i.poster)}" data-pf="${esc(i.imdbID)}" alt="" loading="lazy"></a>
-      ${i.rating?`<span class="pc-my">${ic('star')}${esc(i.rating)}</span>`:''}
+      ${i.rating?`<button class="pc-my" data-act="myNote" data-args="${A(i.id)}" aria-label="Моя оцінка ${esc(i.rating)} з 10${i.comment?', є коментар':''}">${ic('star')}${esc(i.rating)}</button>`:''}
       ${i.streamUrl&&safeUrl(i.streamUrl)?`<a class="pc-fab play" href="${esc(safeUrl(i.streamUrl))}" target="_blank" rel="noopener" aria-label="Дивитись ${esc(tn(i))}">${ic('play')}</a>`:''}
-      <button class="pc-fab more" data-act="cardMenu" data-args="${A('$ev',`${list}`,(i.id))}" aria-label="Дії: ${esc(tn(i))}">${ic('dots')}</button>${_tagPill(i)}</div>
+      <button class="pc-fab more" data-act="cardMenu" data-args="${A('$ev',`${list}`,(i.id))}" aria-label="Дії: ${esc(tn(i))}">${ic('dots')}</button>${_tagPill(i,!!i.rating)}</div>
     <div class="pc-t"><a href="${imdbHref(i)}" target="_blank" rel="noopener" data-act="_tsClick" data-args="${A('$ev',`${i.imdbID}`)}">${esc(tn(i))}</a></div>
     ${_myMeta(i)}
-    ${i.comment?`<div class="pc-note" title="${esc(i.comment)}">${esc(i.comment)}</div>`:''}
+    ${i.comment?`<button class="pc-note" data-act="myNote" data-args="${A(i.id)}" title="${esc(i.comment)}">${esc(i.comment)}</button>`:''}
   </article>`;
 }
 
@@ -420,50 +496,120 @@ function rWatched(){
   const list=applyF(watched,'watched');
   const cnt=document.getElementById('wCount');
   if(cnt)cnt.textContent=list.length!==watched.length?`${list.length} з ${watched.length} записів`:'';
-  if(!list.length){g.className='grid';g.innerHTML=watched.length?`<div class="empty"><span class="empty-icon">${ic('search')}</span><div class="empty-txt">Нічого не знайдено за фільтром</div></div>`:`<div class="empty"><span class="empty-icon">${ic('film')}</span><div class="empty-txt">Тут з'являтимуться переглянуті фільми та серіали</div><button class="w-btn gold empty-act" data-act="openIO" data-args="[&quot;stCsv&quot;]">${ic('upload')}Імпортувати з IMDb / Letterboxd</button></div>`;return;}
+  if(!list.length){g.className='grid';if(!watched.length){g.className='';g.innerHTML=_onboard();return;}g.innerHTML=watched.length?_lsEmpty('watched'):`<div class="empty"><span class="empty-icon">${ic('film')}</span><div class="empty-txt">Тут з'являтимуться переглянуті фільми та серіали</div><button class="w-btn gold empty-act" data-act="openIO" data-args="[&quot;stCsv&quot;]">${ic('upload')}Імпортувати з IMDb / Letterboxd</button></div>`;return;}
   _gridRender('watched',g,list,i=>myCard('watched',i));
+}
+
+/* 1.44: first visit — two steps on the empty «Переглянуте»: the TMDB key right here, then the first films */
+function _onboard(){
+  const k=!!TMDB_KEY;
+  return `<section class="ob" aria-labelledby="obH"><h3 id="obH">${k?'Залишився один крок':'Почнімо з двох кроків'}</h3>
+    <p class="ob-d">${k?'Ключ є — додай перші фільми, і тут з’явиться твоя колекція.':'Кінопис бере назви, постери й описи з TMDB — безкоштовної бази фільмів. Для цього потрібен твій особистий ключ.'}</p>
+    <div class="ob-bk"><div class="ob-bk-h">${ic('upload')}<span><b>Вже маєш бекап?</b><small>Разом зі списками повернуться й ключі</small></span></div>
+      <div class="ob-row ob-bk-a"><button class="btn" data-act="gdSignIn">З Google Drive</button><label class="btn" for="obFile">З файлу</label><input type="file" id="obFile" accept=".json" data-change="doImport" data-args="[&quot;$ev&quot;]" hidden></div></div>
+    <div class="ob-s${k?' done':''}"><span class="ob-n">${k?ic('check'):'1'}</span><b>${k?'Ключ TMDB додано':'Отримай ключ TMDB'}</b>
+      ${k?'':`<ol class="ob-how">
+        <li><span>Зареєструйся на themoviedb.org і підтверди пошту — лист прийде за хвилину.</span></li>
+        <li><span>Відкрий <b>Settings → API → Create → Developer</b>. Анкета англійською: назва застосунку будь-яка (напр. «Kinopys»), сайт — <code>mvoskres.github.io</code>, мета — «personal use».</span></li>
+        <li><span>Скопіюй рядок <b>API Key</b> і встав нижче.</span></li></ol>
+      <p class="ob-warn">На тій сторінці два ключі. Потрібен <b>API Key</b> — 32 символи (цифри й a–f). Довгий «API Read Access Token», що починається з <code>eyJ</code>, не підійде.</p>
+      <div class="ob-row"><a class="btn" href="https://www.themoviedb.org/settings/api" target="_blank" rel="noopener">Відкрити themoviedb.org/settings/api ↗</a></div>
+      <div class="ob-row"><input class="api-inp" id="obKey" type="text" placeholder="Встав ключ сюди" aria-label="Ключ TMDB" autocomplete="off" spellcheck="false" data-enter="obSaveKey"><button class="btn primary" data-act="obSaveKey">Зберегти</button></div>
+      <p class="ob-msg" id="obMsg" role="status"></p>`}</div>
+    <div class="ob-s${k?'':' off'}"><span class="ob-n">2</span><b>Додай перші фільми</b><small>Обери з популярного зараз і найкращого за всі часи, знайди через пошук або перенеси все з IMDb чи Letterboxd.</small>
+      <div class="ob-row"><button class="btn${k?' primary':''}" data-act="goTab" data-args="[&quot;recs&quot;]" ${k?'':'disabled'}>${ic('spark')}Обрати з популярного</button><button class="btn" data-act="searchOpen" ${k?'':'disabled'}>${ic('search')}Пошук</button><button class="btn" data-act="openIO" data-args="[&quot;stCsv&quot;]" ${k?'':'disabled'}>${ic('upload')}Імпорт з IMDb / Letterboxd</button></div></div>
+    <div class="ob-lists"><h4>Три списки — для чого кожен</h4>
+      <div class="ob-l">${ic('check')}<b>Переглянуте</b><small>Що вже бачив. Тут ставиш оцінку й пишеш враження — з цього будуються статистика, рекомендації й ігри.</small></div>
+      <div class="ob-l">${ic('play')}<b>Дивлюсь</b><small>Серіали, які дивишся зараз: на якій ти серії, коли вийде наступна.</small></div>
+      <div class="ob-l">${ic('bookmark')}<b>Планую</b><small>Черга: що хочеш подивитись колись.</small></div></div>
+  </section>`;
+}
+/* 1.49: the TMDB key — checked the same way from the first-visit card and from Settings */
+async function _tmdbKeyTry(v){
+  if(!/^[0-9a-f]{32}$/i.test(v))return /^eyJ/.test(v)?'token':'fmt';
+  const old=TMDB_KEY;TMDB_KEY=v;_tmdbBlocked=false;_tmdbNetFails=0;Object.keys(_tmdbCache).forEach(k=>delete _tmdbCache[k]);
+  let ok=false,st=0;try{ok=!!(await tmdbFetch('/configuration',8000,true))?.images;}catch(e){st=e?.status||0;}
+  if(!ok){TMDB_KEY=old;return st===401?'bad':'net';}
+  _lsSet('ct_tmdbkey',v);
+  _dockWallDone=false;_dockWall();rWatched();if(typeof refreshRecs==='function')refreshRecs();
+  return 'ok';
+}
+const _TMDB_KEY_MSG={fmt:'Схоже, це не той ключ: потрібен «API Key» — 32 символи з цифр і літер a–f',
+  token:'Це «Read Access Token» (довгий, починається з eyJ). Потрібен коротший «API Key» — 32 символи, він на тій самій сторінці',
+  bad:'TMDB не прийняв цей ключ: перевір, чи скопійовано повністю',net:'TMDB зараз не відповідає. Спробуй ще раз трохи згодом (або з VPN)'};
+async function obSaveKey(){
+  const inp=document.getElementById('obKey'),m=document.getElementById('obMsg'),v=(inp?.value||'').trim();
+  const say=(t,bad)=>{if(m){m.textContent=t;m.classList.toggle('bad',!!bad);}};
+  say('Перевіряю ключ…');
+  const r=await _tmdbKeyTry(v);
+  if(r!=='ok'){say(_TMDB_KEY_MSG[r],true);inp?.focus();return;}
+  toast('Ключ TMDB збережено','ok',2000);
+  document.querySelector('.ob [data-act="goTab"]')?.focus();
 }
 
 /* ── RENDER PLANNED ── */
 function rPlanned(){
   const g=document.getElementById('plGrid');
   const list=applyF(planned,'planned');
-  if(!list.length){g.className='grid';g.innerHTML=planned.length?`<div class="empty"><span class="empty-icon">${ic('search')}</span><div class="empty-txt">Нічого не знайдено</div></div>`:`<div class="empty"><span class="empty-icon">${ic('bookmark')}</span><div class="empty-txt">Черга для перегляду порожня</div></div>`;return;}
+  if(!list.length){g.className='grid';g.innerHTML=planned.length?_lsEmpty('planned'):(g.className='',`<div class="es"><span class="empty-icon">${ic('bookmark')}</span><b>Черга порожня</b><p>Бачиш цікавий фільм у пошуку, рекомендаціях чи франшизах — тисни «Запланувати», і він чекатиме тут.</p><button class="btn primary" data-act="searchOpen">${ic('search')}Знайти фільм</button></div>`);return;}
   _gridRender('planned',g,list,i=>myCard('planned',i));
 }
 
-/* ── EDIT WATCHED ── */
-function editW(id){
+/* tap on your rating (or the comment line) on a card: a bottom sheet like the «Дивлюсь» one (swipe down / Back closes it)
+   with your mark and the whole comment; «Змінити» turns it into the editor */
+const _mnFocus={el:null};let _mnId=null,_mnToast=false; /* _mnToast: opened from the «Оцінити» toast, so «Зберегти» closes the sheet */
+/* edit=true: the same sheet turns into the editor (stars + comment), no second window */
+function myNote(id,edit,fromToast){
   const it=watched.find(i=>i.id===id);if(!it)return;
-  modal(`
-    <img class="modal-poster" src="${imgSrc(it.poster)}" loading="lazy" data-fb alt="">
-    <h2 class="modal-title">${esc(tn(it))}</h2>
-    <div class="modal-sub" style="margin-bottom:1.1rem">${esc(it.year||'')} · ${tl(it.type)}</div>
-    <div class="form-g"><label class="form-lbl" for="eC">Категорія</label>
-      <select class="form-sel" id="eC">
-        <option value="movie"   ${(it.customCategory||it.type)==='movie'   ?'selected':''}>Фільм</option>
-        <option value="series"  ${(it.customCategory||it.type)==='series'  ?'selected':''}>Серіал</option>
-        <option value="anime"   ${(it.customCategory||it.type)==='anime'   ?'selected':''}>Аніме</option>
-        <option value="cartoon" ${(it.customCategory||it.type)==='cartoon' ?'selected':''}>Мульт</option>
-        <option value="other"   ${(it.customCategory||it.type)==='other'   ?'selected':''}>Інше</option>
-      </select></div>
-    <div class="form-g"><label class="form-lbl" id="starsLbl">Моя оцінка</label>
-      <div class="stars" id="starsBox" role="radiogroup" aria-labelledby="starsLbl">${buildStars(it.rating||0)}</div>
-      <input type="hidden" id="eR" value="${+it.rating||0}"></div>
-    <div class="form-g"><label class="form-lbl" for="eCm">Коментар</label>
-      <textarea class="form-ta" id="eCm" rows="3" placeholder="Враження…">${esc(it.comment||'')}</textarea></div>
-    <div class="modal-btns">
-      <button class="m-btn g" data-act="saveEditW" data-args="${A((id))}">Зберегти</button>
-      <button class="m-btn can" data-act="closeModal">Скасувати</button>
-    </div>`);
+  _mnId=id;if(fromToast!==undefined)_mnToast=!!fromToast;
+  let R=document.getElementById('mnSheet');
+  if(!R){R=document.createElement('div');R.id='mnSheet';R.className='mn-sh';document.body.appendChild(R);}
+  const opening=!document.body.classList.contains('mn-on');
+  if(opening)R.classList.toggle('over',!document.getElementById('titleSheet')?.classList.contains('hidden')); /* from a title card: on top of it */
+  if(opening)_mnFocus.el=document.activeElement;
+  const body=edit?`<div class="mn-ed">
+      <div class="form-g"><label class="form-lbl" id="starsLbl">Моя оцінка</label>
+        <div class="stars" id="starsBox" role="radiogroup" aria-labelledby="starsLbl">${buildStars(it.rating||0)}</div>
+        <input type="hidden" id="eR" value="${+it.rating||0}"></div>
+      <div class="form-g"><label class="form-lbl" for="eCm">Коментар</label>
+        <textarea class="form-ta" id="eCm" rows="4" placeholder="Враження…">${esc(it.comment||'')}</textarea></div></div>
+    ${_mnTags(it)}<div class="wb-acts"><button class="wb-b mn-save" data-act="mnSave">${ic('check')}Зберегти</button><button class="wb-b" data-act="mnView">Скасувати</button></div>`
+    :`${it.comment?`<p class="mn-c">${esc(it.comment)}</p>`:'<p class="mn-c none">Коментаря ще немає</p>'}
+    ${_mnTags(it)}<div class="wb-acts"><button class="wb-b mn-edit" data-act="mnEdit">${ic('star')}${it.rating||it.comment?'Змінити оцінку й коментар':'Додати оцінку й коментар'}</button></div>`;
+  R.innerHTML=`<div class="wb-dim" data-act="mnClose"></div><div class="wb-pan" role="dialog" aria-modal="true" aria-label="${esc(tn(it))}: моя оцінка" tabindex="-1"><div class="wb-grab"></div>
+    <button class="wb-x" data-act="mnClose" aria-label="Закрити">${ic('x')}</button>
+    <div class="wb-hd mn-hd"><button class="mn-pbtn" data-act="mnCard" aria-label="Відкрити картку: ${esc(tn(it))}"><img class="mn-poster" src="${imgSrc(it.poster)}" alt="" data-fb></button><div>
+      <b class="wb-tt">${esc(tn(it))}</b><div class="wb-mt">${esc(it.year||'')} · ${tl(it.type)}</div>
+      ${it.rating&&!edit?`<div class="mn-r" aria-label="Моя оцінка ${esc(it.rating)} з 10">${ic('star')}<b>${esc(it.rating)}</b><span>з 10</span></div>`:''}</div></div>
+    ${body}</div>`;
+  document.body.classList.add('mn-on');_inertSync();
+  const pan=R.querySelector('.wb-pan');
+  sheetSwipe(pan,{close:()=>mnClose(),handle:'.wb-grab,.mn-hd'});
+  if(opening){_lyOpen('mn',()=>mnClose());_focusIn(pan,_mnFocus);}
+  else (edit?R.querySelector('#starsBox .star[tabindex="0"]'):R.querySelector('.mn-edit'))?.focus();
 }
-function saveEditW(id){
-  const it=watched.find(i=>i.id===id);if(!it)return;
-  it.customCategory=document.getElementById('eC').value;
-  it.rating=parseInt(document.getElementById('eR').value)||0;
-  it.comment=document.getElementById('eCm').value.trim();
-  saveAll();rWatched();closeModal();
+/* 1.41: tags right in the rating sheet; a tap opens the tag sheet on top, the row updates when it closes (_mnTagsSync) */
+function _mnTags(it){
+  const t=it.tags||[];
+  return `<div class="mn-tags" id="mnTags"><span class="form-lbl">Теги</span><div class="mn-tl">${t.map(x=>`<button class="tg-c" data-act="tagEdit" data-args="${A(it.id)}">#${esc(x)}</button>`).join('')}<button class="tg-c mn-tadd" data-act="tagEdit" data-args="${A(it.id)}" aria-label="${t.length?'Змінити теги':'Додати тег'}">${ic('plus')}${t.length?'':'Додати тег'}</button></div></div>`;
 }
+function _mnTagsSync(){const it=watched.find(i=>i.id===_mnId),el=document.getElementById('mnTags');if(it&&el&&document.body.classList.contains('mn-on'))el.outerHTML=_mnTags(it);}
+function mnClose(){
+  if(!document.body.classList.contains('mn-on'))return;
+  _mnToast=false;document.body.classList.remove('mn-on');const R=document.getElementById('mnSheet');if(R)R.innerHTML='';
+  _inertSync();_focusBack(_mnFocus);_lyDone('mn');
+}
+function mnEdit(){myNote(_mnId,true);}
+/* the poster opens the title card; at once, so the card takes over the sheet's history entry */
+function mnCard(){const it=watched.find(i=>i.id===_mnId);if(!it)return;const over=document.getElementById('mnSheet')?.classList.contains('over');mnClose();if(!over)openTitle(it.imdbID);} /* over the card: it is already there */
+function mnView(){myNote(_mnId,false);}
+function mnSave(){
+  const it=watched.find(i=>i.id===_mnId);if(!it)return;
+  it.rating=parseInt(document.getElementById('eR')?.value)||0;
+  it.comment=(document.getElementById('eCm')?.value||'').trim();
+  saveAll();rWatched();toast('Збережено','ok',1600);if(_mnToast)mnClose();else myNote(_mnId,false);
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('mn-on')){mnClose();e.stopImmediatePropagation();}}); /* only the sheet, not the card under it */
 
 /* ── RENDER WATCHING ── */
 function rWatching(skipLive){
@@ -482,7 +628,7 @@ function rWatching(skipLive){
       <div class="tr-body">
         <div class="tr-top"><div class="tr-head">
           <h3 class="tr-t"><a href="${imdbHref(i)}" target="_blank" rel="noopener" data-act="_tsClick" data-args="${A('$ev',`${i.imdbID}`)}">${esc(tn(i))}</a>${_isRewatch(i)?'<span class="dup-badge rw" title="Повторний перегляд: у Переглянутому лишається твоя оцінка">повторно</span>':_dupSet.has(i.imdbID)?'<span class="dup-badge" title="Цей тайтл є ще в іншому списку">дубль</span>':''}</h3>
-          <div class="tr-meta">${catLabel(i.customCategory||i.type)}${i.year?` · <span class="num">${esc(i.year)}</span>`:''}${i.imdbRating?` · IMDb <span class="num">${esc(i.imdbRating)}</span>`:''}</div></div>
+          <div class="tr-meta">${catLabel(i.customCategory||i.type)}${i.year?` · <span class="num">${esc(i.year)}</span>`:''}${rateL(i)?` · ${rateL(i)}`:''}</div></div>
           <button class="icon-btn" data-act="cardMenu" data-args="${A('$ev','watching',(i.id))}" aria-label="Ще дії: ${esc(tn(i))}">${ic('dots')}</button></div>
         ${isSeries?`<div id="lv-${esc(i.imdbID)}">${lh}</div>
           <div class="tr-bar" title="Сезон ${esc(i.season)} з ${esc(i.totalSeasons||1)}"><i style="width:${+_seasonPct(i)||0}%"></i></div>
@@ -494,7 +640,7 @@ function rWatching(skipLive){
               <button class="btn sq" data-act="mvToW" data-args="${A((i.id))}" aria-label="Переглянуто повністю" title="Переглянуто повністю">${ic('check')}</button>
             </div></div>`
         :`<div class="tr-meta">Повнометражний${i.runtime?` · <span class="num">${esc(i.runtime)}</span> хв`:''}</div>
-          <div class="counter"><div class="step">${play}<button class="btn primary" data-act="mvToW" data-args="${A((i.id))}">${ic('check')}Переглянуто</button></div></div>`}
+          <div class="counter"><div class="step">${play}<button class="btn" data-act="mvToW" data-args="${A((i.id))}">${ic('check')}Переглянуто</button></div></div>`}
         ${_tagsHtml(i)}
       </div></article>`;
   }).join('');

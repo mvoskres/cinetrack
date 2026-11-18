@@ -20,7 +20,9 @@ const GAME_TYPES={frame:{name:'Кадр',sub:'Кадр без тексту з т
   quote:{name:'Цитата',sub:'Гасло з картки тайтлу, який ти переглянув. Вгадай, звідки воно',unit:'цитат',load:'Шукаю цитату…',what:'цитату',many:'Цитати'}};
 GAME_TYPES.frame.what='кадр';GAME_TYPES.frame.many='Кадри';
 const GAME_ROUND=10;
-let _game={type:Object.hasOwn(GAME_TYPES,localStorage.getItem('ct_game_type')||'')?localStorage.getItem('ct_game_type'):'frame',mode:'streak',filter:'all',pool:[],q:0,score:0,streak:0,recent:[],log:[],answered:true,current:null,next:null};
+let GAME_MIN=20; /* 1.44: fewer watched titles — the same few come round again and again; the games open from 20 */
+function _gameLocked(){return watched.length<GAME_MIN;}
+let _game={type:Object.hasOwn(GAME_TYPES,localStorage.getItem('ct_game_type')||'')||['puzzle','chrono'].includes(localStorage.getItem('ct_game_type'))?localStorage.getItem('ct_game_type'):'frame',mode:'streak',filter:'all',pool:[],q:0,score:0,streak:0,recent:[],log:[],answered:true,current:null,next:null};
 
 /* Ukrainian titles for the options: one TMDB /find call per title (it returns the localized title), kept for good.
    '' = TMDB has no title for it; the original title is used then */
@@ -65,14 +67,21 @@ const GX_SCREEN={
   actor:{q:'Де грало це обличчя?',d:'Фото з головних ролей у переглянутому. Обери, де саме.'},
   quote:{q:'Звідки ця цитата?',d:'Гасло з афіші переглянутого тайтлу, назву в ньому приховано.'},
 };
+/* 1.51: the record of a game as a line of the phone's list; nothing played yet — no line */
+function _gxRec(k){
+  let t='';
+  if(_gameBest[k]){const b=_gameBest[k];t=[b.streak>0&&`серія ${b.streak}`,b.round>0&&`раунд ${b.round}/${GAME_ROUND}`].filter(Boolean).join(' · ');}
+  else if(k==='chrono'){const m=Math.max(0,...Object.values(typeof _chBest==='object'?_chBest:{}).map(Number).filter(Number.isFinite));if(m>0)t=`серія ${m}`;}
+  else if(k==='puzzle'){const m=Math.min(...Object.values(typeof _pzBest==='object'?_pzBest:{}).map(v=>+v?.m).filter(n=>n>0));if(Number.isFinite(m))t=`найкраще ${m} ${m%10===1&&m%100!==11?'хід':m%10>=2&&m%10<=4&&(m%100<12||m%100>14)?'ходи':'ходів'}`;}
+  return t?`<small class="gx-rec">рекорд: ${t}</small>`:'';
+}
 function loadGameTab(){
   const el=document.getElementById('gameStart');if(!el)return;
   const all=_gameEligible(),cnt={all:all.length,movie:0,series:0,anim:0};all.forEach(i=>cnt[_gameKind(i)]++);
   if(_game.filter!=='all'&&cnt[_game.filter]<4)_game.filter='all';
-  const n=cnt[_game.filter],T=GAME_TYPES[_game.type],S=GX_SCREEN[_game.type],V=_gxVisuals(),b=_gb();
+  const V=_gxVisuals();
   const h=document.querySelector('#tab-game .section-title'),sb=document.querySelector('#tab-game .recs-sub');
-  if(h)h.textContent='Впізнай';if(sb)sb.textContent='';
-  const blocked=!TMDB_KEY||_tmdbBlocked?'Потрібен TMDB API-ключ у налаштуваннях, щоб підтягувати кадри й фото.':n<4?`Для гри потрібно щонайменше 4 переглянуті тайтли, а тут ${n}.`:'';
+  if(h)h.textContent='Ігри';if(sb)sb.textContent='';
   const img=(p,w)=>_tsImg(p,w);
   const thumb={
     frame:V.frame2||V.frame?`<img src="${esc(img(V.frame2||V.frame,'w300'))}" alt="">`:`<span class="gx-th-ic">${ic('frame')}</span>`,
@@ -80,47 +89,81 @@ function loadGameTab(){
     quote:'<span class="gx-th-q">«»</span>',
   };
   const tdesc={frame:'назви фільм за кадром',actor:'де грало це обличчя',quote:'звідки це гасло'};
+  thumb.puzzle=`<span class="gx-th-pz">${'<i></i>'.repeat(9)}</span>`;thumb.chrono='<span class="gx-th-ch"><i></i><i></i><i></i><i></i></span>';
+  const GL=[...Object.entries(GAME_TYPES).map(([k,v])=>[k,v.name,tdesc[k],GX_SCREEN[k].d]),
+    ['puzzle',"П'ятнашки",'склади постер','Постер розрізано на клітинки, одна порожня. Пересувай, поки картинка не складеться. Від 3×3 до 6×6.'],
+    ['chrono','Хронологія','розстав по роках','Постери з переглянутого: розстав від найстарішого до найновішого. Серія до першої помилки.']];
+  /* phone: first a list of wide cards; a tap opens that game's screen with «‹ Усі ігри» above it */
+  if(_gxPhone()&&_gxList){
+    el.innerHTML=`<div class="gx-list" role="list">${GL.map(([k,l,,d])=>`<button class="gx-card" role="listitem" data-act="setGameType" data-args="${A(`${k}`)}">
+      <span class="gx-th">${thumb[k]}</span><span class="gx-ct"><b>${l}</b><span>${k!=='puzzle'&&_gameLocked()?`Відкриється з ${GAME_MIN} переглянутих · зараз ${watched.length}`:d}</span>${_gxRec(k)}</span><span class="gx-chev" aria-hidden="true">›</span></button>`).join('')}</div>`;
+    return;
+  }
+  if(!_gxPhone()&&_gameLocked()&&!_gxPicked&&_game.type!=='puzzle')_game.type='puzzle'; /* 1.49: only П’ятнашки are open yet */
+  const types=_gxPhone()?`<button class="gx-back" data-act="gxBack"><span aria-hidden="true">‹</span>Усі ігри</button>`
+    :`<div class="gx-types" role="group" aria-label="Гра">${GL.map(([k,l,t])=>`<button class="gx-t${_game.type===k?' on':''}" aria-pressed="${_game.type===k}" data-act="setGameType" data-args="${A(`${k}`)}">
+      <span class="gx-th">${thumb[k]}</span><span class="gx-t-tx"><b>${l}</b><span>${k!=='puzzle'&&_gameLocked()?`з ${GAME_MIN} переглянутих`:t}</span></span></button>`).join('')}</div>`;
+  if(_game.type==='puzzle'){el.innerHTML=types+pzScreen();return;}
+  if(_game.type==='chrono'){el.innerHTML=types+chScreen();return;}
+  const n=cnt[_game.filter],T=GAME_TYPES[_game.type],S=GX_SCREEN[_game.type],b=_gb();
+  const blocked=!TMDB_KEY?'Кадри й фото бере TMDB — додай ключ у Налаштуваннях.':_tmdbBlocked?'TMDB зараз не відповідає, кадри й фото не завантажити. Спробуй трохи згодом.':_gameLocked()?`Гра відкриється, коли в «Переглянутому» буде ${GAME_MIN} тайтлів. Зараз ${watched.length}.`:n<4?`Для гри потрібно щонайменше 4 переглянуті тайтли, а тут ${n}.`:'';
   let bg='',peek='';
   if(_game.type==='frame'&&V.frame){const u=esc(img(V.frame,'w780'));bg=`<img class="gx-bg" src="${u}" alt="">`;peek=`<div class="gx-peek"><img src="${u}" alt=""><i>?</i></div>`;}
   else if(_game.type==='actor'&&V.faces.length){const u=esc(img(V.faces[0],'h632'));bg=`<img class="gx-bg" src="${u}" alt="">`;peek=`<div class="gx-peek gx-peek-p"><img src="${u}" alt=""><i>?</i></div>`;}
   else if(_game.type==='quote'){peek=`<div class="gx-peek gx-peek-q"><p>${esc(V.quote||'Її хоробрість змінить світ!')}</p></div>`;}
   el.innerHTML=`
-    <div class="gx-types" role="group" aria-label="Гра">${Object.entries(GAME_TYPES).map(([k,v])=>`<button class="gx-t${_game.type===k?' on':''}" aria-pressed="${_game.type===k}" data-act="setGameType" data-args="${A(`${k}`)}">
-      <span class="gx-th">${thumb[k]}</span><span class="gx-t-tx"><b>${v.name}</b><span>${tdesc[k]}</span></span></button>`).join('')}</div>
+    ${types}
     <section class="gx-screen gx-${_game.type}">${bg}${peek}
       <div class="gx-in">
         <div class="gx-k">Впізнай ${T.what}</div>
         <h2 class="gx-q">${S.q}</h2>
         <p class="gx-d">${S.d}</p>
-        ${blocked?`<div class="recs-note">${ic('info')}<span>${blocked}</span></div>`:''}
+        ${blocked?`<div class="recs-note">${ic('info')}<span>${blocked}</span>${!TMDB_KEY?`<button class="btn" data-act="openIO" data-args="[&quot;stKeys&quot;]">Додати ключ</button>`:''}</div>`:''}
+        <p class="pz-lbl">З чого брати</p>
+        <div class="cat-seg game-filter" role="group" aria-label="З чого брати">${[['all','Усе'],['movie','Фільми'],['series','Серіали'],['anim','Анімація']].filter(([k])=>k==='all'||cnt[k]>=4)
+          .map(([k,l])=>`<button class="cat-chip${_game.filter===k?' on':''}" data-act="setGameFilter" data-args="${A(`${k}`)}">${l}<span class="num">${cnt[k]}</span></button>`).join('')}</div>
         <div class="gx-modes">
           <button class="gx-mode p" data-act="startGame" data-args="[&quot;streak&quot;]" ${blocked?'disabled':''}><b>Серія</b><span>до першої помилки · рекорд <span class="num">${b.streak}</span></span></button>
           <button class="gx-mode" data-act="startGame" data-args="[&quot;round&quot;]" ${blocked?'disabled':''}><b>Раунд з ${GAME_ROUND}</b><span>найкраще <span class="num">${b.round}</span> з ${GAME_ROUND}</span></button>
         </div>
       </div>
     </section>
-    <div class="cat-seg game-filter" role="group" aria-label="З чого брати">${[['all','Усе'],['movie','Фільми'],['series','Серіали'],['anim','Анімація']].filter(([k])=>k==='all'||cnt[k]>=4)
-      .map(([k,l])=>`<button class="cat-chip${_game.filter===k?' on':''}" data-act="setGameFilter" data-args="${A(`${k}`)}">${l}<span class="num">${cnt[k]}</span></button>`).join('')}</div>
     <p class="game-keys">Клавіші: <kbd>1</kbd>–<kbd>4</kbd> відповідь · <kbd>Enter</kbd> далі · <kbd>Esc</kbd> вийти</p>`;
 }
 function setGameFilter(k){_game.filter=k;loadGameTab();}
-function setGameType(k){if(!GAME_TYPES[k])return;_game.type=k;_game.next=null;_lsSet('ct_game_type',k);loadGameTab();}
+let _gxPicked=false;
+function setGameType(k){_gxPicked=true;if(!GAME_TYPES[k]&&k!=='puzzle'&&k!=='chrono')return;_game.type=k;_game.next=null;_lsSet('ct_game_type',k);
+  if(_gxPhone()&&_gxList){_gxList=false;_gxLy=true;_lyOpen('gxGame',()=>{_gxLy=false;_gxList=true;loadGameTab();scrollTo(0,0);});
+    loadGameTab();scrollTo(0,0);document.querySelector('#gameStart .gx-back')?.focus();return;}loadGameTab();}
+let _gxList=true; /* phone: the «Ігри» tab opens on the list of games */
+const _gxPhone=()=>matchMedia('(max-width:700px)').matches;
+let _gxLy=false; /* phone: the game screen has its own history entry, so Back returns to the list */
+function _gxLayerDone(){if(_gxLy){_gxLy=false;_lyDone('gxGame');}}
+function gxBack(){_gxLayerDone();_gxList=true;loadGameTab();scrollTo(0,0);document.querySelector(`#gameStart .gx-card[data-args*="${_game.type}"]`)?.focus();}
 
 /* bumped on every start and close: an answer that arrives for an older game must not paint over the current one */
 let _gameRun=0;
 function startGame(mode){
-  _gameRun++;
+  _gameRun++;if(typeof _pzStop==='function')_pzStop();if(typeof _chStop==='function')_chStop();document.querySelector('#gameModalBg .game-modal')?.classList.remove('pz-on');
   mode=mode||_game.mode;
+  if(!Object.hasOwn(GAME_TYPES,_game.type))_game.type='frame'; /* 1.49.2: П’ятнашки/Хронологія start elsewhere */
   const pool=_gameEligible().filter(i=>_game.filter==='all'||_gameKind(i)===_game.filter);
-  if(pool.length<4)return;
-  _game={..._game,mode,pool,q:0,score:0,streak:0,recent:[],log:[],answered:true,current:null,next:null};
+  if(pool.length<4||_gameLocked())return;
+  _game={..._game,mode,pool,q:0,score:0,streak:0,recent:[],used:new Set(),log:[],answered:true,current:null,next:null};
   document.getElementById('gameTitle').textContent=(mode==='round'?`Раунд з ${GAME_ROUND} ${GAME_TYPES[_game.type].unit}`:'Серія')+(_game.type!=='frame'&&mode!=='round'?` · ${GAME_TYPES[_game.type].name}`:'');
-  document.getElementById('gameModalBg').classList.remove('hidden');
+  if(document.getElementById('gameModalBg').classList.contains('hidden'))_gameFocus.el=null;
+  document.getElementById('gameModalBg').classList.remove('hidden');_lyOpen('game',()=>closeGameModal());_inertSync();
+  _focusIn(document.querySelector('#gameModalBg .game-modal'),_gameFocus);
   document.getElementById('gameOver').classList.add('hidden');
   document.getElementById('gamePlay').classList.remove('hidden');
   gameNextQuestion();
 }
-function closeGameModal(){_gameRun++;document.getElementById('gameModalBg').classList.add('hidden');_game.answered=true;loadGameTab();}
+const _gameFocus={el:null}; /* the start button that opened the game window */
+function closeGameModal(){
+  _gameRun++;if(typeof _pzStop==='function')_pzStop();if(typeof _chStop==='function')_chStop();document.getElementById('gameModalBg').classList.add('hidden');_game.answered=true;
+  _lyDone('game');_inertSync();loadGameTab();
+  _focusBack(_gameFocus,()=>document.querySelector('#gameStart button')); /* the start screen was redrawn: its first button */
+}
 
 function _gameHud(){
   const h=document.getElementById('gameHud');if(!h)return;
@@ -142,18 +185,19 @@ async function _gameGetBackdrop(item){
     const kind=isSeries?(f.t?'tv':f.m?'movie':null):(f.m?'movie':f.t?'tv':null);
     if(!kind){_gameBackdropCache[item.imdbID]={none:true,ts:Date.now()};_gameCacheSave();return null;}
     const imgData=await tmdbFetch(`/${kind}/${kind==='tv'?f.t:f.m}/images`);
-    const all=imgData?.backdrops||[];
+    if(!imgData){_gameNet=true;return null;} /* no answer is not «no frames»: do not cache it as none */
+    const all=imgData.backdrops||[];
     /* text-free frames first (no language = no title lettering), best rated first */
     const clean=all.filter(b=>!b.iso_639_1),use=(clean.length?clean:all).slice().sort((a,b)=>(b.vote_average||0)-(a.vote_average||0)).map(b=>b.file_path).slice(0,GAME_FRAMES);
     if(!use.length){_gameBackdropCache[item.imdbID]={none:true,ts:Date.now()};_gameCacheSave();return null;}
     _gameBackdropCache[item.imdbID]={backdrops:use,ts:Date.now()};_gameCacheSave();
     return`https://image.tmdb.org/t/p/w780${use[Math.floor(Math.random()*use.length)]}`;
-  }catch(e){return null;}
+  }catch(e){_gameNet=true;return null;}
 }
 /* next title with a usable frame, avoiding the last ten shown; the image is fetched into the cache */
 async function _gamePick(){
-  const fresh=_game.pool.filter(p=>!_game.recent.includes(p.imdbID)&&p.imdbID!==_game.current?.item.imdbID);
-  const src=fresh.length?fresh:_game.pool;
+  const fresh=_game.pool.filter(p=>!_game.used.has(p.imdbID)&&p.imdbID!==_game.current?.item.imdbID);
+  const src=fresh;if(!src.length)return {done:true}; /* 1.44: every title once per game */
   const tried=new Set();
   for(let i=0;i<10&&tried.size<src.length;i++){
     const cand=src[Math.floor(Math.random()*src.length)];
@@ -190,14 +234,16 @@ async function gameNextQuestion(){
   _game.q++;_game.answered=true;
   document.getElementById('gameReveal').innerHTML='';
   document.getElementById('gameOpts').innerHTML='';
-  const sw=document.getElementById('gameShotWrap');sw.classList.toggle('portrait',_game.type==='actor');sw.classList.toggle('quote',_game.type==='quote');sw.innerHTML=`<div class="spinner">${GAME_TYPES[_game.type].load}</div>`;
+  const sw=document.getElementById('gameShotWrap');sw.classList.toggle('portrait',_game.type==='actor');sw.classList.toggle('quote',_game.type==='quote');sw.innerHTML=`<div class="spinner" role="status">${GAME_TYPES[_game.type].load}</div>`;
   _gameHud();
   const pick=await(_game.next||_gamePickAny());
   if(run!==_gameRun)return; /* closed or restarted while loading */
   _game.next=null;
   if(document.getElementById('gameModalBg').classList.contains('hidden'))return;
+  if(pick?.done){gameEnd('all');return;}
+  if(pick?.net){gameEnd('net');return;}
   if(!pick){gameEnd(true);return;}
-  _game.current=pick;
+  _game.current=pick;_game.used.add(pick.item.imdbID);
   _game.recent.push(pick.item.imdbID);if(_game.recent.length>Math.min(10,_game.pool.length-1))_game.recent.shift();
   document.getElementById('gameShotWrap').innerHTML=pick.quote?`<blockquote class="game-quote">«${esc(pick.quote)}»</blockquote>`:`<img src="${esc(pick.url)}" alt="${pick.actor?'Актор, якого треба впізнати':'Кадр, який треба впізнати'}">`;
   const opts=_gameShuffle(pick.opts);
@@ -218,22 +264,38 @@ function _gameAnswer(btn){
   if(ok){_game.score++;_game.streak++;}
   if(_game.mode==='streak'&&_game.streak>_gb().streak){_gb().streak=_game.streak;_gameBestSave();}
   _gameHud();
-  const last=_game.mode==='round'?_game.q>=GAME_ROUND:!ok;
+  const out=ok&&_game.pool.every(p=>_game.used.has(p.imdbID)); /* that was the last title */
+  const last=out||(_game.mode==='round'?_game.q>=GAME_ROUND:!ok);
   document.getElementById('gameReveal').innerHTML=`
     <img src="${esc(ps(item.poster)||BLANK)}" alt="" data-fb>
     <div class="game-reveal-txt"><div><b>${ok?'Так!':'Ні.'}</b> ${act?`<a href="https://www.themoviedb.org/person/${encodeURIComponent(act.id)}" target="_blank" rel="noopener">${esc(act.name)}</a>${act.character?` (${esc(act.character)})`:''} у `:'Це '}<a href="${imdbHref(item)}" target="_blank" rel="noopener">${esc(name)}</a>${orig}</div>
-      <span>${esc(item.year||'')} · ${catLabel(item.customCategory||item.type)}${item.imdbRating?` · IMDb ${esc(item.imdbRating)}`:''}</span></div>
-    <button class="btn primary" id="gameNextBtn" data-act="${last?'gameEnd':'gameNextQuestion'}">${last?'Підсумок':'Далі'} <kbd>Enter</kbd></button>`;
+      <span>${esc(item.year||'')} · ${catLabel(item.customCategory||item.type)}${rateL(item)?` · ${rateL(item)}`:''}</span></div>
+    <button class="btn primary" id="gameNextBtn" data-act="${last?'gameEnd':'gameNextQuestion'}"${out?' data-args="[&quot;all&quot;]"':''}>${last?'Підсумок':'Далі'} <kbd>Enter</kbd></button>`;
   document.getElementById('gameNextBtn').focus({preventScroll:true});
 }
 
 function gameEnd(noMoreImages){
   _game.answered=true;
+  const all=noMoreImages==='all';if(all)noMoreImages=false; /* 1.44: every title of the set has been shown */
   if(_game.mode==='round'&&_game.score>_gb().round&&_game.q>=GAME_ROUND){_gb().round=_game.score;_gameBestSave();}
   document.getElementById('gamePlay').classList.add('hidden');
   const over=document.getElementById('gameOver');over.classList.remove('hidden');
   const round=_game.mode==='round';
   const record=round?_game.score>=_gb().round&&_game.score>0&&_game.q>=GAME_ROUND:_game.streak>0&&_game.streak>=_gb().streak;
+  if(noMoreImages==='net'){ /* 1.51: TMDB did not answer: not the end of the set */
+    const done=_game.log.length>0;
+    over.innerHTML=`<div class="game-over-ic">${ic('refresh')}</div><div class="game-over-title">TMDB не відповідає</div><div class="game-over-sub">Не вдалося завантажити ${({frame:'кадри',actor:'фото акторів',quote:'цитати'}[_game.type]||'дані')}. Перевір з'єднання${done?`; твій результат: ${round?`${_game.score} з ${_game.q-1}`:`серія ${_game.streak}`}`:''}.</div>
+      <div class="game-over-btns"><button class="btn primary" id="gameAgainBtn" data-act="startGame">${ic('refresh')}Спробувати ще <kbd>Enter</kbd></button><button class="btn" data-act="closeGameModal">Закрити</button></div>`;
+    _gameHud();document.getElementById('gameAgainBtn').focus({preventScroll:true});return;
+  }
+  const n=_game.pool.length,clean=all&&_game.score===_game.q&&_game.q>0;
+  if(all){
+    const head=clean?`Ти вгадав усі ${n}!`:`Пройдено всі ${n}`;
+    const sub=`Більше тайтлів у цьому наборі немає${clean?' — це максимум':''}. Додавай переглянуте, і гра ставатиме довшою.`;
+    over.innerHTML=`<div class="game-over-ic">${ic(clean?'trophy':'check')}</div><div class="game-over-title">${head}</div><div class="game-over-sub">${sub}</div>
+      <div class="game-over-btns"><button class="btn primary" id="gameAgainBtn" data-act="startGame">${ic('refresh')}Ще раз <kbd>Enter</kbd></button><button class="btn" data-act="closeGameModal">Закрити</button></div>`;
+    _gameHud();document.getElementById('gameAgainBtn').focus({preventScroll:true});return;
+  }
   const head=noMoreImages?`${GAME_TYPES[_game.type].many} закінчились`:round?`${_game.score} з ${GAME_ROUND}`:`Серія: ${_game.streak}`;
   const sub=noMoreImages?({frame:'Не вдалося знайти кадри',actor:'Не вдалося знайти фото акторів',quote:'Не вдалося знайти цитати'}[_game.type])+' для решти тайтлів у цьому наборі.':record?'Новий рекорд!':round?`Найкраще: ${_gb().round} з ${GAME_ROUND}`:`Рекорд лишається ${_gb().streak}`;
   const log=_game.log.slice(-GAME_ROUND);
@@ -270,17 +332,17 @@ async function _gameGetCast(item){
     const kind=item.type==='series'?(f.t?'tv':f.m?'movie':null):(f.m?'movie':f.t?'tv':null);
     if(!kind){_gameCast[item.imdbID]={none:true,ts:Date.now()};_lsSet('ct_game_cast',JSON.stringify(_gameCast));return null;}
     const d=await tmdbFetch(`/${kind}/${kind==='tv'?f.t:f.m}/${kind==='tv'?'aggregate_credits':'credits'}`);
-    if(!d)return null; /* network or key problem: ask again next time */
+    if(!d){_gameNet=true;return null;} /* network or key problem: ask again next time */
     const cast=(d.cast||[]).slice().sort((a,b)=>(a.order??99)-(b.order??99));
     const top=cast.filter(p=>p.profile_path).slice(0,6).map(p=>[p.id,p.name,(p.character||p.roles?.[0]?.character||'').split('/')[0].trim(),p.profile_path]);
     const r=top.length?{ids:cast.slice(0,30).map(p=>p.id),top}:{none:true,ts:Date.now()};
     _gameCast[item.imdbID]=r;_lsSet('ct_game_cast',JSON.stringify(_gameCast));
     return r.top?r:null;
-  }catch(e){return null;}
+  }catch(e){_gameNet=true;return null;}
 }
 async function _gamePickActor(){
-  const fresh=_game.pool.filter(p=>!_game.recent.includes(p.imdbID)&&p.imdbID!==_game.current?.item.imdbID);
-  const src=fresh.length?fresh:_game.pool;
+  const fresh=_game.pool.filter(p=>!_game.used.has(p.imdbID)&&p.imdbID!==_game.current?.item.imdbID);
+  const src=fresh;if(!src.length)return {done:true}; /* 1.44: every title once per game */
   const tried=new Set(),shown=new Set(_game.log.map(l=>l.actorId).concat(_game.current?.actor?.id||[]));
   for(let i=0;i<10&&tried.size<src.length;i++){
     const cand=src[Math.floor(Math.random()*src.length)];
@@ -301,7 +363,13 @@ async function _gamePickActor(){
   }
   return null;
 }
-function _gamePickAny(){return _game.type==='actor'?_gamePickActor():_game.type==='quote'?_gamePickQuote():_gamePick();}
+/* 1.51: a pick that found nothing because TMDB did not answer is told apart from one that really ran out of frames */
+let _gameNet=false;
+async function _gamePickAny(){
+  _gameNet=false;
+  const r=await(_game.type==='actor'?_gamePickActor():_game.type==='quote'?_gamePickQuote():_gamePick());
+  return r||(_gameNet?{net:true}:null);
+}
 
 /* ── QUOTE game: the Ukrainian tagline from the title sheet (TMDB); titles without one are skipped;
    the title's own name inside it is hidden ── */
@@ -316,12 +384,12 @@ async function _gameGetTag(item){
     let t='';
     if(kind){
       const path=`/${kind}/${kind==='tv'?f.t:f.m}`;
-      const uk=await tmdbFetch(`${path}?language=uk-UA`);if(!uk)return null; /* network or key problem: ask again next time */
+      const uk=await tmdbFetch(`${path}?language=uk-UA`);if(!uk){_gameNet=true;return null;} /* network or key problem: ask again next time */
       t=(uk.tagline||'').trim();
     }
     _gameTag[item.imdbID]=t?{t}:{none:true,ts:Date.now()};_lsSet('ct_game_tag_uk',JSON.stringify(_gameTag));
     return t||null;
-  }catch(e){return null;}
+  }catch(e){_gameNet=true;return null;}
 }
 function _gameMask(text,names){
   let out=text;
@@ -332,8 +400,8 @@ function _gameMask(text,names){
   return out;
 }
 async function _gamePickQuote(){
-  const fresh=_game.pool.filter(p=>!_game.recent.includes(p.imdbID)&&p.imdbID!==_game.current?.item.imdbID);
-  const src=fresh.length?fresh:_game.pool;
+  const fresh=_game.pool.filter(p=>!_game.used.has(p.imdbID)&&p.imdbID!==_game.current?.item.imdbID);
+  const src=fresh;if(!src.length)return {done:true}; /* 1.44: every title once per game */
   const tried=new Set();
   for(let i=0;i<30&&tried.size<src.length;i++){
     const cand=src[Math.floor(Math.random()*src.length)];

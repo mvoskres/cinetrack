@@ -1,15 +1,21 @@
 /* tags (TEST): #chips line, a label on the poster, the tag sheet */
-.card-utags{display:none;}
 .tg-line{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
 .tg-c{font:600 12.5px var(--sans);color:var(--gold);background:var(--gold-d);border:1px solid var(--gold-b);border-radius:999px;padding:3px 10px;cursor:pointer;}
 .tg-c:hover{filter:brightness(1.15);}
 .tg-pill{position:absolute;right:6px;bottom:6px;z-index:2;max-width:calc(100% - 12px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:700 11.5px var(--sans);color:#f3d29c;background:rgba(15,18,22,.82);border:1px solid rgba(227,165,74,.5);border-radius:8px;padding:3px 7px;cursor:pointer;backdrop-filter:blur(2px);}
 .tg-pill b{color:var(--muted);font-weight:700;}
+/* 1.45.1: your rating left, the tag right — one row, the same height; the tag name shortens, «+N» always shows */
+.tg-pill{display:inline-flex;align-items:center;gap:4px;height:22px;box-sizing:border-box;}
+.tg-pill span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.tg-pill b{flex:none;}
+.pc-art .pc-my{height:22px;box-sizing:border-box;}
+.pc-art:has(.pc-my) .tg-pill{max-width:calc(100% - 64px);}
+.tg-pill.tg-cmp{padding:0 7px;gap:3px;}.tg-pill.tg-cmp svg{width:13px;height:13px;}.tg-pill.tg-cmp b{color:#f3d29c;}
 
 .wb-tags{display:flex;align-items:center;gap:10px;margin:0 0 14px;}
 .wb-tags .tg-line{margin:0;flex:1;}
 .wb-notag{flex:1;color:var(--muted);font-size:13.5px;}
-.wb-tgb{flex:none;height:36px;padding:0 12px;border-radius:12px;border:1px solid var(--line);background:none;color:var(--text);font:600 13.5px var(--sans);display:flex;align-items:center;gap:6px;cursor:pointer;}
+.wb-tgb{flex:none;height:36px;padding:0 12px;border-radius:10px;border:1px solid var(--line);background:var(--ink-3);color:var(--text);font:600 13.5px var(--sans);display:flex;align-items:center;gap:6px;cursor:pointer;}
 .wb-tgb .i{width:16px;height:16px;}
 .tg-sh{display:none;}
 body.tg-on{overflow:hidden;}
