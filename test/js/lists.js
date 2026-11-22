@@ -363,9 +363,10 @@ function openMenu(ev,items){
   const btn=ev.currentTarget;_menuBtn=btn;btn.setAttribute('aria-haspopup','menu');btn.setAttribute('aria-expanded','true');
   const m=document.createElement('div');m.className='ct-menu';m.setAttribute('role','menu');
   /* item = {icon,label,fn,args} (fn is a global function name, args go through data-args) or {icon,label,href} */
-  m.innerHTML=items.filter(Boolean).map(x=>x==='-'?'<hr>':x.href
+  /* {html} = a ready block (the person sort menu's view switch on top) */
+  m.innerHTML=items.filter(Boolean).map(x=>x==='-'?'<hr>':x.html?x.html:x.href
     ?`<a role="menuitem" href="${esc(safeUrl(x.href)||'#')}" target="_blank" rel="noopener" data-act="closeMenu">${ic(x.icon)}${x.label}</a>`
-    :`<button role="menuitem" class="${x.danger?'danger':''}" data-act="_menuRun" data-args="${A(x.fn,...(x.args||[]))}">${ic(x.icon)}${x.label}</button>`).join('');
+    :`<button role="menuitem" class="${x.danger?'danger':''}${x.cls?' '+x.cls:''}" data-act="_menuRun" data-args="${A(x.fn,...(x.args||[]))}">${ic(x.icon)}${x.label}</button>`).join('');
   document.body.appendChild(m);
   if(_cwMode)_cwSync(); /* Android: system Back closes the menu (ui.js _cwBack) */
   const r=btn.getBoundingClientRect();
@@ -384,7 +385,7 @@ function closeMenu(restore){
 /* the menu role comes with the keyboard model: ↑ ↓ Home End move between items, Esc closes, Tab leaves (and closes) */
 document.addEventListener('keydown',e=>{
   const m=e.target.closest?.('.ct-menu');if(!m)return;
-  const items=[...m.querySelectorAll('[role=menuitem]')],i=items.indexOf(document.activeElement);
+  const items=[...m.querySelectorAll('[role^=menuitem]')],i=items.indexOf(document.activeElement);
   const to=k=>{e.preventDefault();items[(k+items.length)%items.length]?.focus({preventScroll:true});};
   if(e.key==='ArrowDown')to(i+1);else if(e.key==='ArrowUp')to(i<0?items.length-1:i-1);
   else if(e.key==='Home')to(0);else if(e.key==='End')to(items.length-1);

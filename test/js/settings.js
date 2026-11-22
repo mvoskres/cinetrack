@@ -461,6 +461,7 @@ function _applyBackup(data){
   if(typeof data.accent==='string'&&_hexRgb(data.accent)&&data.accent.toLowerCase()!==accentNow())setAccent(data.accent); /* the colour travels with the backup */
   if(data.views&&typeof data.views==='object'&&!Array.isArray(data.views)){ /* default views travel with the backup too */
     let ch=0;for(const t in VIEW_LISTS)if(_okView(data.views[t])&&data.views[t]!==viewDefOf(t)){_viewDef[t]=data.views[t];delete _views[t];ch++;}
+    if((data.views.person==='list')!==(_viewDef.person==='list')){if(data.views.person==='list')_viewDef.person='list';else delete _viewDef.person;ch++;} /* filmography: by decades / one list */
     if(ch)_lsSet('ct_views_def',JSON.stringify(_viewDef));
   }
   if(data.ukTitles&&typeof data.ukTitles==='object'&&!Array.isArray(data.ukTitles)){ /* Ukrainian list titles: a new device need not look them all up again */

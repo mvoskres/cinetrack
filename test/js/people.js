@@ -253,9 +253,7 @@ function buildPersonBar(){
         <input class="local-search" type="text" placeholder="Знайти у фільмах" aria-label="Пошук у фільмографії" value="${esc(f.q)}" data-input="personListSearch" data-args="[&quot;$value&quot;]"><button type="button" class="ls-x" data-act="lsClear" data-args="[&quot;$el&quot;]" aria-label="Очистити пошук" title="Очистити">${ic('x')}</button>
       </div>
       <button class="flt-pill${nf?' has-n':''}${_personPanOpen?' active':''}" data-act="personTogglePan">${ic('filter')}Тип, роль${nf?` <span class="flt-n">${nf}</span>`:''}</button>
-      ${_sortCtl(`<select class="sort-sel" aria-label="Порядок: за роком (по десятиліттях) чи по всій фільмографії" data-change="personSetSort" data-args="[&quot;$value&quot;]">
-        ${[['year-asc','За роком'],['popular','Найвідоміші'],['rating-desc','За рейтингом'],['name-asc','А→Я']].map(([v,l])=>`<option value="${v}"${f.sort===v?' selected':''}>${l}</option>`).join('')}
-      </select>`,[['year-asc','За роком'],['popular','Найвідоміші'],['rating-desc','За рейтингом'],['name-asc','А→Я']],f.sort)}
+      ${_sortCtl(`<button type="button" class="sort-sel pk-sortb" aria-haspopup="menu" aria-expanded="false" aria-label="Вигляд і порядок: ${_personListView()==='list'?'списком':'десятиліттями'}, ${PERSON_SORTS.find(([v])=>v===f.sort)?.[1]||'За роком'}" data-act="personSortMenu" data-args="[&quot;$ev&quot;]">${PERSON_SORTS.find(([v])=>v===f.sort)?.[1]||'За роком'}<span class="pk-sortc" aria-hidden="true">▾</span></button>`,PERSON_SORTS,f.sort)}
     </div>`;
   const chips=(arr,cur,fn)=>arr.map(([k,l,n])=>`<button class="cat-chip${cur===k?' on':''}" data-act="${fn}" data-args="${A(k)}">${l}${n!=null?`<span class="num">${n}</span>`:''}</button>`).join('');
   const pan=document.getElementById('personPanel');
@@ -272,6 +270,24 @@ let _personSearchT;
 function personListSearch(v){clearTimeout(_personSearchT);_personSearchT=setTimeout(()=>{_personFilter.q=v.trim();renderPersonList();},220);}
 function personSetOwnership(v){_personFilter.ownership=v;_personShown=PERSON_PAGE_SIZE;buildPersonBar();renderPersonList();}
 function personSetSort(v){_personFilter.sort=v;buildPersonBar();renderPersonList();}
+/* 1.51: one sort button — on top the view (by decades / one list, remembered and backed up with the other views), below it the order */
+const PERSON_SORTS=[['year-asc','За роком'],['popular','Найвідоміші'],['rating-desc','За рейтингом'],['name-asc','А→Я']];
+function _personListView(){return _viewDef.person==='list'?'list':'decades';}
+function _personSegHtml(){
+  const v=_personListView();
+  return `<div class="ct-seg" role="group" aria-label="Вигляд">${[['decades','Десятиліття'],['list','Список']].map(([k,l])=>`<button type="button" role="menuitemradio" aria-checked="${v===k}" class="${v===k?'on':''}" data-act="personSetView" data-args="${A(k)}">${l}</button>`).join('')}</div>`;
+}
+function personSortMenu(ev){
+  const cur=_personFilter.sort;
+  openMenu(ev,[{html:_personSegHtml()},'-',...PERSON_SORTS.map(([v,l])=>({icon:'check',label:l,fn:'personSetSort',args:[v],cls:v===cur?'on':'ct-off'}))]);
+}
+function personSetView(v){ /* the menu stays open: the order can be picked right after */
+  if(v==='list')_viewDef.person='list';else delete _viewDef.person;
+  _lsSet('ct_views_def',JSON.stringify(_viewDef));
+  const seg=document.querySelector('.ct-menu .ct-seg');if(seg)seg.outerHTML=_personSegHtml();
+  document.querySelector('.ct-menu .ct-seg button.on')?.focus({preventScroll:true});
+  renderPersonList();
+}
 
 /* ── PEOPLE: ownership — by TMDB id first (exact), title+year as a fallback ── */
 function _personOwnedFns(){
@@ -323,9 +339,9 @@ function renderPersonList(){
   });
   /* redraws (adding a title, a filter) keep every decade strip where it was scrolled to */
   const _keepX={},_pid=String(_personGroupsCache.personId);if(listEl.dataset.kpid===_pid)listEl.querySelectorAll('.pk-dec').forEach(sec=>{const k=sec.querySelector('.pk-dh b')?.textContent,st=sec.querySelector('.pk-strip');if(k&&st)_keepX[k]=st.scrollLeft;});
-  /* 1.51: «Найвідоміші» / «За рейтингом» / «А→Я» order the whole filmography at once; only «За роком» keeps the decades */
-  if(f.sort!=='year-asc'&&f.sort!=='year-desc'){
-    const nm={popular:'Найвідоміші','rating-desc':'За рейтингом','name-asc':'За абеткою'}[f.sort]||'Усі',n=items.length;
+  /* 1.51: view «Список» — the whole filmography in one strip, the order runs across it; «Десятиліття» (default) orders inside each decade */
+  if(_personListView()==='list'){
+    const nm={'year-asc':'За роком',popular:'Найвідоміші','rating-desc':'За рейтингом','name-asc':'За абеткою'}[f.sort]||'Усі',n=items.length;
     listEl.innerHTML=`<section class="pk-dec pk-flat"><div class="pk-dh"><b>${nm}</b><span>${n} ${n%10===1&&n%100!==11?'тайтл':n%10>=2&&n%10<=4&&(n%100<12||n%100>14)?'тайтли':'тайтлів'}</span></div>
       <div class="pk-strip">${items.map(c=>_personCardHtml(c)).join('')}</div></section>`;
     listEl.dataset.kpid=_pid;return;
