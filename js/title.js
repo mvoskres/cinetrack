@@ -440,7 +440,12 @@ function _tsCollHtml(d,det){
       return `<button class="ts-rec${cur?' cur':st?' '+st:''}"${cur?' disabled':` data-act="_tsOpen" data-args="${A({mt:'movie',id:p.id},true)}"`}><img src="${p.poster?_tsImg(p.poster,'w185'):BLANK}" alt="" loading="lazy" data-fb><b>${esc(p.title)}</b><span>${esc(info)}</span></button>`;}).join('')}</div>
     ${mine?`<button class="link-btn" data-act="_tsGoColl" data-args="${A(name)}">${ic('stack')} Відкрити у франшизах</button>`:''}</section>`;
 }
-function _tsGoColl(name){closeTitle();_collFilter.q=name;_collFilter.status='all';goTab('collections',document.getElementById('ni-collections'));}
+/* 1.51.1: Back from Франшизи returns to the page and the card it was opened from */
+function _tsGoColl(name){
+  const ref=_tsCur?.ref||_tsStack[_tsStack.length-1],was={q:_collFilter.q,status:_collFilter.status};
+  closeTitle();_collFilter.q=name;_collFilter.status='all';
+  _jumpTab('collections',{restore:()=>{_collFilter.q=was.q;_collFilter.status=was.status;},back:ref?()=>_tsOpen(ref,true):null});
+}
 const nf2=n=>n>=1000?(n/1000).toFixed(n>=10000?0:1).replace('.',',')+' тис.':String(n);
 /* keep the sheet in step with list changes made from it (or from the modals over it) */
 document.addEventListener('keydown',e=>{

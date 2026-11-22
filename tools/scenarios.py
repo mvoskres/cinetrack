@@ -318,6 +318,58 @@ def _person_stats(c):
     c.assert_(c.eval('_cwL.length') == 0, 'шар лишився')
 
 
+# ───────────── 1.51.1: «Назад» після переходу з однієї сторінки на іншу ─────────────
+@scenario('jump/stats-list-back', modes=('android', 'history'))
+def _jump_stats_list(c):
+    c.eval("F.watched.q='abc';goTab('stats')"); c.sleep(0.3)
+    c.eval("sxOpen('watched','genres','Drama')")
+    c.wait("!document.getElementById('tab-watched').classList.contains('hidden')&&F.watched.genres[0]==='Drama'&&F.watched.q===''", 4, 'список з фільтром')
+    c.sleep(0.3); c.close_top()
+    c.wait("!document.getElementById('tab-stats').classList.contains('hidden')", 4, '«Назад» повернув статистику')
+    c.assert_(c.eval("F.watched.q==='abc'&&!F.watched.genres.length"), 'фільтри списку не повернулись')
+    c.eval("F.watched.q='';rerender('watched')")
+
+
+@scenario('jump/stats-recs-back', modes=('android', 'history'))
+def _jump_stats_recs(c):
+    c.eval("goTab('stats')"); c.sleep(0.3)
+    c.eval("sxRecs('Drama')")
+    c.wait("!document.getElementById('tab-recs').classList.contains('hidden')", 4, 'рекомендації')
+    c.sleep(0.3); c.close_top()
+    c.wait("!document.getElementById('tab-stats').classList.contains('hidden')", 4, '«Назад» повернув статистику (не жанр)')
+
+
+@scenario('jump/recs-genre-back', modes=('android', 'history'))
+def _jump_recs_genre(c):
+    c.eval("goTab('recs')"); c.sleep(0.3)
+    c.eval("recView('hidden')")
+    c.wait("_recView==='hidden'", 3, 'приховані')
+    c.sleep(0.3); c.close_top()
+    c.wait("_recView==='picks'&&!document.getElementById('tab-recs').classList.contains('hidden')", 4, '«Назад» повернув підбірки')
+
+
+@scenario('jump/card-franchise-back', modes=('android', 'history'))
+def _jump_card_coll(c):
+    c.eval("goTab('watched');openTitle(watched[0].imdbID)")
+    c.wait("!document.getElementById('titleSheet').classList.contains('hidden')", 4, 'картка')
+    c.sleep(0.4); c.eval("_tsGoColl('Тест')")
+    c.wait("!document.getElementById('tab-collections').classList.contains('hidden')&&document.getElementById('titleSheet').classList.contains('hidden')", 4, 'франшизи')
+    c.sleep(0.3); c.close_top()
+    c.wait("!document.getElementById('tab-watched').classList.contains('hidden')&&!document.getElementById('titleSheet').classList.contains('hidden')", 5, '«Назад» повернув список і картку')
+    c.assert_(c.eval("_collFilter.q===''"), 'пошук у франшизах не повернувся')
+    c.sleep(0.3); c.close_top()
+    c.wait("document.getElementById('titleSheet').classList.contains('hidden')", 4, 'картка закрилась')
+
+
+@scenario('jump/menu-drops-back', modes=('android',))
+def _jump_menu_drop(c):
+    c.eval("goTab('stats')"); c.sleep(0.3)
+    c.eval("sxOpen('watched','','')"); c.sleep(0.3)
+    c.eval("goTab('planned')"); c.sleep(0.3)
+    c.assert_(c.eval('_jmpStk.length') == 0 and c.eval('_cwL.length') == 0, 'перехід меню не прибрав шлях назад')
+    c.eval("goTab('watched')")
+
+
 # ───────────── 1.44: перший вхід, замок ігор, кінець гри без повторів ─────────────
 @scenario('onboard/card', modes=('android', 'desktop'))
 def _onboard(c):

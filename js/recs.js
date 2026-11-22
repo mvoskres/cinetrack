@@ -314,13 +314,13 @@ async function buildRecs(manual){
 /* entry point from the tab */
 function openRecs(){
   _personUkFillAll().then(any=>{if(any&&_recs){const sh=_shelfPeople(_recKnown());const k=_recs.shelves.findIndex(x=>x.id==='people');if(k>=0&&sh.items.length){_recs.shelves[k]=sh;_recsSave();renderRecs();}}});
-  _recView=_recView==='genre'?'picks':_recView;
+  _recView=_recView==='genre'?'picks':_recView;if(_recView==='picks')_lyDone('recSub');
   if(!_recs||_recs.v!==REC_V||Date.now()-(_recs.ts||0)>(_recs.partial?RECS_RETRY:RECS_TTL))buildRecs();
   else _recFillIds().then(n=>{if(n)renderRecs();}); /* titles added elsewhere since: their ids, then re-filter */
   renderRecs();
 }
 async function refreshRecs(){
-  _recOpen.clear();_recView='picks';const gp=document.getElementById('genrePick');if(gp)gp.value='';
+  _recOpen.clear();_recView='picks';_lyDone('recSub');const gp=document.getElementById('genrePick');if(gp)gp.value='';
   /* "Оновити" means try TMDB again: three network blips used to switch it off until the page was reloaded */
   if(TMDB_KEY&&_tmdbBlocked){_tmdbBlocked=false;_tmdbNetFails=0;}
   await buildRecs(true);
@@ -379,9 +379,9 @@ async function recAct(k,action){
 
 /* ── genre browse: one grid, popular titles of a genre you haven't seen ── */
 async function recGenre(name){
-  if(!name){_recView='picks';renderRecs();return;}
+  if(!name){_recView='picks';_recLy();renderRecs();return;}
   const gid=TMDB_GENRES[name];if(!gid||!TMDB_KEY||_tmdbBlocked)return;
-  _recView='genre';_recGenreState={name,items:[]};renderRecs();
+  _recView='genre';_recGenreState={name,items:[]};_recLy();renderRecs();
   const known=_recKnown();
   const tv=_TV_GENRE[gid]; /* no series genre for Thriller, Horror, Romance…: films only */
   const s=await _shelfDiscover('genre','','',[1,2].flatMap(p=>[['movie',`with_genres=${gid}&vote_count.gte=500&sort_by=popularity.desc&page=${p}`],...(tv?[['tv',`with_genres=${tv}&vote_count.gte=200&sort_by=popularity.desc&page=${p}`]]:[])]),known,200,6.5).catch(()=>null);
@@ -389,7 +389,14 @@ async function recGenre(name){
   /* 1.51: no answer from TMDB is not «everything is already yours» */
   _recGenreState.failed=!s;_recGenreState.items=s?s.items.concat([]).slice(0,48):[];_recGenreState.loaded=true;renderRecs();
 }
-function recView(v){if(v==='hidden'&&_recView==='hidden')v='picks';_recView=v;if(v!=='genre'){const gp=document.getElementById('genrePick');if(gp)gp.value='';}renderRecs();}
+function recView(v){if(v==='hidden'&&_recView==='hidden')v='picks';_recView=v;if(v!=='genre'){const gp=document.getElementById('genrePick');if(gp)gp.value='';}_recLy();renderRecs();}
+/* 1.51.1: a genre or the hidden titles is a step inside Рекомендації: Back returns to the picks (it used to leave the page).
+   Opened straight from Статистика (_recNoLy) it is not: there Back goes back to Статистика */
+let _recNoLy=false;
+function _recLy(){
+  if(_recView==='picks'){_lyDone('recSub');return;}
+  if(!_recNoLy)_lyOpen('recSub',()=>{_recView='picks';const gp=document.getElementById('genrePick');if(gp)gp.value='';renderRecs();});
+}
 function recType(t){_recType=t;renderRecs();}
 function recShelfMore(id){_recOpen.has(id)?_recOpen.delete(id):_recOpen.add(id);renderRecs();}
 

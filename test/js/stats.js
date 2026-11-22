@@ -316,9 +316,11 @@ async function _sxWallPop(){
 
 /* 1.51: the portrait is a way into the collection. Opens a list with exactly one filter: dim = genres | decades | '' (none), val = one value or a list */
 function sxOpen(list,dim,val){
-  const f=F[list];f.q='';f.cats=[];f.genres=[];f.decades=[];f.tags=[];if(f.ratings)f.ratings=[];if(f.air)f.air=[];
+  const f=F[list],was=JSON.parse(JSON.stringify(f)); /* 1.51.1: Back returns to Статистика and the list gets its own filters back */
+  f.q='';f.cats=[];f.genres=[];f.decades=[];f.tags=[];if(f.ratings)f.ratings=[];if(f.air)f.air=[];
   if(dim)f[dim]=[].concat(val);
-  goTab(list);buildBar(list);buildTags(list);rerender(list);
+  _jumpTab(list,{restore:()=>{Object.keys(f).forEach(k=>delete f[k]);Object.assign(f,was);buildBar(list);buildTags(list);rerender(list);}});
+  buildBar(list);buildTags(list);rerender(list);
 }
 function sxCountries(){
   const sec=document.getElementById('sxCountries');if(!sec)return;
@@ -326,4 +328,4 @@ function sxCountries(){
   sec.scrollIntoView({behavior:'smooth',block:'center'});
 }
 /* no titles of that genre in «Планую»: the new ones of it in «Рекомендації» */
-function sxRecs(g){goTab('recs');if(TMDB_GENRES[g]&&TMDB_KEY&&!_tmdbBlocked)recGenre(g);}
+function sxRecs(g){_jumpTab('recs');if(TMDB_GENRES[g]&&TMDB_KEY&&!_tmdbBlocked){_recNoLy=true;try{recGenre(g);}finally{_recNoLy=false;}}}

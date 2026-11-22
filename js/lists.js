@@ -15,6 +15,8 @@ function goTab(id,btn){
   if(id==='collections')loadCollections();
   if(id==='people')renderPeopleTab();
   if(typeof _tsPplDrop==='function')_tsPplDrop(); /* left «Люди» by the menu: no way back to the card */
+  _jmpDrop(); /* the same for a jump from another page (_jumpTab) */
+  if(id!=='recs')_lyDone('recSub'); /* a genre / hidden view of Рекомендації is left with its page */
   if(typeof _gxLayerDone==='function')_gxLayerDone(); /* leaving (or reopening) the tab drops the phone's «game screen» Back entry */
   if(id==='game'){if(typeof _gxList!=='undefined')_gxList=true;loadGameTab();}
   const ds=document.getElementById('dashSection');if(ds)ds.hidden=id!=='watching'; /* air strip belongs to Дивлюсь */
@@ -24,6 +26,26 @@ function goTab(id,btn){
     scrollTo({top:0,behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'});
   if(fresh&&viaMenu)setTimeout(()=>window.scrollTo(0,0),200); /* the menu's history step lands after the switch and may bring the old position back */
 }
+/* 1.51.1: a jump from one page to another by a link inside it (a Статистика row → a list, Статистика → Рекомендації,
+   a card → Франшизи, «Додати ключ» → Переглянуте): Back returns to the page it came from, at the same scroll depth.
+   restore() puts back what the jump changed (a list's filters); back() runs after the return (reopens the card).
+   Going to another page by the menu drops the way back, as for a person opened from a card. */
+let _jmpStk=[],_jmpN=0,_jmpNav=false;
+function _jumpTab(id,o={}){
+  const from=document.querySelector('[id^="tab-"]:not(.hidden)')?.id.slice(4)||'watched',y=scrollY;
+  _jmpNav=true;try{goTab(id,document.getElementById('ni-'+id));}finally{_jmpNav=false;}
+  if(from===id&&!o.back)return;
+  const k='jmp'+(++_jmpN);_jmpStk.push({k,from,y,restore:o.restore,back:o.back});_lyOpen(k,()=>_jmpBack(k));
+}
+function _jmpBack(k){
+  const i=_jmpStk.findIndex(x=>x.k===k);if(i<0)return;
+  const e=_jmpStk[i];_jmpStk.splice(i);
+  try{e.restore?.();}catch(err){console.warn(err);}
+  _jmpNav=true;try{goTab(e.from,document.getElementById('ni-'+e.from));}finally{_jmpNav=false;}
+  const to=()=>window.scrollTo(0,e.y);setTimeout(to,60);setTimeout(()=>{if(Math.abs(scrollY-e.y)>40)to();},350); /* the page may still be filling */
+  if(e.back)setTimeout(()=>{try{e.back();}catch(err){console.warn(err);}},0); /* after the popstate that called us is done with its layer list */
+}
+function _jmpDrop(){if(_jmpNav)return;while(_jmpStk.length)_lyDone(_jmpStk.pop().k);}
 
 /* ── SEARCH ── */
 let _st2;
@@ -44,7 +66,7 @@ function _sugMsg(html){
 }
 function _sugNone(q){_sugMsg(`За «${esc(q)}» нічого не знайшлось. Спробуй оригінальну назву або додай рік.`);}
 /* no key: close the search and go where the key goes in */
-function srchKey(){searchClose();if(!watched.length){goTab('watched');setTimeout(()=>document.getElementById('obKey')?.focus(),350);}else openIO('stKeys');}
+function srchKey(){searchClose();if(!watched.length){_jumpTab('watched');setTimeout(()=>document.getElementById('obKey')?.focus(),350);}else openIO('stKeys');}
 let _ownIdx=null;
 /* "movie:603" -> imdbID, from the two TMDB id caches; rebuilt per search, both only grow */
 function _tmdbOwnedId(mt,id){
