@@ -304,7 +304,7 @@ async function runCsvImport(){
       imdbUrl:`https://www.imdb.com/title/${r.imdb}/`,imdbRating:(m.imdbRating&&m.imdbRating!=='N/A')?m.imdbRating:null,runtime:parseRuntime(m.Runtime),
       customCategory:gc(m),addedAt:id0-k};
     if(list==='watched')Object.assign(it,{rating:withRatings?todo[k].rating||0:0,comment:''});
-    if(list==='watching')Object.assign(it,{season:1,episode:0,totalSeasons:parseInt(m.totalSeasons)||1}); /* 1.51: S1·E0 = not started */
+    if(list==='watching')Object.assign(it,{season:1,episode:1,totalSeasons:parseInt(m.totalSeasons)||1});
     if(m.tmdbRating)it.tmdbRating=m.tmdbRating;
     const nr=_normItem(it,list);if(nr.bad)return; /* 1.49.2: the same limits as a restored backup */
     added.push(nr.item);
@@ -357,9 +357,8 @@ function _normItem(src,list){
   const su=safeUrl(_s(src.streamUrl,2000));if(su)o.streamUrl=su;
   if(src.runtime===null)o.runtime=null;else{const m=_i(src.runtime,0,2000);if(m!==null)o.runtime=m;}
   const rc=_n(src._ratingCheckedAt,0,9e15);if(rc!==null)o._ratingCheckedAt=rc;
-  const sn=_i(src.season,1,500),ep=_i(src.episode,0,100000),ts=_i(src.totalSeasons,1,500);
-  /* 1.51: episode = the last watched one; S1·E0 = not started (only the first season has an E0) */
-  if(list==='watching'){o.season=sn||1;o.episode=ep===null||(ep===0&&o.season!==1)?1:ep;o.totalSeasons=ts||Math.max(1,o.season);if(src.rewatch===true)o.rewatch=true;
+  const sn=_i(src.season,1,500),ep=_i(src.episode,1,100000),ts=_i(src.totalSeasons,1,500);
+  if(list==='watching'){o.season=sn||1;o.episode=ep||1;o.totalSeasons=ts||Math.max(1,o.season);if(src.rewatch===true)o.rewatch=true;
     const sa=_n(src.seenAt,0,9e15);if(sa!==null)o.seenAt=sa;}
   else{if(sn)o.season=sn;if(ep)o.episode=ep;if(ts)o.totalSeasons=ts;}
   if(src.prevEp&&typeof src.prevEp==='object'){const s=_i(src.prevEp.s,1,500),e=_i(src.prevEp.e,1,100000);if(s&&e)o.prevEp={s,e};}
@@ -605,6 +604,7 @@ function doImport(e,mode,asked){
 
 /* ── VERSION and CHANGELOG: newest first; bump APP_VERSION and add an entry with every change pushed to the site ── */
 const CHANGELOG=[
+  {v:'1.51',d:'22.11.2026',n:['«Дивлюсь» розкладено на полиці за тим, що робити: «Є нові серії», «Чекаю нову серію», «Усе переглянуто», «Фільми»','Коли «+ серія» натиснути не можна, кнопка приглушена, а під лічильником написано чому','У картці серіалу ✓ стоять на переглянутих серіях, а на поточній написано «далі»','Застосунок відкривається на списку, з яким ти працював востаннє; на іконці застосунку на телефоні є ярлики Дивлюсь, Планую, Пошук','Після «Переглянуто» з\'являється кнопка «★ Оцінити»; зірки більші, під ними «N з 10»','На телефоні кнопки легше влучити пальцем; повторне натискання розділу в меню гортає сторінку нагору','Пошук: окремо «Люди» і «Фільми й серіали»; якщо пошук у списку нічого не знайшов, можна одразу шукати цю назву в базі','«Усі ›» на полиці відкриває всю категорію сіткою; на телефоні сортування сховане під значком ⇅','Франшизи шукаються й за назвою фільму всередині, назви українською','Люди: «Не стежити» можна скасувати; у сортуванні фільмографії можна обрати вигляд — десятиліттями чи одним списком','Рекомендації: «Додати» працює без ключа OMDb, головна дія — «Запланувати», є пошук серед прихованих і зрозуміле повідомлення, коли TMDB не відповідає','Статистика: на рядки можна натиснути, підписи «IMDb», виправлені відмінки','Ігри: видно твій рекорд, а коли TMDB не відповідає — кнопка «Спробувати ще»','У повідомленні про оновлення є кнопка «Що нового», а з історії змін можна повернутися в Налаштування','З вікна редагування прибрано поле «Категорія»']},
   {v:'1.50',d:'16.11.2026',n:['Картка «Почнімо»: покрокова інструкція, як отримати ключ TMDB, і який із двох ключів потрібен','Крок 2: головна кнопка «Обрати з популярного» — одразу до популярного й найкращого','Від 1-го до 19-го переглянутого — рядок над списком: оціни переглянуте, скільки до Статистики (10) й Ігор (20); ✕ ховає назавжди']},
   {v:'1.49.3',d:'16.11.2026',n:['Українські фільми знову з українськими назвами: раніше назву відкидало, бо вона збігається з оригінальною. Уже додані перевіряться самі за кілька секунд після відкриття']},
   {v:'1.49.2',d:'16.11.2026',n:['Безпека імпорту й бекапу: жанр чи тег на кшталт «constructor» більше не ламає фільтри й статистику; постери — лише з TMDB і IMDb; рядки з CSV проходять ту саму перевірку, що й бекап (оцінка 0–10, тривалість, довжина); рік Letterboxd перевіряється']},

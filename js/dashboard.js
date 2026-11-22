@@ -5,10 +5,6 @@ function mvToW(id){
   modal(`
     <h2 class="modal-title" style="margin-bottom:.3rem">Переглянуто</h2>
     <div class="modal-sub" style="margin-bottom:1rem">${esc(tn(it))}</div>
-    <div class="form-g"><label class="form-lbl" for="mC">Категорія</label>
-      <select class="form-sel" id="mC">
-        ${Object.entries(CAT).map(([v,l])=>`<option value="${v}"${(it.customCategory||it.type)===v?' selected':''}>${l}</option>`).join('')}
-      </select></div>
     <div class="form-g"><label class="form-lbl" id="starsLbl">Моя оцінка</label>
       <div class="stars" id="starsBox" role="radiogroup" aria-labelledby="starsLbl">${buildStars(r0)}</div>
       <input type="hidden" id="eR" value="${r0}"></div>
@@ -29,7 +25,7 @@ function confirmMv(id){
     if(it.streamUrl&&!existing.streamUrl)existing.streamUrl=it.streamUrl;
     if(it.runtime&&!existing.runtime)existing.runtime=it.runtime;
   }
-  else watched.unshift({id:Date.now(),imdbID:it.imdbID,title:it.title,poster:it.poster,year:it.year,type:it.type,genre:it.genre,country:it.country||'',imdbUrl:it.imdbUrl,imdbRating:it.imdbRating||null,...(it.runtime?{runtime:it.runtime}:{}),...(it.tags?.length?{tags:[...it.tags]}:{}),...(it.streamUrl?{streamUrl:it.streamUrl}:{}),customCategory:document.getElementById('mC').value,rating:parseInt(document.getElementById('eR').value)||0,comment:document.getElementById('eCm').value.trim(),addedAt:Date.now()});
+  else watched.unshift({id:Date.now(),imdbID:it.imdbID,title:it.title,poster:it.poster,year:it.year,type:it.type,genre:it.genre,country:it.country||'',imdbUrl:it.imdbUrl,imdbRating:it.imdbRating||null,...(it.runtime?{runtime:it.runtime}:{}),...(it.tags?.length?{tags:[...it.tags]}:{}),...(it.streamUrl?{streamUrl:it.streamUrl}:{}),customCategory:it.customCategory||it.type,rating:parseInt(document.getElementById('eR').value)||0,comment:document.getElementById('eCm').value.trim(),addedAt:Date.now()});
   watching=watching.filter(i=>i.id!==id);
   saveAll();rWatched();rWatching();closeModal();
 }
@@ -85,7 +81,7 @@ async function plToW(id){
     revert();rWatched();rPlanned();rDash();updateStats();
     toast(`Не вдалося перенести «${snap.title}»: сховище браузера не прийняло запис. Змін немає`,'err',6000);return;}
   rPlanned();
-  _mvUndo(snap,'planned',origIdx,()=>{revert();saveAll();rWatched();rPlanned();rDash();},`«${snap.title}» → Переглянуто`);
+  _mvUndo(snap,'planned',origIdx,()=>{revert();saveAll();rWatched();rPlanned();rDash();},`«${snap.title}» → Переглянуто`,snap.imdbID);
 }
 
 /* ── DASHBOARD ── */

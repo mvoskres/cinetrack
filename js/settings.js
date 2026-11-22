@@ -48,7 +48,7 @@ function _stDataHtml(){
     <div id="stoMsg" class="st-msg stz-in"></div>
   </div>`;
 }
-function _stAboutHtml(){return `<div class="stz-l" id="stVer">${_stRow('info','Що нового',`Кінопис ${APP_VERSION} · від ${CHANGELOG[0].d}`,'',{a:'data-act="openChangelog"'})}</div>`;}
+function _stAboutHtml(){return `<div class="stz-l" id="stVer">${_stRow('info','Що нового',`Кінопис ${APP_VERSION} · від ${CHANGELOG[0].d}`,'',{a:`data-act="openChangelog" data-args="${A('st')}"`})}</div>`;}
 /* a key row is one compact line while the key exists; the input only shows after «Змінити» or when there is none */
 function _stKeyRow(id,name,key,save,url,role,bad,hint){
   const has=!!key;
@@ -358,7 +358,8 @@ function _normItem(src,list){
   if(src.runtime===null)o.runtime=null;else{const m=_i(src.runtime,0,2000);if(m!==null)o.runtime=m;}
   const rc=_n(src._ratingCheckedAt,0,9e15);if(rc!==null)o._ratingCheckedAt=rc;
   const sn=_i(src.season,1,500),ep=_i(src.episode,1,100000),ts=_i(src.totalSeasons,1,500);
-  if(list==='watching'){o.season=sn||1;o.episode=ep||1;o.totalSeasons=ts||Math.max(1,o.season);if(src.rewatch===true)o.rewatch=true;}
+  if(list==='watching'){o.season=sn||1;o.episode=ep||1;o.totalSeasons=ts||Math.max(1,o.season);if(src.rewatch===true)o.rewatch=true;
+    const sa=_n(src.seenAt,0,9e15);if(sa!==null)o.seenAt=sa;}
   else{if(sn)o.season=sn;if(ep)o.episode=ep;if(ts)o.totalSeasons=ts;}
   if(src.prevEp&&typeof src.prevEp==='object'){const s=_i(src.prevEp.s,1,500),e=_i(src.prevEp.e,1,100000);if(s&&e)o.prevEp={s,e};}
   if(src.seasonEps&&typeof src.seasonEps==='object'&&!Array.isArray(src.seasonEps)){
@@ -459,6 +460,7 @@ function _applyBackup(data){
   if(typeof data.accent==='string'&&_hexRgb(data.accent)&&data.accent.toLowerCase()!==accentNow())setAccent(data.accent); /* the colour travels with the backup */
   if(data.views&&typeof data.views==='object'&&!Array.isArray(data.views)){ /* default views travel with the backup too */
     let ch=0;for(const t in VIEW_LISTS)if(_okView(data.views[t])&&data.views[t]!==viewDefOf(t)){_viewDef[t]=data.views[t];delete _views[t];ch++;}
+    if((data.views.person==='list')!==(_viewDef.person==='list')){if(data.views.person==='list')_viewDef.person='list';else delete _viewDef.person;ch++;} /* filmography: by decades / one list */
     if(ch)_lsSet('ct_views_def',JSON.stringify(_viewDef));
   }
   if(data.ukTitles&&typeof data.ukTitles==='object'&&!Array.isArray(data.ukTitles)){ /* Ukrainian list titles: a new device need not look them all up again */
@@ -602,6 +604,7 @@ function doImport(e,mode,asked){
 
 /* ── VERSION and CHANGELOG: newest first; bump APP_VERSION and add an entry with every change pushed to the site ── */
 const CHANGELOG=[
+  {v:'1.51',d:'22.11.2026',n:['«Дивлюсь» розкладено на полиці за тим, що робити: «Є нові серії», «Чекаю нову серію», «Усе переглянуто», «Фільми»','Коли «+ серія» натиснути не можна, кнопка приглушена, а під лічильником написано чому','У картці серіалу ✓ стоять на переглянутих серіях, а на поточній написано «далі»','Застосунок відкривається на списку, з яким ти працював востаннє; на іконці застосунку на телефоні є ярлики Дивлюсь, Планую, Пошук','Після «Переглянуто» з\'являється кнопка «★ Оцінити»; зірки більші, під ними «N з 10»','На телефоні кнопки легше влучити пальцем; повторне натискання розділу в меню гортає сторінку нагору','Пошук: окремо «Люди» і «Фільми й серіали»; якщо пошук у списку нічого не знайшов, можна одразу шукати цю назву в базі','«Усі ›» на полиці відкриває всю категорію сіткою; на телефоні сортування сховане під значком ⇅','Франшизи шукаються й за назвою фільму всередині, назви українською','Люди: «Не стежити» можна скасувати; у сортуванні фільмографії можна обрати вигляд — десятиліттями чи одним списком','Рекомендації: «Додати» працює без ключа OMDb, головна дія — «Запланувати», є пошук серед прихованих і зрозуміле повідомлення, коли TMDB не відповідає','Статистика: на рядки можна натиснути, підписи «IMDb», виправлені відмінки','Ігри: видно твій рекорд, а коли TMDB не відповідає — кнопка «Спробувати ще»','У повідомленні про оновлення є кнопка «Що нового», а з історії змін можна повернутися в Налаштування','З вікна редагування прибрано поле «Категорія»']},
   {v:'1.50',d:'16.11.2026',n:['Картка «Почнімо»: покрокова інструкція, як отримати ключ TMDB, і який із двох ключів потрібен','Крок 2: головна кнопка «Обрати з популярного» — одразу до популярного й найкращого','Від 1-го до 19-го переглянутого — рядок над списком: оціни переглянуте, скільки до Статистики (10) й Ігор (20); ✕ ховає назавжди']},
   {v:'1.49.3',d:'16.11.2026',n:['Українські фільми знову з українськими назвами: раніше назву відкидало, бо вона збігається з оригінальною. Уже додані перевіряться самі за кілька секунд після відкриття']},
   {v:'1.49.2',d:'16.11.2026',n:['Безпека імпорту й бекапу: жанр чи тег на кшталт «constructor» більше не ламає фільтри й статистику; постери — лише з TMDB і IMDb; рядки з CSV проходять ту саму перевірку, що й бекап (оцінка 0–10, тривалість, довжина); рік Letterboxd перевіряється']},
@@ -723,10 +726,12 @@ const CHANGELOG=[
   {v:'1.0',d:'27.10.2026',n:['Бекап на Google Drive','Мобільні картки «Дивлюсь»: більший постер, кнопки на всю ширину','Виправлено відсутні постери через TMDB','Налаштування на одній сторінці, автоматичне обслуговування','Помаранчеві акценти']},
 ];
 const APP_VERSION=CHANGELOG[0].v;
-function openChangelog(){
+/* from «Налаштування → Про застосунок» (from='st') the head has «‹ Налаштування» that goes back to that row */
+function openChangelog(from){
   const groups=[];CHANGELOG.forEach(e=>{const k=e.v.split('.').slice(0,2).join('.'),g=groups[groups.length-1];if(g&&g.k===k)g.items.push(e);else groups.push({k,items:[e]});});
   const ver=e=>`${e.items.length>1?`<div class="cl-sub">${e.v}${e.v===APP_VERSION?' · поточна':''}<span>${e.d}</span></div>`:''}<ul>${e.n.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`;
-  modal(`<div class="st-head"><h2 class="modal-title">Історія змін</h2><button class="st-x" data-act="closeModal" title="Закрити" aria-label="Закрити">✕</button></div>
+  const back=from==='st'?`<button class="st-back" data-act="openIO" data-args="${A('stVer')}"><span aria-hidden="true">‹</span>Налаштування</button>`:'';
+  modal(`<div class="st-head">${back}<h2 class="modal-title">Історія змін</h2><button class="st-x" data-act="closeModal" title="Закрити" aria-label="Закрити">✕</button></div>
     <div class="st-body">${groups.map((g,i)=>{const top=g.items[0],fx=g.items.length-1,cur=g.items.some(e=>e.v===APP_VERSION);
       return `<details class="st-row cl-ver"${i===0?' open':''}><summary class="st-row-head"><span class="st-lbl">Версія ${g.k}${fx?`<small> + ${fx} ${fx%10>=1&&fx%10<=4&&(fx%100<11||fx%100>14)?'виправлення':'виправлень'}</small>`:''}${cur?' · поточна':''}</span><span class="st-hint">${top.d}</span></summary>${g.items.map(e=>ver({...e,items:g.items})).join('')}</details>`;}).join('')}</div>`);
   document.querySelector('.modal')?.classList.add('st-modal');
@@ -737,5 +742,14 @@ function _versionNotice(){
   const seen=localStorage.getItem('ct_seen_ver');
   if(seen===APP_VERSION)return;
   _lsSet('ct_seen_ver',APP_VERSION);
-  if(seen||localStorage.getItem('ct_watched'))setTimeout(()=>{toast(`Оновлено до версії ${APP_VERSION}. Що нового — Налаштування → Версія`,'',7000);},1500);
+  if(seen||localStorage.getItem('ct_watched'))setTimeout(()=>{
+    /* 1.51: the toast carries its own «Що нового» (it used to point at a «Налаштування → Версія» that does not exist) */
+    document.querySelectorAll('.toast').forEach(t=>t.remove());
+    const el=document.createElement('div');el.className='toast undo';
+    const lbl=document.createElement('span');lbl.textContent=`Оновлено до версії ${APP_VERSION}`;
+    const btn=document.createElement('button');btn.className='t-undo';btn.innerHTML=ic('info')+'Що нового';
+    const tm=_toastTimer(el,8000,()=>el.remove());
+    btn.onclick=()=>{clearTimeout(tm);el.remove();openChangelog();};
+    el.append(lbl,btn);_toastMount(el);
+  },1500);
 }

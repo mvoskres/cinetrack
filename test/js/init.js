@@ -1,4 +1,6 @@
 /* ── INIT ── */
+/* 1.51: the test page counted «not started» as E0 (dropped before release) — such shows are back on E1 */
+{let n=0;watching.forEach(w=>{if(w.type==='series'&&!(+w.episode>=1)){w.episode=1;n++;}});if(n)save();}
 ['watched','watching','planned'].forEach(buildBar);['watched','watching','planned'].forEach(_barEmpty);
 rWatched();rWatching();rPlanned();rDash();updateStats();
 /* 1.51: the app opens on the list used last (Переглянуте / Дивлюсь / Планую) — a setting of this device (ct_last_tab), not in the backup.

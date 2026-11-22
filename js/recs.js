@@ -201,7 +201,7 @@ async function _seedRecs(seed){
   return {seed,items};
 }
 function _shelfSeed(r,known){
-  return {id:'seed-'+r.seed.imdbID,title:`Схоже на «${r.seed.title}»`,why:_seedWhy(r.seed),items:r.items.filter(it=>!known.has(it)).slice(0,18)};
+  return {id:'seed-'+r.seed.imdbID,title:`Схоже на «${tn(r.seed)}»`,why:_seedWhy(r.seed),items:r.items.filter(it=>!known.has(it)).slice(0,18)};
 }
 function _recLike(names){
   const q=t=>`«${t}»`;
@@ -267,7 +267,7 @@ async function buildRecs(manual){
       const fresh0=watched.length<5; /* 1.43: (almost) nothing watched yet — nothing to build «because of X» from */
       const [sr,fresh,anim,anime,animTv,trend,best]=await Promise.all([
         Promise.all(seeds.map(s=>soft(_seedRecs(s)))),
-        top.length?soft(_shelfDiscover('fresh','Свіжі релізи у твоїх жанрах',`За останні півтора року · ${top.map(_genreNameById).join(', ')}`,
+        top.length?soft(_shelfDiscover('fresh','Свіжі релізи у твоїх жанрах',`За останні півтора року · ${top.map(id=>_recGenreUa(_genreNameById(id))).join(', ')}`,
           [['movie',`with_genres=${top.join('|')}&primary_release_date.gte=${since}&vote_count.gte=150&sort_by=popularity.desc&page=${fp}`],
            ...(tvTop.length?[['tv',`with_genres=${tvTop.join('|')}&first_air_date.gte=${since}&vote_count.gte=60&sort_by=popularity.desc&page=${fp}`]]:[])],
           known,60,6.5,(a,b)=>b.votes-a.votes)):null,
@@ -337,8 +337,9 @@ function _recDrop(k){
   _recsSave();renderRecs();
 }
 function recMenu(ev,k){
-  openMenu(ev,[{icon:'check',label:'Переглянуто',fn:'recAct',args:[k,'watched']},{icon:'play',label:'Дивлюсь',fn:'recAct',args:[k,'watching']},
-    {icon:'bookmark',label:'Запланувати',fn:'recAct',args:[k,'planned']},'-',{icon:'eye-off',label:'Не цікаво, сховати',fn:'recAct',args:[k,'hide']}]);
+  /* 1.51: the main action first — most of what the shelves show is for later, not already seen */
+  openMenu(ev,[{icon:'bookmark',label:'Запланувати',fn:'recAct',args:[k,'planned']},{icon:'play',label:'Дивлюсь',fn:'recAct',args:[k,'watching']},
+    {icon:'check',label:'Переглянуто',fn:'recAct',args:[k,'watched']},'-',{icon:'eye-off',label:'Не цікаво, сховати',fn:'recAct',args:[k,'hide']}]);
 }
 /* IMDb id is resolved only here, when a title is actually added */
 async function recAct(k,action){
@@ -369,7 +370,10 @@ async function recAct(k,action){
   if(!imdb){toast('Цього тайтлу немає на IMDb, тож додати його не вийде','err',3600);return;}
   it.imdbID=imdb;
   const fn={watched:addW,watching:addWn,planned:addPl}[action];
+  /* 1.51: the data comes from TMDB, like in the search and on the card: no OMDb key needed to add (it only tops up the IMDb rating) */
+  if(!_pendingMap[imdb]){try{_pmSet(imdb,_shapeFromTmdb(it.mt,await tmdbFetch(`/${it.mt}/${it.id}?language=en-US`)));}catch(e){}}
   let ok=false;try{ok=await fn(imdb);}catch(e){toast('Не вдалося додати: немає зв\'язку з OMDb','err');}
+  if(ok&&_pendingMap[imdb]?._fromTmdb){_setTmdbRating(imdb,_pendingMap[imdb].tmdbRating);save();_topUpImdbRating(imdb);}
   if(ok)_recDrop(k);
 }
 
@@ -380,11 +384,12 @@ async function recGenre(name){
   _recView='genre';_recGenreState={name,items:[]};renderRecs();
   const known=_recKnown();
   const tv=_TV_GENRE[gid]; /* no series genre for Thriller, Horror, Romance…: films only */
-  const s=await _shelfDiscover('genre','','',[1,2].flatMap(p=>[['movie',`with_genres=${gid}&vote_count.gte=500&sort_by=popularity.desc&page=${p}`],...(tv?[['tv',`with_genres=${tv}&vote_count.gte=200&sort_by=popularity.desc&page=${p}`]]:[])]),known,200,6.5).catch(()=>({items:[]}));
+  const s=await _shelfDiscover('genre','','',[1,2].flatMap(p=>[['movie',`with_genres=${gid}&vote_count.gte=500&sort_by=popularity.desc&page=${p}`],...(tv?[['tv',`with_genres=${tv}&vote_count.gte=200&sort_by=popularity.desc&page=${p}`]]:[])]),known,200,6.5).catch(()=>null);
   if(_recGenreState?.name!==name)return; /* switched again meanwhile */
-  _recGenreState.items=s.items.concat([]).slice(0,48);_recGenreState.loaded=true;renderRecs();
+  /* 1.51: no answer from TMDB is not «everything is already yours» */
+  _recGenreState.failed=!s;_recGenreState.items=s?s.items.concat([]).slice(0,48):[];_recGenreState.loaded=true;renderRecs();
 }
-function recView(v){_recView=v;if(v!=='genre'){const gp=document.getElementById('genrePick');if(gp)gp.value='';}renderRecs();}
+function recView(v){if(v==='hidden'&&_recView==='hidden')v='picks';_recView=v;if(v!=='genre'){const gp=document.getElementById('genrePick');if(gp)gp.value='';}renderRecs();}
 function recType(t){_recType=t;renderRecs();}
 function recShelfMore(id){_recOpen.has(id)?_recOpen.delete(id):_recOpen.add(id);renderRecs();}
 
@@ -392,14 +397,23 @@ function recShelfMore(id){_recOpen.has(id)?_recOpen.delete(id):_recOpen.add(id);
 const _recTypeOk=it=>_recType==='all'||(_recType==='anim'?it.anim:(!it.anim&&it.mt===_recType));
 
 /* ── hidden titles ── */
+let _hiddenQ='';
+function recHiddenQ(v){_hiddenQ=String(v||'');_gridShown.hidden=GRID_PAGE;showHidden();}
 function showHidden(){
   const g=document.getElementById('recsGrid');
   if(!hidden.length){g.innerHTML=`<div class="empty"><span class="empty-icon">${ic('eye-off')}</span><div class="empty-txt">Нічого не приховано</div></div>`;return;}
   const _hl=id=>{for(const l of[watched,watching,planned]){const f=l.find(i=>i.imdbID===id);if(f)return f;}return null;};
-  const list=hidden.map((h,idx)=>({h,idx})).reverse(); /* newest first */
-  g.innerHTML='<div class="grid" id="hiddenGrid"></div>';
+  /* 1.51: with 900+ hidden titles a search box: the grid below is rebuilt, the input stays (and keeps focus) */
+  if(!document.getElementById('hiddenGrid')){
+    g.innerHTML=`<div class="local-search-wrap rv-hs"><span class="local-search-icon">${ic('lsearch')}</span><input class="local-search" id="hiddenQ" type="text" placeholder="Знайти серед прихованих" aria-label="Пошук серед прихованих" value="${esc(_hiddenQ)}" data-input="recHiddenQ" data-args="${A('$value')}"><button type="button" class="ls-x" data-act="lsClear" data-args="[&quot;$el&quot;]" aria-label="Очистити пошук" title="Очистити">${ic('x')}</button></div><div class="grid" id="hiddenGrid"></div>`;
+  }
+  const q=_hiddenQ.trim().toLowerCase();
+  const list=hidden.map((h,idx)=>({h,idx})).reverse().filter(({h})=>!q||String(h.title||'').toLowerCase().includes(q)||String(h.year||'')===q); /* newest first */
+  const grid=document.getElementById('hiddenGrid');
+  if(!list.length){grid.className='';grid.innerHTML=`<div class="empty"><span class="empty-icon">${ic('search')}</span><div class="empty-txt">Серед прихованих такого немає</div></div>`;return;}
+  grid.className='grid';
   _gridShown.hidden=_gridShown.hidden||GRID_PAGE;
-  _gridRender('hidden',document.getElementById('hiddenGrid'),list,({h,idx})=>{
+  _gridRender('hidden',grid,list,({h,idx})=>{
     const found=h.imdbID?_hl(h.imdbID):null;
     const poster=found?.poster||h.poster||'';
     const href=esc(/^tt\d+$/.test(h.imdbID||'')?`https://www.imdb.com/title/${h.imdbID}/`:/^(movie|tv):\d+$/.test(h.tmdb||'')?`https://www.themoviedb.org/${h.tmdb.replace(':','/')}`:'#');

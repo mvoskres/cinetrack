@@ -1,6 +1,20 @@
 /* ── INIT ── */
+/* 1.51: the test page counted «not started» as E0 (dropped before release) — such shows are back on E1 */
+{let n=0;watching.forEach(w=>{if(w.type==='series'&&!(+w.episode>=1)){w.episode=1;n++;}});if(n)save();}
 ['watched','watching','planned'].forEach(buildBar);['watched','watching','planned'].forEach(_barEmpty);
 rWatched();rWatching();rPlanned();rDash();updateStats();
+/* 1.51: the app opens on the list used last (Переглянуте / Дивлюсь / Планую) — a setting of this device (ct_last_tab), not in the backup.
+   ?tab=watching|planned|watched|search comes from the home-screen shortcuts (manifest.webmanifest); it is taken once and dropped from the address */
+const _START_TABS=['watched','watching','planned'];
+{const _goTab0=goTab;goTab=function(id,btn){_goTab0(id,btn);if(_START_TABS.includes(id))_lsSet('ct_last_tab',id);};}
+(()=>{
+  let q=null,last=null;
+  try{const u=new URL(location.href);q=u.searchParams.get('tab');if(q!==null){u.searchParams.delete('tab');history.replaceState(history.state,'',u.pathname+u.search+u.hash);}}catch(e){}
+  try{last=localStorage.getItem('ct_last_tab');}catch(e){}
+  const t=_START_TABS.includes(q)?q:_START_TABS.includes(last)?last:'watched';
+  if(t!=='watched')goTab(t);
+  if(q==='search')searchOpen();
+})();
 if(!TMDB_KEY&&(watched.length||watching.length||planned.length))
   setTimeout(()=>toast('Додай ключ TMDB у Налаштуваннях: без нього немає українських назв, пошуку, рекомендацій і статистики.','',10000),800);
 _backupStateRender();

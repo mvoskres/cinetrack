@@ -2072,28 +2072,14 @@ body.mn-on .mn-sh.over{z-index:900;} /* opened from a title card (ts-bg 800) */
 /* ═══ 1.51 — UX pass: presses, touch zones, stats taps, games, settings back ═══ */
 :root{--press:cubic-bezier(.23,1,.32,1);}
 /* a press is felt: the control sinks a little and comes back (160 ms out, 140 ms in); no motion for those who asked for none */
-.btn,.dock .dk-li,.dock .dk-mb,.dock .dk-bl,.dock .dk-bd,.dk-drop button,.dock .dk-more,.dock .dk-d,.dock .dk-rset,.dock .dk-tsr,.dock .me,.dock .dk-sr{transition:transform .14s var(--press),color .15s,background-color .15s,border-color .15s;}
+.btn{transition:transform .14s var(--press),color .15s,background-color .15s,border-color .15s;}
 .cat-chip,.flt-pill,.sv-nx,.rg-t,.gx-mode,.gx-t,.gx-card,.pz-sz{transition:transform .14s var(--press),color .15s,background-color .15s,border-color .15s,filter .15s;}
-.btn:active,.dock .dk-li:active,.dock .dk-mb:active,.dock .dk-bl:active,.dock .dk-bd:active,.dk-drop button:active,.dock .dk-more:active,.dock .dk-d:active,.dock .dk-rset:active,.dock .dk-tsr:active,.dock .me:active,.dock .dk-sr:active,
+.btn:active,
 .cat-chip:active,.flt-pill:active,.sv-nx:active,.rg-t:active,.gx-mode:active:not(:disabled),.gx-t:active,.gx-card:active,.pz-sz:active,button.fa-lbl:active,.rv-x:active{transform:scale(.97);}
 .btn:disabled:active{transform:none;}
-.dock .dk-bl,.dock .dk-bd,.dk-drop button{transform-origin:left center;}
-@media(prefers-reduced-motion:reduce){.btn:active,.dock :active,.dk-drop button:active,.cat-chip:active,.flt-pill:active,.sv-nx:active,.rg-t:active,.gx-mode:active,.gx-t:active,.gx-card:active,.pz-sz:active,button.fa-lbl:active,.rv-x:active{transform:none;}}
+@media(prefers-reduced-motion:reduce){.btn:active,.cat-chip:active,.flt-pill:active,.sv-nx:active,.rg-t:active,.gx-mode:active,.gx-t:active,.gx-card:active,.pz-sz:active,button.fa-lbl:active,.rv-x:active{transform:none;}}
 
-/* menu: the item that is open is named on «Ще» (≤1100) */
-.dock .dk-more{white-space:nowrap;}
-.dock .dk-more.on{color:var(--gold);border-color:var(--gold-b);font-weight:600;}
-
-/* computer: the page links of the dock are a bigger target for the mouse, same look */
-@media(min-width:1101px){.dock .dk-d{padding:7px 0;}}
-
-/* phone: a finger-sized menu (the words keep their size; only the space around them grows) */
-@media(max-width:700px){
-  .dock .dk-bl{padding:5px 0;}
-  .dock .dk-bd{padding:6.6px 0;}
-  .dock .dk-li{min-height:44px;justify-content:center;}
-  .dock .dk-bl,.dock .dk-bd{min-height:44px;align-items:baseline;}
-}
+/* 1.51: the dock menu stays as in 1.50 (no bigger rows, no press, no name on «Ще») */
 @media(max-width:700px),(pointer:coarse){
   .ct-menu button,.ct-menu a{min-height:44px;}
   .rv-head .link-btn{min-height:44px;padding:0 .5rem;margin-right:-.5rem;}

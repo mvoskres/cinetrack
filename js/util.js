@@ -44,10 +44,11 @@ function closeModal(){
 /* a radio group: one tab stop (the chosen star, or the first), arrows change the grade, Home/Delete clear it */
 function buildStars(cur){
   const sel=Math.max(0,Math.min(10,Math.round(+cur)||0));
-  return Array.from({length:10},(_,i)=>`<span class="star${sel>i?' on':''}" role="radio" aria-checked="${sel===i+1}" aria-label="${i+1} з 10" tabindex="${(sel?sel===i+1:i===0)?0:-1}" data-act="pStar" data-args="${A((i+1))}" data-n="${i+1}">★</span>`).join('');
+  return Array.from({length:10},(_,i)=>`<span class="star${sel>i?' on':''}" role="radio" aria-checked="${sel===i+1}" aria-label="${i+1} з 10" tabindex="${(sel?sel===i+1:i===0)?0:-1}" data-act="pStar" data-args="${A((i+1))}" data-n="${i+1}">★</span>`).join('')+`<span class="stars-n" aria-hidden="true">${sel?sel+' з 10':''}</span>`; /* phone: «7 з 10» next to the stars */
 }
 function pStar(n){
   document.getElementById('eR').value=n;
+  const sn=document.querySelector('#starsBox .stars-n');if(sn)sn.textContent=n?n+' з 10':'';
   document.querySelectorAll('#starsBox .star').forEach((s,i)=>{s.classList.toggle('on',i<n);s.setAttribute('aria-checked',String(i+1===n));s.tabIndex=(n?i+1===n:i===0)?0:-1;});
 }
 document.addEventListener('keydown',e=>{
@@ -96,13 +97,31 @@ function _toastTimer(el,ms,fn){
     fn();
   },ms);
 }
-function toast(msg,type='',dur=3400){
+function toast(msg,type='',dur=3400,rateId){
   clearTimeout(_tTimer);document.querySelectorAll('.toast').forEach(t=>t.remove());
   const el=document.createElement('div');el.className=`toast${type?' '+type:''}`;
   const txt=document.createElement('span');txt.textContent=String(msg).replace(_LEAD_GLYPH,'');
   el.innerHTML=ic(type==='ok'?'check':type==='err'?'alert':'info');el.appendChild(txt);
+  if(rateId){el.appendChild(_rateBtn(rateId));dur=Math.max(dur,5000);}
   el.title='Натисни, щоб закрити';el.addEventListener('click',()=>{clearTimeout(_tTimer);el.remove();});
   _toastMount(el,type==='err');_tTimer=_toastTimer(el,type==='err'?Math.max(dur,7000):dur,()=>el.remove());
+}
+
+/* 1.51: the optional «★ Оцінити» on the toast after any «Переглянуто»: opens the rating sheet, forces nothing */
+function _rateBtn(imdbID){
+  const b=document.createElement('button');b.className='t-undo t-rate';b.innerHTML=ic('star')+'Оцінити';
+  b.onclick=()=>{const w=watched.find(x=>x.imdbID===imdbID);b.closest('.toast')?.remove();if(w)myNote(w.id,true,true);};
+  return b;
+}
+
+/* a plain toast with one action button («Скасувати» and the like), 5 s */
+function _toastAct(msg,label,fn){
+  clearTimeout(_tTimer);document.querySelectorAll('.toast').forEach(t=>t.remove());
+  const el=document.createElement('div');el.className='toast undo';
+  const lbl=document.createElement('span');lbl.textContent=msg;
+  const btn=document.createElement('button');btn.className='t-undo';btn.innerHTML=ic('undo')+label;
+  btn.onclick=()=>{fn();};
+  el.append(lbl,btn);_toastMount(el);_toastTimer(el,5000,()=>el.remove());
 }
 
 /* ── DELETE + UNDO ── */
@@ -111,7 +130,7 @@ let _undo=null;
 /* Shared undo toast for move operations.
    actionLabel = what was done ("«Title» → Переглянуто")
    undoFn = function to call to reverse the move              */
-function _mvUndo(item,fromList,fromIdx,undoFn,actionLabel){
+function _mvUndo(item,fromList,fromIdx,undoFn,actionLabel,rateId){
   if(_undo){clearTimeout(_undo.timer);document.querySelectorAll('.toast').forEach(t=>t.remove());_undo=null;}
   document.querySelectorAll('.toast').forEach(t=>t.remove());
   const el=document.createElement('div');el.className='toast undo';
@@ -123,7 +142,7 @@ function _mvUndo(item,fromList,fromIdx,undoFn,actionLabel){
     el.remove();
     toast(`«${item.title}» повернено до запланованого`,'ok',2400);
   };
-  el.append(lbl,btn);_toastMount(el);
+  if(rateId){const a=document.createElement('span');a.className='t-acts';a.append(btn,_rateBtn(rateId));el.append(lbl,a);}else el.append(lbl,btn);_toastMount(el);
   const timer=_toastTimer(el,5000,()=>{el.remove();_undo=null;});
   _undo={timer};
 }

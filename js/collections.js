@@ -243,10 +243,10 @@ function buildCollBar(){
         <input class="local-search" type="text" placeholder="Пошук франшизи…" aria-label="Пошук франшизи" value="${esc(f.q)}" data-input="collSearch" data-args="[&quot;$value&quot;]"><button type="button" class="ls-x" data-act="lsClear" data-args="[&quot;$el&quot;]" aria-label="Очистити пошук" title="Очистити">${ic('x')}</button>
       </div>
       <button id="collFbtn" class="flt-pill${n?' has-n':''}" data-act="toggleCollPan" aria-haspopup="dialog">${ic('filter')}Фільтри${n?` <span class="flt-n">${n}</span>`:''}</button>
-      <select class="sort-sel" aria-label="Сортування" data-change="collSetSort" data-args="[&quot;$value&quot;]">
+      ${_sortCtl(`<select class="sort-sel" aria-label="Сортування" data-change="collSetSort" data-args="[&quot;$value&quot;]">
         ${[['missing-asc','Найближчі до завершення'],['owned-desc','Найбільше переглянуто'],['next-asc','Найближча прем\'єра'],['name-asc','А→Я']]
           .map(([v,l])=>`<option value="${v}"${f.sort===v?' selected':''}>${l}</option>`).join('')}
-      </select>
+      </select>`,[['missing-asc','Найближчі до завершення'],['owned-desc','Найбільше переглянуто'],['next-asc','Найближча прем\'єра'],['name-asc','А→Я']],f.sort)}
     </div>`;
 }
 function toggleCollPan(){
@@ -325,7 +325,7 @@ function collSetStatus(s){
   if(s==='upcoming')_collFilter.sort='next-asc';else if(_collFilter.sort==='next-asc')_collFilter.sort='missing-asc';
   buildCollBar();renderCollections();
 }
-function collSetSort(v){_collFilter.sort=v;renderCollections();}
+function collSetSort(v){_collFilter.sort=v;if(typeof buildCollBar==='function')buildCollBar();renderCollections();}
 
 /* ── COLLECTIONS: fast client-side render (no network) ── */
 let _collOrderLocked=null; /* array of collection ids in the currently displayed order — frozen
@@ -348,7 +348,7 @@ function renderCollections(preserveOrder){
   }else{
     list=_collGroupsCache.map(withCounts);
     const f=_collFilter;
-    if(f.q){const q=f.q.toLowerCase();list=list.filter(c=>c.name.toLowerCase().includes(q)||(c.en||'').toLowerCase().includes(q));}
+    if(f.q){const q=f.q.toLowerCase();list=list.filter(c=>c.name.toLowerCase().includes(q)||(c.en||'').toLowerCase().includes(q)||(c.list||[]).some(p=>(p.ut||'').toLowerCase().includes(q)||(p.title||'').toLowerCase().includes(q)));} /* 1.51: also by a part's name */
     if(f.status==='incomplete')list=list.filter(c=>c.total>0&&c.owned<c.total);
     if(f.status==='complete')list=list.filter(c=>c.total>0&&c.owned>=c.total);
     if(f.status==='upcoming')list=list.filter(c=>c.upcoming>0);
@@ -439,7 +439,7 @@ function _collMetaEnc(p){
   /* encodeURIComponent does NOT escape apostrophes — a title like "Harry
      Potter and the Philosopher's Stone" would otherwise break out of the
      single-quoted onclick attribute and silently kill the handler. */
-  return uriSafe(JSON.stringify({title:p.title,year:p.year,poster:p.poster?`https://image.tmdb.org/t/p/w342${p.poster}`:'',rating:p.imdbRating||''}));
+  return uriSafe(JSON.stringify({title:p.ut||p.title,year:p.year,poster:p.poster?`https://image.tmdb.org/t/p/w342${p.poster}`:'',rating:p.imdbRating||''}));
 }
 
 function collAddMissing(imdbID,metaEnc){
@@ -543,7 +543,7 @@ function _showAddUndo(imdbID,status,before={}){
     el.remove();
     if(_collPickerOnDone)_collPickerOnDone();
   };
-  el.append(lblEl,btn);_toastMount(el);
+  if(status==='watched'){const a=document.createElement('span');a.className='t-acts';a.append(btn,_rateBtn(imdbID));el.append(lblEl,a);}else el.append(lblEl,btn);_toastMount(el);
   const timer=_toastTimer(el,5000,()=>el.remove());
 }
 

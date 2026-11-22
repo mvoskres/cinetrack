@@ -33,11 +33,12 @@ function chScreen(){
       <div class="ch-row" role="group" aria-label="Скільки постерів">${CH_COUNTS.map(k=>`<button class="pz-sz${_ch.n===k?' on':''}" aria-pressed="${_ch.n===k}" data-act="chCount" data-args="${A(k)}"><b>${k}</b><span>постерів</span></button>`).join('')}</div>
       <p class="pz-lbl">Складність</p>
       <div class="ch-row" role="group" aria-label="Складність">${CH_LEVELS.map(([k,l,s])=>`<button class="pz-sz${_ch.d===k?' on':''}" aria-pressed="${_ch.d===k}" data-act="chLevel" data-args="${A(k)}"><b>${l}</b><span>${s}</span></button>`).join('')}</div>
+      <p class="pz-lbl">З чого брати</p>
+      <div class="cat-seg game-filter" role="group" aria-label="З чого брати">${[['all','Усе'],['movie','Фільми'],['series','Серіали'],['anim','Анімація']].filter(([k])=>k==='all'||cnt[k]>=12)
+        .map(([k,l])=>`<button class="cat-chip${_ch.filter===k?' on':''}" data-act="chFilter" data-args="${A(`${k}`)}">${l}<span class="num">${cnt[k]}</span></button>`).join('')}</div>
       ${few?`<div class="recs-note">${ic('info')}<span>${_gameLocked()?`Гра відкриється, коли в «Переглянутому» буде ${GAME_MIN} тайтлів. Зараз ${watched.length}.`:'Для гри потрібно щонайменше 12 переглянутих тайтлів із роком і постером.'}</span></div>`:''}
       <div class="gx-modes"><button class="gx-mode p" data-act="chStart" ${few?'disabled':''}><b>Почати</b><span>серія до першої помилки · рекорд <span class="num">${best}</span></span></button></div>
     </div></section>
-    <div class="cat-seg game-filter" role="group" aria-label="З чого брати">${[['all','Усе'],['movie','Фільми'],['series','Серіали'],['anim','Анімація']].filter(([k])=>k==='all'||cnt[k]>=12)
-      .map(([k,l])=>`<button class="cat-chip${_ch.filter===k?' on':''}" data-act="chFilter" data-args="${A(`${k}`)}">${l}<span class="num">${cnt[k]}</span></button>`).join('')}</div>
     <p class="game-keys">Перетягни постер або торкнись двох, щоб поміняти · клавіші: <kbd>Enter</kbd> взяти, стрілки посунути · <kbd>Esc</kbd> вийти</p>`;
 }
 

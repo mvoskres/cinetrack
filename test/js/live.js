@@ -114,14 +114,8 @@ async function fetchLive(imdbID){
   }finally{_liveBusy.delete(imdbID);}
 }
 function relive(imdbID){const it=watching.find(x=>x.imdbID===imdbID);if(it){delete it.liveStatus;save();}const el=document.getElementById(`lv-${imdbID}`);if(el)el.innerHTML='<div class="live-loading">Оновлюю дані ефіру…</div>';fetchLive(imdbID);}
-/* numbers only: the label goes into markup and into textContent alike.
-   1.51: episode = the LAST WATCHED one; 0 = the show is not started yet (a new add, or «−» from S1·E1) */
-function _epLabel(it){return it.episode===0&&(+it.season||1)===1?'не почато':`S${String(+it.season||1).padStart(2,'0')} E${String(+it.episode||1).padStart(2,'0')}`;}
-/* the episode after the last watched one: {s,e} (next season when the season length is known and reached) */
-function _nextEp(it){
-  const s=+it.season||1,e=+it.episode||0,len=+it.seasonEps?.[s]||0;
-  return len&&e>=len&&s<(it.totalSeasons||1)?{s:s+1,e:1}:{s,e:e+1};
-}
+/* numbers only: the label goes into markup and into textContent alike */
+function _epLabel(it){return `S${String(+it.season||1).padStart(2,'0')} E${String(+it.episode||1).padStart(2,'0')}`;}
 /* why «+ серія» cannot go on ('' when it can): the same check adj() makes, so the sheet can say it before the tap */
 function _adjPlusBlock(it){
   const len=it.seasonEps?.[it.season];
@@ -153,8 +147,8 @@ function adj(id,dim,d){
       if(d>0){it.prevEp={s:prev,e:it.episode};it.episode=1;} /* new season starts at episode 1, remember where we were */
       else{it.episode=it.prevEp&&it.prevEp.s===it.season?it.prevEp.e:(it.seasonEps?.[it.season]||1);delete it.prevEp;} /* back: restore that episode, else the season's last one */
     }}
-  else it.episode=Math.max(it.season===1?0:1,it.episode+d); /* «−» from S1·E1 = not started (E0) */
-  if(it.season===s0&&it.episode===e0)return; /* «−» on a show not started yet: nothing to change */
+  else it.episode=Math.max(1,it.episode+d);
+  if(it.season===s0&&it.episode===e0)return; /* «−» on S1·E1: nothing to change */
   it.seenAt=Date.now(); /* 1.51: the wall puts the shows marked lately first */
   save();const c=document.getElementById(`wc-${id}`);
   if(c){

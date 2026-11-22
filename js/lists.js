@@ -1,9 +1,7 @@
 /* ── TABS ── */
 function goTab(id,btn){
-  if(document.body.classList.contains('nav-on')&&matchMedia('(max-width:700px)').matches){
-    document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('on',b.dataset.tab===id));
-    navClose();setTimeout(()=>goTab(id,btn),300);return;
-  }
+  /* 1.51: from the open phone menu the page switches at once (it used to wait 300 ms for the menu to close); the close animation is CSS and runs on its own */
+  const viaMenu=document.body.classList.contains('nav-on')&&matchMedia('(max-width:700px)').matches;
   document.getElementById('gameModalBg')?.classList.add('hidden');_lyDone('game');
   const tabEl=document.getElementById('tab-'+id);
   const fresh=!!tabEl&&tabEl.classList.contains('hidden'); /* a new tab starts at its top, not at the old tab's scroll depth */
@@ -21,7 +19,10 @@ function goTab(id,btn){
   if(id==='game'){if(typeof _gxList!=='undefined')_gxList=true;loadGameTab();}
   const ds=document.getElementById('dashSection');if(ds)ds.hidden=id!=='watching'; /* air strip belongs to Дивлюсь */
   closeMenu();navClose();searchClose();
-  if(fresh){window.scrollTo(0,0);requestAnimationFrame(()=>window.scrollTo(0,0));} /* after the menu closed: its history step must not bring the old position back */
+  if(fresh){window.scrollTo(0,0);requestAnimationFrame(()=>window.scrollTo(0,0));}
+  else if(tabEl&&window.event?.target?.closest?.('[data-tab],.dk-home')&&scrollY>40&&!document.body.classList.contains('srch-on')) /* 1.51: a second tap on the open page's dock item goes to its top */
+    scrollTo({top:0,behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'});
+  if(fresh&&viaMenu)setTimeout(()=>window.scrollTo(0,0),200); /* the menu's history step lands after the switch and may bring the old position back */
 }
 
 /* ── SEARCH ── */
@@ -78,16 +79,18 @@ async function _tmdbSearch(q){
   const titles=res.filter(r=>r.media_type!=='person').sort((a,b)=>rank(a)-rank(b)||(b.popularity||0)-(a.popularity||0)).slice(0,20),people=res.filter(r=>r.media_type==='person').slice(0,4);
   const box=document.getElementById('suggestions');box.classList.remove('hidden');
   document.querySelector('#srch .search-wrap').classList.remove('loading');
-  box.innerHTML=titles.map(r=>{
+  const _sh=t=>`<div class="sug-sec" role="presentation">${t}</div>`; /* 1.51: titles and people under their own headings */
+  box.innerHTML=(people.length?_sh('Люди')+people.map(p=>`<div class="sug-item" data-act="_sugPerson" data-args="${A(p.id,p.name,p.profile_path||'')}">
+      <div class="sug-p round"><img class="sug-img" src="${_tsImg(p.profile_path,'w185')}" alt="" loading="lazy" data-fb></div>
+      <div class="sug-title">${esc(p.name)}</div><div class="sug-meta">${p.known_for_department==='Directing'?'режисер':'актор'} · фільмографія</div></div>`).join(''):'')
+  +(titles.length&&people.length?_sh('Фільми й серіали'):'')+titles.map(r=>{
     const t=r.title||r.name||'',o=r.original_title||r.original_name||'',y=(r.release_date||r.first_air_date||'').slice(0,4);
     const own=_ownBadge(_tmdbOwnedId(r.media_type,r.id));
     return `<div class="sug-item" data-act="_sugOpen" data-args="${A(r.media_type,r.id)}">
       <div class="sug-p"><img class="sug-img" src="${_tsImg(r.poster_path,'w185')||blank()}" alt="" loading="lazy" data-fb>${own}</div>
       <div class="sug-title">${esc(t)}</div><div class="sug-meta">${y?`${esc(y)} · `:''}${(r.media_type==='tv'?CAT.series:CAT.movie).toLowerCase()}</div>${o&&o!==t?`<div class="sug-orig">${esc(o)}</div>`:''}
       ${own?'':`<button class="sug-add" data-act="sugAdd" data-args="${A('$ev',r.media_type,r.id)}">${ic('plus')}Додати</button>`}</div>`;
-  }).join('')+people.map(p=>`<div class="sug-item" data-act="_sugPerson" data-args="${A(p.id,p.name,p.profile_path||'')}">
-      <div class="sug-p round"><img class="sug-img" src="${_tsImg(p.profile_path,'w185')}" alt="" loading="lazy" data-fb></div>
-      <div class="sug-title">${esc(p.name)}</div><div class="sug-meta">${p.known_for_department==='Directing'?'режисер':'актор'} · фільмографія</div></div>`).join('');
+  }).join('');
   _sugSync('searchInput','suggestions');
   return true;
 }
@@ -206,7 +209,7 @@ async function addW(id){
   watching=watching.filter(x=>x.imdbID!==id);
   planned =planned.filter(x=>x.imdbID!==id);
   watched.unshift({id:Date.now(),imdbID:id,title:m.Title,poster:ps(m.Poster),year:m.Year,type:m.Type,genre:m.Genre||'',country:m.Country||'',imdbUrl:`https://www.imdb.com/title/${id}/`,imdbRating:(m.imdbRating&&m.imdbRating!=='N/A')?m.imdbRating:null,...mv,customCategory:gc(m),rating:0,comment:'',addedAt:Date.now()});
-  saveAll();rWatched();rWatching();rPlanned();rDash();toast(`«${m.Title}» додано до переглянутих`,'ok');
+  saveAll();rWatched();rWatching();rPlanned();rDash();toast(`«${m.Title}» додано до переглянутих`,'ok',3400,id);
   return true;
 }
 /* Дивлюсь item that is a second viewing of something in Переглянуте: flagged by «Дивитись знову», or (older data)
@@ -238,6 +241,13 @@ async function addPl(id){
   saveAll();rPlanned();rDash();toast(`«${m.Title}» заплановано`,'ok');
   return true;
 }
+
+/* 1.51: a list search with no hit: not a dead end, the next step is to look for the title in the base and record it */
+function _lsEmpty(t){
+  const q=F[t].q;
+  return `<div class="empty"><span class="empty-icon">${ic('search')}</span><div class="empty-txt">${q?`У списку немає «${esc(q)}»`:'Нічого не знайдено за фільтром'}</div>${q?`<button class="w-btn gold empty-act" data-act="lsToBase" data-args="${A(q)}">${ic('search')}Шукати «${esc(q)}» у базі</button>`:''}</div>`;
+}
+function lsToBase(q){searchOpen();seRun(q);}
 
 /* ── PROGRESSIVE GRID ──
    826 watched cards rendered at once meant ~17k DOM nodes on every re-render
@@ -314,8 +324,20 @@ function _shelvesHtml(t,list,cardFn){
   const by={};list.forEach(i=>{const c=Object.hasOwn(VSHELF_L,i.customCategory||i.type)?(i.customCategory||i.type):'other';(by[c]??=[]).push(i);});
   return Object.keys(VSHELF_L).filter(c=>by[c]).map(c=>`<section class="shelf">
     <div class="shelf-h"><h2>${VSHELF_L[c]}</h2><span class="num">${by[c].length}</span>
-      ${by[c].length>VSHELF_N?`<button class="shelf-all" data-act="setCat" data-args="${A(`${t}`,`${c}`)}" aria-label="Усі ${by[c].length}">Усі <span aria-hidden="true">›</span></button>`:''}</div>
+      ${by[c].length>VSHELF_N?`<button class="shelf-all" data-act="shelfAll" data-args="${A(`${t}`,`${c}`)}" aria-label="Усі ${by[c].length}">Усі <span aria-hidden="true">›</span></button>`:''}</div>
     <div class="shelf-row">${by[c].slice(0,VSHELF_N).map(cardFn).join('')}</div></section>`).join('');
+}
+/* 1.51: «Усі ›» on a shelf = the whole category as a grid for this visit; Back (or the chip's ✕) returns to the shelves */
+function shelfAll(t,c){
+  const view=_views[t];
+  _views[t]='grid';setCat(t,c);
+  _shelfBack={t,view};_lyOpen('shelf',()=>_shelfRestore(t));
+}
+let _shelfBack=null;
+function _shelfRestore(t){
+  const b=_shelfBack;_shelfBack=null;if(!b||b.t!==t)return;
+  if(b.view===undefined)delete _views[t];else _views[t]=b.view;
+  F[t].cats=[];buildBar(t);buildTags(t);rerender(t);
 }
 function _gridSentinel(t,n){
   const st=_gridState[t];if(n>=st.list.length)return;
@@ -338,9 +360,10 @@ function openMenu(ev,items){
   const btn=ev.currentTarget;_menuBtn=btn;btn.setAttribute('aria-haspopup','menu');btn.setAttribute('aria-expanded','true');
   const m=document.createElement('div');m.className='ct-menu';m.setAttribute('role','menu');
   /* item = {icon,label,fn,args} (fn is a global function name, args go through data-args) or {icon,label,href} */
-  m.innerHTML=items.filter(Boolean).map(x=>x==='-'?'<hr>':x.href
+  /* {html} = a ready block (the person sort menu's view switch on top) */
+  m.innerHTML=items.filter(Boolean).map(x=>x==='-'?'<hr>':x.html?x.html:x.href
     ?`<a role="menuitem" href="${esc(safeUrl(x.href)||'#')}" target="_blank" rel="noopener" data-act="closeMenu">${ic(x.icon)}${x.label}</a>`
-    :`<button role="menuitem" class="${x.danger?'danger':''}" data-act="_menuRun" data-args="${A(x.fn,...(x.args||[]))}">${ic(x.icon)}${x.label}</button>`).join('');
+    :`<button role="menuitem" class="${x.danger?'danger':''}${x.cls?' '+x.cls:''}" data-act="_menuRun" data-args="${A(x.fn,...(x.args||[]))}">${ic(x.icon)}${x.label}</button>`).join('');
   document.body.appendChild(m);
   if(_cwMode)_cwSync(); /* Android: system Back closes the menu (ui.js _cwBack) */
   const r=btn.getBoundingClientRect();
@@ -359,7 +382,7 @@ function closeMenu(restore){
 /* the menu role comes with the keyboard model: ↑ ↓ Home End move between items, Esc closes, Tab leaves (and closes) */
 document.addEventListener('keydown',e=>{
   const m=e.target.closest?.('.ct-menu');if(!m)return;
-  const items=[...m.querySelectorAll('[role=menuitem]')],i=items.indexOf(document.activeElement);
+  const items=[...m.querySelectorAll('[role^=menuitem]')],i=items.indexOf(document.activeElement);
   const to=k=>{e.preventDefault();items[(k+items.length)%items.length]?.focus({preventScroll:true});};
   if(e.key==='ArrowDown')to(i+1);else if(e.key==='ArrowUp')to(i<0?items.length-1:i-1);
   else if(e.key==='Home')to(0);else if(e.key==='End')to(items.length-1);
@@ -471,7 +494,7 @@ function rWatched(){
   const list=applyF(watched,'watched');
   const cnt=document.getElementById('wCount');
   if(cnt)cnt.textContent=list.length!==watched.length?`${list.length} з ${watched.length} записів`:'';
-  if(!list.length){g.className='grid';if(!watched.length){g.className='';g.innerHTML=_onboard();return;}g.innerHTML=watched.length?`<div class="empty"><span class="empty-icon">${ic('search')}</span><div class="empty-txt">Нічого не знайдено за фільтром</div></div>`:`<div class="empty"><span class="empty-icon">${ic('film')}</span><div class="empty-txt">Тут з'являтимуться переглянуті фільми та серіали</div><button class="w-btn gold empty-act" data-act="openIO" data-args="[&quot;stCsv&quot;]">${ic('upload')}Імпортувати з IMDb / Letterboxd</button></div>`;return;}
+  if(!list.length){g.className='grid';if(!watched.length){g.className='';g.innerHTML=_onboard();return;}g.innerHTML=watched.length?_lsEmpty('watched'):`<div class="empty"><span class="empty-icon">${ic('film')}</span><div class="empty-txt">Тут з'являтимуться переглянуті фільми та серіали</div><button class="w-btn gold empty-act" data-act="openIO" data-args="[&quot;stCsv&quot;]">${ic('upload')}Імпортувати з IMDb / Letterboxd</button></div>`;return;}
   _gridRender('watched',g,list,i=>myCard('watched',i));
 }
 
@@ -526,17 +549,17 @@ async function obSaveKey(){
 function rPlanned(){
   const g=document.getElementById('plGrid');
   const list=applyF(planned,'planned');
-  if(!list.length){g.className='grid';g.innerHTML=planned.length?`<div class="empty"><span class="empty-icon">${ic('search')}</span><div class="empty-txt">Нічого не знайдено</div></div>`:(g.className='',`<div class="es"><span class="empty-icon">${ic('bookmark')}</span><b>Черга порожня</b><p>Бачиш цікавий фільм у пошуку, рекомендаціях чи франшизах — тисни «Запланувати», і він чекатиме тут.</p><button class="btn primary" data-act="searchOpen">${ic('search')}Знайти фільм</button></div>`);return;}
+  if(!list.length){g.className='grid';g.innerHTML=planned.length?_lsEmpty('planned'):(g.className='',`<div class="es"><span class="empty-icon">${ic('bookmark')}</span><b>Черга порожня</b><p>Бачиш цікавий фільм у пошуку, рекомендаціях чи франшизах — тисни «Запланувати», і він чекатиме тут.</p><button class="btn primary" data-act="searchOpen">${ic('search')}Знайти фільм</button></div>`);return;}
   _gridRender('planned',g,list,i=>myCard('planned',i));
 }
 
 /* tap on your rating (or the comment line) on a card: a bottom sheet like the «Дивлюсь» one (swipe down / Back closes it)
    with your mark and the whole comment; «Змінити» turns it into the editor */
-const _mnFocus={el:null};let _mnId=null;
+const _mnFocus={el:null};let _mnId=null,_mnToast=false; /* _mnToast: opened from the «Оцінити» toast, so «Зберегти» closes the sheet */
 /* edit=true: the same sheet turns into the editor (stars + comment), no second window */
-function myNote(id,edit){
+function myNote(id,edit,fromToast){
   const it=watched.find(i=>i.id===id);if(!it)return;
-  _mnId=id;
+  _mnId=id;if(fromToast!==undefined)_mnToast=!!fromToast;
   let R=document.getElementById('mnSheet');
   if(!R){R=document.createElement('div');R.id='mnSheet';R.className='mn-sh';document.body.appendChild(R);}
   const opening=!document.body.classList.contains('mn-on');
@@ -571,7 +594,7 @@ function _mnTags(it){
 function _mnTagsSync(){const it=watched.find(i=>i.id===_mnId),el=document.getElementById('mnTags');if(it&&el&&document.body.classList.contains('mn-on'))el.outerHTML=_mnTags(it);}
 function mnClose(){
   if(!document.body.classList.contains('mn-on'))return;
-  document.body.classList.remove('mn-on');const R=document.getElementById('mnSheet');if(R)R.innerHTML='';
+  _mnToast=false;document.body.classList.remove('mn-on');const R=document.getElementById('mnSheet');if(R)R.innerHTML='';
   _inertSync();_focusBack(_mnFocus);_lyDone('mn');
 }
 function mnEdit(){myNote(_mnId,true);}
@@ -582,7 +605,7 @@ function mnSave(){
   const it=watched.find(i=>i.id===_mnId);if(!it)return;
   it.rating=parseInt(document.getElementById('eR')?.value)||0;
   it.comment=(document.getElementById('eCm')?.value||'').trim();
-  saveAll();rWatched();myNote(_mnId,false);toast('Збережено','ok',1600);
+  saveAll();rWatched();toast('Збережено','ok',1600);if(_mnToast)mnClose();else myNote(_mnId,false);
 }
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('mn-on')){mnClose();e.stopImmediatePropagation();}}); /* only the sheet, not the card under it */
 

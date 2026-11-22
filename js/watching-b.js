@@ -42,7 +42,14 @@ function _wbInfo(i){
   const nd=ls.nextEpDate&&_wbDays(ls.nextEpDate)>=0?ls.nextEpDate:null;
   const fresh=ahead>0&&ls.lastAiredDate&&-_wbDays(ls.lastAiredDate)<=14;
   const state=!ser?'movie':fresh?'new':ahead>0?'go':'wait';
-  return {i,ls,demo,ser,s,e,se,las,lae,ahead,aired,seen,pct,slen,spct,nd,state,tot:i.totalSeasons||Object.keys(se).length||1};
+  /* the last activity: an episode marked (seenAt) or the release of your next episode — the «Є нові серії» order */
+  const act=Math.max(+i.seenAt||0,fresh?new Date(ls.lastAiredDate+'T00:00:00').getTime():0);
+  return {i,ls,demo,ser,s,e,se,las,lae,ahead,aired,seen,pct,slen,spct,nd,state,act,block:ser?_adjPlusBlock(i):'',tot:i.totalSeasons||Object.keys(se).length||1};
+}
+/* why «+» waits: shown under the counter and said on a tap */
+function _wbWhy(x){
+  if(x.nd)return `наступна серія ще не вийшла · ${_wbDow(x.nd)}, ${_wbDate(x.nd)}`;
+  return x.ls.isEnded?'усе переглянуто · серіал завершено':'наступна серія ще не вийшла';
 }
 const _wbEp=(s,e)=>`S${s}·E${e}`;
 function _wbBadge(x){
@@ -83,15 +90,11 @@ function _wbCard(x){
   return `<div class="wb-c" data-act="wbOpen" data-args="${A(i.id)}" role="button" tabindex="0"><img class="wb-cbg" src="${posterSrc(i.poster)}" alt=""><img class="wb-cp" src="${posterSrc(i.poster)}" alt="">
     <div class="wb-ci">${x.demo?'<i class="wb-demo">демо</i>':''}<b>${esc(tn(i))}</b>${l}</div></div>`;
 }
-const _WB_ORDER={new:0,go:2,wait:3,movie:4};
 function rWatching(skipLive){
   const c=document.getElementById('wnList');if(!c)return;
   const list=applyF(watching,'watching');
   const xs=list.map(_wbInfo);
   const fresh=xs.filter(x=>x.state==='new').sort((a,b)=>_wbDays(b.ls.lastAiredDate)-_wbDays(a.ls.lastAiredDate));
-  const soon=xs.filter(x=>x.state==='wait'&&x.nd&&_wbDays(x.nd)<=14).sort((a,b)=>_wbDays(a.nd)-_wbDays(b.nd));
-  const rank=x=>x.state==='wait'&&soon.includes(x)?1:_WB_ORDER[x.state];
-  const ordered=[...xs].sort((a,b)=>rank(a)-rank(b)||(a.state==='new'?_wbDays(b.ls.lastAiredDate)-_wbDays(a.ls.lastAiredDate):0));
   if(!list.length){c.innerHTML=watching.length?`<div class="empty"><span class="empty-icon">${ic('search')}</span><div class="empty-txt">Нічого не знайдено</div></div>`:`<div class="es"><span class="empty-icon">${ic('play')}</span><b>Що дивишся зараз?</b><p>Додай серіал — тут буде видно, на якій ти серії і коли вийде нова.</p><button class="btn primary" data-act="searchOpen">${ic('search')}Знайти серіал</button></div>`;return;}
   /* the strip on top: a selector of three groups; a group with nothing in it has no button, no groups — no strip */
   const groups=[['today','Сьогодні',fresh.filter(x=>_wbDays(x.ls.lastAiredDate)===0)],
@@ -110,20 +113,21 @@ function rWatching(skipLive){
   if(_wbCur)_wbSheetDraw();
 }
 /* fetchLive/_startLive call rDash after new air data: redraw the wall (without starting the fetches again) */
-/* the wall in shelves by air state: next date known / unknown / ended (+ films); unwatched episodes first inside each */
+/* 1.51: the wall in shelves by what you can do, not by what is known about the air dates:
+   episodes to watch (seasons behind and ended shows with a rest included) → waiting for a new one → all watched (ended) → films. «За ефіром» orders each shelf by itself; any other sort keeps its own order inside every shelf. */
 function _wbShelves(xs){
-  const back=x=>x.ahead>0?0:1,la=x=>x.ls.lastAiredDate||'';
-  if(F.watching.sort!=='air'){ /* another sort was chosen: keep its order inside every shelf */
-    const sh=[['Дата наступної серії відома',x=>x.ser&&!x.ls.isEnded&&x.nd],['Дата невідома',x=>x.ser&&!x.ls.isEnded&&!x.nd],['Серіал завершено',x=>x.ser&&x.ls.isEnded],['Фільми',x=>!x.ser]]
-      .map(([t,f])=>[t,xs.filter(f)]).filter(g=>g[1].length);
-    return sh.map(([t,a])=>`<div class="wb-h"><b>${t}</b><span>${a.length}</span></div><div class="wb-g${t==='Дата невідома'?' wb-nodate':''}">${a.map(_wbTile).join('')}</div>`).join('');
-  }
+  const la=x=>x.ls.lastAiredDate||'',byLa=(a,b)=>la(b)>la(a)?1:la(b)<la(a)?-1:0;
   const sh=[
-    ['Дата наступної серії відома',xs.filter(x=>x.ser&&!x.ls.isEnded&&x.nd).sort((a,b)=>_wbDays(a.nd)-_wbDays(b.nd))],
-    ['Дата невідома',xs.filter(x=>x.ser&&!x.ls.isEnded&&!x.nd).sort((a,b)=>back(a)-back(b)||(la(b)>la(a)?1:-1))],
-    ['Серіал завершено',xs.filter(x=>x.ser&&x.ls.isEnded).sort((a,b)=>back(a)-back(b)||b.ahead-a.ahead)],
-    ['Фільми',xs.filter(x=>!x.ser)]].filter(g=>g[1].length);
-  return sh.map(([t,a])=>`<div class="wb-h"><b>${t}</b><span>${a.length}</span></div><div class="wb-g${t==='Дата невідома'?' wb-nodate':''}">${a.map(_wbTile).join('')}</div>`).join('');
+    ['Є нові серії',xs.filter(x=>x.ser&&x.ahead>0)],
+    ['Чекаю нову серію',xs.filter(x=>x.ser&&x.ahead===0&&!x.ls.isEnded)],
+    ['Усе переглянуто',xs.filter(x=>x.ser&&x.ahead===0&&x.ls.isEnded)],
+    ['Фільми',xs.filter(x=>!x.ser)]];
+  if(F.watching.sort==='air'){
+    sh[0][1].sort((a,b)=>b.act-a.act||byLa(a,b)); /* marked lately / your next episode just out — first; then the freshest releases */
+    sh[1][1].sort((a,b)=>(a.nd?0:1)-(b.nd?0:1)||(a.nd&&b.nd?_wbDays(a.nd)-_wbDays(b.nd):0)||b.act-a.act||byLa(a,b)); /* nearest date first, unknown last */
+    sh[2][1].sort((a,b)=>b.act-a.act||byLa(a,b));
+  }
+  return sh.filter(g=>g[1].length).map(([t,a])=>`<div class="wb-h"><b>${t}</b><span>${a.length}</span></div><div class="wb-g">${a.map(_wbTile).join('')}</div>`).join('');
 }
 let _wbTop=null;
 function wbTopSet(k){_wbTop=k;rWatching(true);}
@@ -157,10 +161,12 @@ function _wbSheetDraw0(){
   if(!L)return;if(!i){wbClose();return;}
   const x=_wbInfo(i);
   const segs=x.ser?Array.from({length:x.tot},(_,k)=>{const n=k+1,len=x.se[n]||0;const f=n<x.s?100:n===x.s&&len?Math.min(100,Math.round(100*x.e/len)):0;return `<i title="Сезон ${n}"><u style="width:${f}%"></u></i>`;}).join(''):'';
+  /* 1.51: nothing out yet — «+» is a quiet button and the line under the number says why (a tap repeats it) */
+  const why=x.block?_wbWhy(x):'',sub=why||`сезон ${x.s} з ${x.tot}${x.se[x.s]?` · серія ${x.e} з ${x.se[x.s]}`:''}`;
   const counter=x.ser?`<div class="wb-cnt">
       <button class="wb-sq" data-act="wbAdj" data-args="${A(i.id,-1)}" aria-label="Мінус серія">${ic('minus')}</button>
-      <div class="wb-cv"><b>${_wbEp(x.s,x.e)}</b><span>сезон ${x.s} з ${x.tot}${x.se[x.s]?` · серія ${x.e} з ${x.se[x.s]}`:''}</span></div>
-      <button class="wb-sq p" data-act="wbAdj" data-args="${A(i.id,1)}" aria-label="Плюс серія">${ic('plus')}</button></div>
+      <div class="wb-cv"><b>${_wbEp(x.s,x.e)}</b><span id="wbCvSub">${sub}</span></div>
+      <button class="wb-sq${why?' off':' p'}" data-act="wbAdj" data-args="${A(i.id,1)}" aria-label="Плюс серія" aria-describedby="wbCvSub"${why?' aria-disabled="true"':''}>${ic('plus')}</button></div>
     <div class="wb-prog"><div class="wb-bar"><i style="width:${x.spct}%"></i></div><div class="wb-pl"><span>Сезон ${x.s}${x.slen?` · ${x.e} з ${x.slen} серій${x.s===x.las&&!x.ls.isEnded?', що вийшли':''}`:''}</span><span>${x.slen?x.spct+'%':''}</span></div>
       ${x.tot>1&&x.tot<=40?`<div class="wb-segs" style="--n:${x.tot}">${segs}</div>`:''}
       ${x.tot>1?`<div class="wb-pl"><span>Весь серіал${x.aired?` · ${x.seen} з ${x.aired} серій, що вийшли`:''}</span><span>${x.pct}%</span></div>`:''}</div>`:'';
@@ -183,6 +189,12 @@ const _wbAdj0=adj;adj=function(...a){_wbAdj0(...a);rWatching(true);};
 /* a redraw of the wall (air data arrived, ±) must not drop the keyboard focus from the tile that has it */
 const _rWatching0=rWatching;
 rWatching=function(...a){const c=document.getElementById('wnList');if(c)_keepFocus(c,()=>_rWatching0(...a));else _rWatching0(...a);};
-function wbAdj(id,d){adj(id,'e',d);}
+function wbAdj(id,d){
+  const it=watching.find(w=>w.id===id);
+  if(it&&it.type==='series'){
+    if(d>0&&_adjPlusBlock(it)){toast(_wbWhy(_wbInfo(it)).replace(/^./,c=>c.toUpperCase()),'',2400);return;} /* the reason, not an error */
+  }
+  adj(id,'e',d);
+}
 function wbDone(id){wbClose();mvToW(id);}
 function wbCard(imdbID){openTitle(imdbID);} /* the card opens over the sheet; closing it shows the sheet again */

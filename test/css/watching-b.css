@@ -139,9 +139,6 @@ body.wb-on .wb-sh{display:block;position:fixed;inset:0;z-index:520;}
 .wb-sq.p{background:var(--gold);border-color:var(--gold);color:var(--gold-ink);}
 @media(hover:hover){.wb-b:hover,.wb-tgb:hover,.wb-sq:hover{border-color:var(--border-3);}.wb-sq.p:hover{background:var(--gold-2);border-color:var(--gold-2);}}
 
-/* 1.51: «Не почато» in place of S·E (poster and sheet), a touch smaller so it fits the same line */
-.wb-pos.z b{font-size:20px;letter-spacing:0;}
-.wb-cv b.z{font-size:26px;letter-spacing:0;}
 .wb-cv span{line-height:1.35;}
 /* nothing to count yet: a quiet button, the line under the number says why */
 .wb-sq.off{background:none;border-color:var(--line);color:var(--muted);}

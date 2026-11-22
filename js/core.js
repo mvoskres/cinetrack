@@ -200,10 +200,13 @@ function buildBar(t){
       <input class="local-search" type="text" placeholder="Знайти в списку" aria-label="Пошук у списку" value="${esc(f.q||'')}" data-input="lsearch" data-args="${A(`${t}`,'$value')}"><button type="button" class="ls-x" data-act="lsClear" data-args="[&quot;$el&quot;]" aria-label="Очистити пошук" title="Очистити">${ic('x')}</button>
     </div>
     <button id="fbtn-${t}" class="flt-pill fbtn${n?' has-n':''}${open?' active':''}" aria-haspopup="dialog" aria-expanded="${open}" data-act="togglePan" data-args="${A(`${t}`)}">${ic('filter')}Фільтри${n?` <span class="flt-n">${n}</span>`:''}</button>
-    <select class="sort-sel fbar-sort" aria-label="Сортування" data-change="doSort" data-args="${A(`${t}`,'$value')}">
+    ${_sortCtl(`<select class="sort-sel fbar-sort" aria-label="Сортування" data-change="doSort" data-args="${A(`${t}`,'$value')}">
       ${opts.map(([v,l])=>`<option value="${v}"${f.sort===v?' selected':''}>${l}</option>`).join('')}
-    </select>`;
+    </select>`,opts,f.sort)}`;
 }
+/* 1.51: on a phone the sort is a bare ⇅; the wrapper prints the current one under it in a word (CSS ≤700px, hidden elsewhere) */
+const _SORT_SHORT={'Оцінка ↓':'Моя ↓','За ефіром':'Ефір','Найближчі до завершення':'Ближчі','Найбільше переглянуто':'Більше','Найближча прем\'єра':'Прем\'єра','За роком':'Рік','Найвідоміші':'Топ','За рейтингом':'Рейтинг'};
+function _sortCtl(selHtml,opts,cur){const l=(opts.find(([v])=>v===cur)||opts[0])[1];return `<span class="sort-w" data-cur="${esc(_SORT_SHORT[l]||l)}">${selHtml}</span>`;}
 function setCat(t,c){F[t].cats=c?[c]:[];buildBar(t);buildTags(t);rerender(t);}
 let _lsT;
 function lsearch(t,v){F[t].q=v.trim();clearTimeout(_lsT);_lsT=setTimeout(()=>rerender(t),150);}
@@ -391,7 +394,8 @@ function sort(l,s){
   }
 }
 function fg(i){return(i.genre||'').split(',')[0].trim()||'Я';}
-function rerender(t){if(t in _gridShown)_gridShown[t]=GRID_PAGE;if(t==='watched')rWatched();if(t==='watching')rWatching();if(t==='planned')rPlanned();}
+function rerender(t){if(typeof _shelfBack!=='undefined'&&_shelfBack?.t===t&&!F[t].cats.length){_shelfBack=null;_lyDone('shelf');} /* the category chip was removed: that is the way back */
+  if(t in _gridShown)_gridShown[t]=GRID_PAGE;if(t==='watched')rWatched();if(t==='watching')rWatching();if(t==='planned')rPlanned();}
 
 /* ── TWO TABS, ONE STORE ──
    save() writes whole lists, so a tab that had been open for a while used to overwrite what another tab

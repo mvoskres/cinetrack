@@ -8,9 +8,6 @@ function goTab(id,btn){
   document.querySelectorAll('[id^="tab-"]').forEach(t=>t.classList.add('hidden'));
   document.getElementById('tab-'+id).classList.remove('hidden');
   document.querySelectorAll('[data-tab]').forEach(b=>{const o=b.dataset.tab===id;b.classList.toggle('on',o);if(o)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
-  /* ≤1100 the five pages fold into «Ще»: when one of them is open the button names it */
-  const more=document.querySelector('.dk-more'),cur=document.querySelector(`.dk-drop [data-tab="${id}"]`);
-  if(more){more.textContent=cur?cur.textContent+' ▾':'Ще';more.classList.toggle('on',!!cur);}
   if(id==='stats')loadStats();
   if(id==='recs')openRecs();
   if(id==='watching')rWatching(); /* rWatching already starts the live fetches */
@@ -230,7 +227,7 @@ async function addWn(id){
   /* watched stays: rewatch is supported (a title may sit in watched + watching); only planned is "consumed" */
   const mv=_mvFields(id,m,[planned,watched]);
   planned =planned.filter(x=>x.imdbID!==id);
-  watching.unshift({id:Date.now(),imdbID:id,title:m.Title,poster:ps(m.Poster),year:m.Year,type:m.Type,genre:m.Genre||'',country:m.Country||'',imdbUrl:`https://www.imdb.com/title/${id}/`,imdbRating:(m.imdbRating&&m.imdbRating!=='N/A')?m.imdbRating:null,...mv,customCategory:gc(m),season:1,episode:0,totalSeasons:parseInt(m.totalSeasons)||1,addedAt:Date.now()}); /* 1.51: episode = the last watched one, 0 = not started */
+  watching.unshift({id:Date.now(),imdbID:id,title:m.Title,poster:ps(m.Poster),year:m.Year,type:m.Type,genre:m.Genre||'',country:m.Country||'',imdbUrl:`https://www.imdb.com/title/${id}/`,imdbRating:(m.imdbRating&&m.imdbRating!=='N/A')?m.imdbRating:null,...mv,customCategory:gc(m),season:1,episode:1,totalSeasons:parseInt(m.totalSeasons)||1,addedAt:Date.now()});
   saveAll();rWatched();rWatching();rPlanned();rDash();toast(`«${m.Title}» додано до "Дивлюсь"`,'ok');
   return true;
 }

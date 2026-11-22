@@ -119,6 +119,7 @@ body.wb-on .wb-sh{display:block;position:fixed;inset:0;z-index:520;}
 .wb-tseg .wb-tn{margin-left:6px;font:600 .75em var(--sans);opacity:.65;}
 @media(min-width:701px){.wb-sel{display:none!important;}}
 @media(max-width:700px){.wb-tseg{display:none!important;}}
+.wb-tseg[hidden]{display:none!important;} /* 1.51: none of your shows has a fresh or coming episode — no switch (.seg's display left an empty pill) */
 .wb-g+.wb-h{margin-top:30px;}
 /* phone: lower — the count and the word side by side */
 @media(max-width:700px){
@@ -127,7 +128,6 @@ body.wb-on .wb-sh{display:block;position:fixed;inset:0;z-index:520;}
   .wb-sel button span{font:700 17px/1 var(--serif);}
 }
 
-.wb-nodate .wb-run small{display:none;} /* the shelf title already says the date is unknown */
 /* the same hover as the other lists: hairline turns amber, the poster grows a touch */
 .wb-pp{border:1px solid var(--line);transition:border-color .18s ease;}
 .wb-pp img{transition:transform .35s ease;}
@@ -138,3 +138,12 @@ body.wb-on .wb-sh{display:block;position:fixed;inset:0;z-index:520;}
 .wb-b,.wb-tgb{border-radius:10px;}.wb-sq{border-radius:12px;}
 .wb-sq.p{background:var(--gold);border-color:var(--gold);color:var(--gold-ink);}
 @media(hover:hover){.wb-b:hover,.wb-tgb:hover,.wb-sq:hover{border-color:var(--border-3);}.wb-sq.p:hover{background:var(--gold-2);border-color:var(--gold-2);}}
+
+.wb-cv span{line-height:1.35;}
+/* nothing to count yet: a quiet button, the line under the number says why */
+.wb-sq.off{background:none;border-color:var(--line);color:var(--muted);}
+@media(hover:hover){.wb-sq.off:hover{border-color:var(--line);}}
+/* press feedback: every tap on ± and the sheet buttons visibly lands */
+.wb-sq,.wb-b{transition:border-color .15s ease,background .15s ease,transform .14s cubic-bezier(.23,1,.32,1);}
+.wb-sq:active,.wb-b:active{transform:scale(.97);}
+@media(prefers-reduced-motion:reduce){.wb-sq,.wb-b{transition:border-color .15s ease,background .15s ease;}}

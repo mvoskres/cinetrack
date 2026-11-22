@@ -286,6 +286,28 @@ def _person_srch(c):
     c.close_top(); c.wait("!document.body.classList.contains('srch-on')", 3, 'пошук закрився'); _sane(c, base)
 
 
+@scenario('person/sort-menu', modes=('android', 'desktop'))
+def _person_sort_menu(c):
+    c.eval("goTab('watched');searchOpen();document.getElementById('searchInput').value='pitt'")
+    c.wait("document.body.classList.contains('srch-on')", 3, 'пошук')
+    c.eval("_sugPerson(18897,'Jackie Chan','')")
+    c.wait("!!(document.querySelector('#personBar .pk-sortb')&&document.querySelector('#personList .pk-dec'))", 6, 'фільмографія')
+    c.assert_(c.eval("!document.querySelector('#personList .pk-flat')"), 'за замовчуванням не десятиліттями')
+    c.eval("scrollTo(0,document.querySelector('#personBar').getBoundingClientRect().top+scrollY-80)"); c.sleep(0.4)
+    c.eval("document.querySelector('#personBar .pk-sortb').click()")
+    c.wait("document.querySelector('.ct-menu .ct-seg button.on')?.textContent==='Десятиліття'", 3, 'меню з перемикачем «Десятиліття»')
+    c.snap('menu')
+    c.eval("[...document.querySelectorAll('.ct-menu .ct-seg button')].find(b=>b.textContent==='Список').click()")
+    c.wait("!!document.querySelector('#personList .pk-flat')", 3, '«Список» — одна стрічка')
+    c.assert_(c.eval("!!document.querySelector('.ct-menu')&&_viewDef.person==='list'"), 'меню закрилось або вигляд не запамʼятався')
+    c.snap('list')
+    c.eval("[...document.querySelectorAll('.ct-menu [role=menuitem]')].find(b=>b.textContent.includes('Найвідоміші')).click()")
+    c.wait("!document.querySelector('.ct-menu')&&_personFilter.sort==='popular'&&document.querySelector('#personList .pk-flat b')?.textContent==='Найвідоміші'", 3, 'порядок «Найвідоміші» у списку')
+    c.eval("personSetView('decades')")
+    c.wait("document.querySelectorAll('#personList .pk-dec').length>1&&!document.querySelector('#personList .pk-flat')&&!('person' in _viewDef)", 3, 'назад до десятиліть')
+    c.snap('decades-popular')
+
+
 @scenario('person/back-to-stats', modes=('android',))
 def _person_stats(c):
     c.eval("goTab('stats')"); c.sleep(0.3)

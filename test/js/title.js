@@ -332,12 +332,8 @@ function _tsRender(){
    For a show in Дивлюсь a click on an episode puts the progress there. */
 const _tsSeasonCache={};
 function _tsWatching(){const o=_tsCur&&_tsOwned(_tsCur.data.imdbID);return o?.list==='watching'?o.item:null;}
-/* 1.51: the counter is the LAST WATCHED episode (as on the Дивлюсь wall and sheet); this is the one after it.
-   Season lengths from TVmaze, else from TMDB; a finished season moves on to the next one when TMDB lists it */
-function _tsNext(d,w){
-  const s=+w.season||1,e=+w.episode||0,len=+w.seasonEps?.[s]||+d.seasons.find(x=>x.n===s)?.eps||0;
-  return len&&e>=len&&d.seasons.some(x=>x.n===s+1)?{s:s+1,e:1}:{s,e:e+1};
-}
+/* the episode you are on (the counter, as in 1.50): it carries «далі», the ones before it ✓ */
+function _tsNext(d,w){return {s:+w.season||1,e:+w.episode||1};}
 function _tsSeasonChips(d){
   const w=_tsOwned(d.imdbID),it=w?.item,open=_tsCur?.data===d?_tsCur.season:0;
   const nx=w?.list==='watching'?_tsNext(d,it):null; /* the season of your next episode is «cur», the ones before it are done */
@@ -362,10 +358,10 @@ async function _tsSeason(n){
 function _tsEpsRender(){
   const d=_tsCur.data,n=_tsCur.season,eps=_tsSeasonCache[`${d.id}:${n}`],box=document.getElementById('tsEps');if(!eps||!box)return;
   const w=_tsWatching(),own=_tsOwned(d.imdbID),today=_todayISO(),nx=w&&_tsNext(d,w);
-  /* 1.51: ✓ on every episode up to the counter (the last watched one), «далі» on the next; a tap marks that episode as the last watched */
-  box.innerHTML=`${w?'<p class="ts-note">Натисни останню переглянуту серію</p>':own?'':'<p class="ts-note">Додай серіал у «Дивлюсь», щоб відмічати серії</p>'}
+  /* 1.51: ✓ on every episode before the counter, «далі» on the counter's own (it read «ти тут») */
+  box.innerHTML=`${w?'<p class="ts-note">Натисни на серію, на якій ти зараз</p>':own?'':'<p class="ts-note">Додай серіал у «Дивлюсь», щоб відмічати серії</p>'}
     <ol class="ts-eps">${eps.map(ep=>{
-      const st=own?.list==='watched'||w&&(n<w.season||n===w.season&&ep.e<=w.episode)?'done':nx&&n===nx.s&&ep.e===nx.e?'cur':'';
+      const st=own?.list==='watched'||w&&(n<w.season||n===w.season&&ep.e<w.episode)?'done':nx&&n===nx.s&&ep.e===nx.e?'cur':'';
       const soon=ep.date&&ep.date>today;
       return `<li><button class="ts-ep ${st}${soon?' soon':''}"${w&&!soon?` data-act="_tsSetEp" data-args="${A(n,ep.e)}"`:' disabled'}${ep.ov?` title="${esc(ep.ov.slice(0,300))}"`:''}>
         <span class="ts-ep-n">${String(ep.e).padStart(2,'0')}</span>
@@ -374,7 +370,7 @@ function _tsEpsRender(){
 }
 function _tsSetEp(sn,ep){
   const it=_tsWatching();if(!it)return;
-  it.season=sn;it.episode=ep; /* the tapped episode = the last watched one: «+» on the wall goes on from the next */
+  it.season=sn;it.episode=ep;
   if(_tsCur.data.seasons.length>(it.totalSeasons||1))it.totalSeasons=_tsCur.data.seasons.length;
   it.seenAt=Date.now(); /* 1.51: the wall puts the shows marked lately first */
   save();
@@ -382,7 +378,7 @@ function _tsSetEp(sn,ep){
   if(c){c.querySelector('.ep-v').textContent=_epLabel(it);c.querySelector('.ep-of').textContent=`сезон ${it.season} з ${it.totalSeasons||1}`;
     const bar=c.querySelector('.tr-bar i');if(bar)bar.style.width=_seasonPct(it)+'%';}
   _tsRefreshActions();
-  toast(`Остання переглянута: ${_epLabel(it)}`,'ok',1800);
+  toast(`Прогрес: ${_epLabel(it)}`,'ok',1800);
 }
 /* ── SIMILAR ── each with its list status. The TMDB ids of your titles are known only for those
    already looked up somewhere, so the rest are filled in once per session and the row redrawn */
